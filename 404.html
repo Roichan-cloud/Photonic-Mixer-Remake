@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pothonic Lighting - Version Expired</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Segoe UI, Arial, sans-serif;
+}
+
+body{
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:linear-gradient(135deg,#050816,#0d1228,#111827);
+    color:white;
+    overflow:hidden;
+}
+
+.bg{
+    position:fixed;
+    inset:0;
+    overflow:hidden;
+}
+
+.circle{
+    position:absolute;
+    border-radius:50%;
+    background:rgba(0,255,255,.08);
+    filter:blur(10px);
+    animation:float 10s infinite ease-in-out;
+}
+
+.circle:nth-child(1){
+    width:250px;
+    height:250px;
+    top:10%;
+    left:5%;
+}
+
+.circle:nth-child(2){
+    width:180px;
+    height:180px;
+    bottom:10%;
+    right:10%;
+    animation-delay:2s;
+}
+
+.circle:nth-child(3){
+    width:120px;
+    height:120px;
+    top:60%;
+    left:25%;
+    animation-delay:4s;
+}
+
+@keyframes float{
+    0%,100%{
+        transform:translateY(0px);
+    }
+    50%{
+        transform:translateY(-30px);
+    }
+}
+
+.container{
+    position:relative;
+    z-index:2;
+    max-width:750px;
+    width:90%;
+    text-align:center;
+    padding:40px;
+    background:rgba(255,255,255,0.03);
+    backdrop-filter:blur(10px);
+    border:1px solid rgba(255,255,255,0.08);
+    border-radius:24px;
+}
+
+.error{
+    font-size:110px;
+    font-weight:900;
+    color:#00ffff;
+    text-shadow:
+        0 0 10px #00ffff,
+        0 0 20px #00ffff,
+        0 0 40px #00ffff;
+    margin-bottom:10px;
+}
+
+.title{
+    font-size:32px;
+    font-weight:700;
+    margin-bottom:15px;
+}
+
+.desc{
+    font-size:18px;
+    line-height:1.7;
+    color:#cbd5e1;
+    margin-bottom:30px;
+}
+
+.warning{
+    display:inline-block;
+    padding:10px 18px;
+    background:rgba(255,170,0,.12);
+    border:1px solid rgba(255,170,0,.3);
+    border-radius:999px;
+    color:#ffd166;
+    margin-bottom:25px;
+}
+
+.buttons{
+    display:flex;
+    justify-content:center;
+    gap:15px;
+    flex-wrap:wrap;
+}
+
+.btn{
+    text-decoration:none;
+    padding:14px 26px;
+    border-radius:12px;
+    font-weight:600;
+    transition:.3s;
+}
+
+.home{
+    background:#1e293b;
+    color:white;
+}
+
+.home:hover{
+    background:#334155;
+    transform:translateY(-3px);
+}
+
+.latest{
+    background:#00ffff;
+    color:black;
+    box-shadow:0 0 20px rgba(0,255,255,.4);
+}
+
+.latest:hover{
+    transform:translateY(-3px);
+    box-shadow:0 0 35px rgba(0,255,255,.8);
+}
+
+.beta{
+    background:#a855f7;
+    color:white;
+    box-shadow:0 0 20px rgba(168,85,247,.4);
+}
+
+.beta:hover{
+    transform:translateY(-3px);
+    box-shadow:0 0 35px rgba(168,85,247,.8);
+}
+
+.footer{
+    margin-top:25px;
+    color:#64748b;
+    font-size:14px;
+}
+
+.pulse{
+    animation:pulse 2s infinite;
+}
+
+@keyframes pulse{
+    0%,100%{
+        opacity:1;
+    }
+    50%{
+        opacity:.7;
+    }
+}
+</style>
+</head>
+<body>
+
+<div class="bg">
+    <div class="circle"></div>
+    <div class="circle"></div>
+    <div class="circle"></div>
+</div>
+
+<div class="container">
+
+    <div class="error pulse">404</div>
+
+    <div class="warning">
+        ⚠ Versi Tidak Didukung Lagi
+    </div>
+
+    <div class="title">
+        Versi Pothonic Lighting Sudah Kadaluarsa
+    </div>
+
+    <div class="desc">
+        Halaman atau versi yang Anda akses sudah tidak lagi didukung.
+        Untuk mendapatkan fitur terbaru, peningkatan performa,
+        dan perbaikan bug, silakan beralih ke versi terbaru atau
+        mencoba versi beta yang sedang dikembangkan.
+    </div>
+
+    <div class="buttons">
+        <a href="/Pothonic-Mixer-Remake" class="btn home">
+            🏠 Home
+        </a>
+
+        <a href="https://example.com/latest" class="btn latest">
+            🚀 Pergi Ke Versi Terbaru
+        </a>
+
+        <a href="https://example.com/beta" class="btn beta">
+            🧪 Pergi Ke Versi Beta
+        </a>
+    </div>
+
+    <div class="footer">
+        Pothonic Lighting • Version Expired Page
+    </div>
+
+</div>
+
+</body>
+</html>
