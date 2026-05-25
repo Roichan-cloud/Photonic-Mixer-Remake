@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Photonic Mixer Pro v6.7 - BY IAN STUDIO LOCALIZE</title>
+    <title>Photonic Mixer Pro v6.3 - BY IAN STUDIO LOCALIZE</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
         body { margin: 0; overflow: hidden; background-color: #000; font-family: 'Segoe UI', sans-serif; color: #0ff; }
         #viewport { width: 100%; height: 32vh; background: radial-gradient(circle at top, #2e2e2e 0%, #1a1a1a 100%); position: relative; touch-action: auto; flex-shrink: 0; }
-        #mixer { width: 100%; height: calc(100vh - 32vh - 28px); background: #111; border-top: 3px solid #444; display: flex; flex-direction: column; box-sizing: border-box; padding: 5px; overflow-y: scroll; overflow-x: clip; -webkit-overflow-scrolling: touch; }
+        #mixer { width: 100%; flex: 1 1 0; min-height: 0; background: #111; border-top: 3px solid #444; display: flex; flex-direction: column; box-sizing: border-box; padding: 5px; overflow-y: scroll; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
         #app-root { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
         
         .top-bar { height: 45px; background: #000; border-bottom: 2px solid #333; display: flex; align-items: center; padding: 0 5px; gap: 8px; flex-shrink: 0; overflow: hidden; }
@@ -44,7 +44,7 @@
 
         .chase-grid { display: flex; gap: 5px; flex: 1; min-width: 0; overflow-x: auto; padding: 0 5px; touch-action: pan-x; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
         .chase-grid::-webkit-scrollbar { display: none; }
-        .chase-btn { min-width: 50px; height: 32px; background: #222; border: 2px solid #444; color: #0ff; border-radius: 4px; font-size: 8px; cursor: pointer; flex-shrink: 0; position: relative; }
+        .chase-btn { width: 100%; min-width: 50px; height: 32px; background: #222; border: 2px solid #444; color: #0ff; border-radius: 4px; font-size: 8px; cursor: pointer; flex-shrink: 0; position: relative; }
         .chase-btn.filled { border-color: #0f0; color: #0f0; }
         .chase-btn.active { background: #044; border-color: #0ff; box-shadow: 0 0 10px #0ff; }
         
@@ -163,8 +163,7 @@
         #btn-beat-sync.active { background: #0ff; color: #000; border-color: #fff; }
 
         /* BACKGROUND STAGE SELECTOR */
-        .bg-stage-bar { display: flex; align-items: center; gap: 5px; background: #050505; border-bottom: 1px solid #222; padding: 3px 5px; flex-shrink: 0; overflow-x: auto; }
-        .bg-stage-bar label { font-size: 8px; color: #888; white-space: nowrap; }
+        .bg-stage-bar { display: flex; align-items: center; gap: 5px; background: #050505; border-bottom: 1px solid #222; padding: 3px 5px; flex-shrink: 0; overflow-x: auto; }        .bg-stage-bar label { font-size: 8px; color: #888; white-space: nowrap; }
         .btn-bg { min-width: 52px; height: 24px; font-size: 8px; border-radius: 3px; border: 1px solid #333; color: #aaa; background: #111; cursor: pointer; white-space: nowrap; }
         .btn-bg.active { border-color: #0ff; color: #0ff; background: #011; }
 
@@ -179,13 +178,16 @@
         .chase-slot-spd span { font-size: 7px; color: #444; white-space: nowrap; }
         .chase-slot-spd input[type=range] { width: 44px; height: 3px; appearance: none; background: #333; border-radius: 2px; outline: none; touch-action: none; }
         .chase-slot-spd input[type=range]::-webkit-slider-thumb { appearance: none; width: 8px; height: 8px; background: #0ff; border-radius: 50%; }
+
+        /* Chase slot speed slider thumb (inline) */
+        #chase-slots input[type=range]::-webkit-slider-thumb { appearance: none; width: 10px; height: 10px; background: #0ff; border-radius: 50%; border: 1px solid #088; }
     </style>
 </head>
 <body>
 <div id="app-root">
 
 <div id="viewport">
-    <div id="display">PHOTONIC MIXER PRO v6.7</div>
+    <div id="display">PHOTONIC MIXER PRO v6.3</div>
     <div id="status-msg"></div>
 </div>
 <button id="btn-drag-toggle" onclick="toggleDragMode()" style="position:fixed; top:10px; left:10px; z-index:200;">🖱 DRAG: OFF</button>
@@ -253,11 +255,6 @@
         <input type="file" id="project-loader" accept=".json" onchange="loadProject(this)">
     </div>
 
-    <!-- CHASE SPEED PER SLOT -->
-    <div class="chase-spd-row" id="chase-spd-row">
-        <label>CHASE SPD:</label>
-    </div>
-
     <div class="frame-manager" id="mover-frame-manager" style="display:none;">
         <div class="frame-label"><span>CHASE FRAME MANAGER</span><span id="chase-name-display">CHASE 1</span></div>
         <div class="frame-list" id="mover-frames"></div>
@@ -293,6 +290,25 @@
             <button id="btn-freeze" onclick="toggleFreeze()" style="background:#001433; color:#00aaff; border:1px solid #0055aa; font-size:9px; padding:8px 2px; border-radius:4px; cursor:pointer; font-weight:bold; text-align:center;">❄ FREEZE</button>
             <button id="btn-blackout" onclick="toggleBlackout()">⬛ BO</button>
             <button id="sel-minibrute" onclick="toggleMinibruteSelection()">SELECT MB</button>
+
+            <!-- SKY TIME -->
+            <div class="section-label" style="margin-top:8px;">🕐 SKY TIME</div>
+            <div style="display:flex; flex-direction:column; gap:4px;">
+                <input type="number" id="sky-hour-input" min="1" max="23" placeholder="1-23"
+                    style="width:100%; box-sizing:border-box; background:#111; color:#0ff; border:1px solid #333; border-radius:4px; padding:5px 4px; font-size:11px; text-align:center; font-family:inherit;"
+                    onkeydown="if(event.key==='Enter') applySkyTime()">
+                <button id="btn-realtime-sky" onclick="toggleRealtimeSky()"
+                    style="width:100%; background:#011; color:#0ff; border:1px solid #044; border-radius:4px; padding:5px 2px; font-size:8px; cursor:pointer; font-weight:bold;">⏱ REALTIME: OFF</button>
+                <button onclick="applySkyTime()"
+                    style="width:100%; background:#012; color:#0ff; border:1px solid #044; border-radius:4px; padding:6px 2px; font-size:9px; cursor:pointer; font-weight:bold;">✓ APPLY</button>
+                <button onclick="resetSkyTime()"
+                    style="width:100%; background:#111; color:#555; border:1px solid #333; border-radius:4px; padding:4px 2px; font-size:8px; cursor:pointer;">↺ RESET</button>
+                <span id="sky-time-label" style="font-size:8px; color:#666; text-align:center;">DEFAULT</span>
+                <!-- SHADOW TOGGLE -->
+                <div class="section-label" style="margin-top:6px;">☁ SKY OBJECTS</div>
+                <button id="btn-shadow-toggle" onclick="toggleShadow()"
+                    style="width:100%; background:#110800; color:#f90; border:1px solid #630; border-radius:4px; padding:5px 2px; font-size:8px; cursor:pointer; font-weight:bold;">💡 SHADOW: OFF</button>
+            </div>
         </div>
         
         <div class="panel-faders">
@@ -373,6 +389,7 @@
                     <button class="audio-btn" style="background:#222; border-color:#fff; color:#fff;" onclick="changeTrussCount(-1)">- RIG</button>
                     <span id="truss-qty-val" style="font-size: 11px; font-weight: bold; color: #0ff; width: 30px; text-align: center;">2</span>
                     <button class="audio-btn" style="background:#222; border-color:#fff; color:#fff;" onclick="changeTrussCount(1)">+ RIG</button>
+                    <button class="audio-btn" style="background:#200; border-color:#f55; color:#f55;" onclick="resetRigging()">↺ RESET RIG</button>
                     <div style="display:flex; gap: 4px; overflow-x: auto; flex: 1; padding: 2px 0;" id="truss-select-list"></div>
                 </div>
                 <div class="sliders-h-row">
@@ -444,7 +461,7 @@
                 <div style="text-align:center; line-height:1.5;">
                     <div style="font-size:7px; color:#555; letter-spacing:1px; text-transform:uppercase;">Remake By</div>
                     <div style="font-size:11px; color:#0ff; font-weight:bold; letter-spacing:2px;">IAN STUDIO LOCALIZE</div>
-                    <div style="font-size:7px; color:#333; margin-top:2px;">Photonic Mixer Pro v6.7</div>
+                    <div style="font-size:7px; color:#333; margin-top:2px;">Photonic Mixer Pro v6.3</div>
                 </div>
             </div>
         </div>
@@ -511,6 +528,9 @@
     // ── NEW FEATURE: Master Dimmer
     let masterDimLevel = 1.0;
 
+    // ── Freeze snapshot
+    let freezeSnapshot = null; // array of per-lamp frozen cur* values
+
     // ── NEW FEATURE: Beat Detection
     let isBeatSync = false;
     let beatAnalyzer = null, beatDataArray = null;
@@ -522,6 +542,9 @@
     // ── NEW FEATURE: Background Stage
     let currentBgStage = 'default';
     let stageObjects = []; // extra 3D objects for stage themes
+    let skyTimeActive = false;   // true jika user sudah set jam manual
+    let isRealtimeSky = false;   // true jika follow real-time clock
+    let realtimeSkyInterval = null;
 
     // ── NEW FEATURE: Drag Mode (viewport camera drag toggle)
     let isDragMode = false;
@@ -531,6 +554,12 @@
 
     // ── NEW FEATURE: Chase Speed Per Slot
     let chaseSlotSpeeds = Array.from({length: 12}, () => 1.0);
+
+    // ── SKY OBJECTS: Sun, Moon, Clouds, Stars, Shadow
+    let sunMesh = null, moonMesh = null, sunLight = null;
+    let cloudMeshes = [], starMesh = null;
+    let isShadowOn = false;
+    let skyObjectsInitialized = false;
 
     function createCheckerTexture() {
         const canvas = document.createElement('canvas');
@@ -557,6 +586,8 @@
         renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(v.clientWidth, v.clientHeight);
         renderer.setClearColor(0x1a1a1a, 1);
+        renderer.shadowMap.enabled = false; // off by default, toggle via button
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         v.appendChild(renderer.domElement);
 
         window.addEventListener('resize', () => {
@@ -571,7 +602,9 @@
             new THREE.PlaneGeometry(2000, 2000),
             new THREE.MeshStandardMaterial({ map: floorTexture, roughness: 0.85, metalness: 0.1 })
         );
-        floor.rotation.x = -Math.PI / 2; floor.position.y = -10; scene.add(floor);
+        floor.rotation.x = -Math.PI / 2; floor.position.y = -10;
+        floor.receiveShadow = true;
+        scene.add(floor);
         scene.add(new THREE.AmbientLight(0xffffff, 0.22));
 
         spawnBeams(fixCount);
@@ -585,8 +618,7 @@
         renderColorSteps();
 
         colorStepRenderInterval = setInterval(() => { renderColorSteps(); }, 200);
-        updateButtons(); // sync tombol mode/gobo dengan state awal
-        renderChaseSpdRow(); // Chase speed per slot
+        updateButtons();
         animate();
     }
 
@@ -1086,12 +1118,15 @@
         const btn = document.getElementById('bg-' + name);
         if(btn) btn.classList.add('active');
 
-        const cfg = STAGE_CONFIGS[name] || STAGE_CONFIGS.default;
-        scene.background = new THREE.Color(cfg.skyColor);
-        scene.fog = new THREE.FogExp2(cfg.fogColor, cfg.fogDensity);
-        renderer.setClearColor(cfg.skyColor, 1);
+        // Hanya terapkan warna sky dari stage jika sky time tidak aktif
+        if(!skyTimeActive) {
+            const cfg = STAGE_CONFIGS[name] || STAGE_CONFIGS.default;
+            scene.background = new THREE.Color(cfg.skyColor);
+            scene.fog = new THREE.FogExp2(cfg.fogColor, cfg.fogDensity);
+            renderer.setClearColor(cfg.skyColor, 1);
+        }
 
-        // Clear old stage objects
+        // Selalu rebuild geometry stage
         stageObjects.forEach(o => scene.remove(o));
         stageObjects = [];
 
@@ -1130,22 +1165,298 @@
         showStatus(`Stage: ${name.toUpperCase()}`);
     }
 
-    // ── FEATURE: CHASE SPEED PER SLOT ───────────────────────────────
-    function renderChaseSpdRow() {
-        const row = document.getElementById('chase-spd-row');
-        if(!row) return;
-        // Keep label, rebuild slots
-        row.innerHTML = '<label>CHASE SPD:</label>';
-        for(let i = 0; i < 12; i++) {
-            const wrap = document.createElement('div');
-            wrap.className = 'chase-slot-spd';
-            wrap.innerHTML = `<span>C${i+1}</span><input type="range" min="10" max="300" value="${Math.round(chaseSlotSpeeds[i]*100)}" oninput="updateChaseSlotSpd(${i}, this.value)">`;
-            row.appendChild(wrap);
+    // ── FEATURE: SKY TIME ────────────────────────────────────────────
+    function getSkyConfig(hour) {
+        // Interpolasi warna langit berdasarkan jam
+        const h = Math.max(1, Math.min(23, hour));
+        if(h >= 1  && h < 5)  return { sky: 0x010614, fog: 0x010614, fogD: 0.010, label: '🌙 Malam'      };
+        if(h === 5)            return { sky: 0x0d1b3e, fog: 0x0d1b3e, fogD: 0.009, label: '🌌 Dini Hari'  };
+        if(h === 6)            return { sky: 0x2e1a5a, fog: 0x1a0f2e, fogD: 0.008, label: '🌄 Subuh'       };
+        if(h === 7)            return { sky: 0xf4845f, fog: 0xc45c2a, fogD: 0.006, label: '🌅 Fajar'       };
+        if(h === 8)            return { sky: 0xf7b267, fog: 0xe08030, fogD: 0.005, label: '🌤 Pagi'         };
+        if(h >= 9  && h < 11) return { sky: 0x87ceeb, fog: 0x6ab0d4, fogD: 0.004, label: '☀️ Pagi Cerah'  };
+        if(h >= 11 && h < 13) return { sky: 0x4fc3f7, fog: 0x29b6f6, fogD: 0.003, label: '🌞 Siang'       };
+        if(h >= 13 && h < 15) return { sky: 0x29b6f6, fog: 0x039be5, fogD: 0.003, label: '☀️ Siang Terik' };
+        if(h >= 15 && h < 17) return { sky: 0x7ecbee, fog: 0x5ba8cc, fogD: 0.004, label: '🌤 Sore'         };
+        if(h === 17)           return { sky: 0xf4a460, fog: 0xd2691e, fogD: 0.005, label: '🌇 Sore Emas'   };
+        if(h === 18)           return { sky: 0xff6b35, fog: 0xcc4400, fogD: 0.006, label: '🌆 Sunset'       };
+        if(h === 19)           return { sky: 0x4a1a5c, fog: 0x2d0f38, fogD: 0.008, label: '🌃 Senja'        };
+        if(h === 20)           return { sky: 0x0d0a2e, fog: 0x080618, fogD: 0.009, label: '🌉 Malam Awal'  };
+        if(h >= 21)            return { sky: 0x010614, fog: 0x010614, fogD: 0.010, label: '🌙 Malam'        };
+        return { sky: 0x1a1a1a, fog: 0x1a1a1a, fogD: 0.008, label: 'DEFAULT' };
+    }
+
+    function applySkyTime() {
+        const val = parseInt(document.getElementById('sky-hour-input').value);
+        if(isNaN(val) || val < 1 || val > 23) {
+            showStatus('⚠ Masukkan jam 1–23', true);
+            document.getElementById('sky-hour-input').style.borderColor = '#f00';
+            setTimeout(() => document.getElementById('sky-hour-input').style.borderColor = '#333', 1500);
+            return;
+        }
+        skyTimeActive = true;
+        // Matikan realtime jika aktif
+        if(isRealtimeSky) toggleRealtimeSky();
+        const cfg = getSkyConfig(val);
+        scene.background = new THREE.Color(cfg.sky);
+        scene.fog        = new THREE.FogExp2(cfg.fog, cfg.fogD);
+        renderer.setClearColor(cfg.sky, 1);
+        updateSkyObjects(val);
+        const padded = val.toString().padStart(2, '0') + ':00';
+        document.getElementById('sky-time-label').innerText = padded + ' — ' + cfg.label;
+        document.getElementById('sky-time-label').style.color = '#0ff';
+        showStatus(`🕐 Sky: ${padded} ${cfg.label}`);
+    }
+
+    function resetSkyTime() {
+        skyTimeActive = false;
+        if(isRealtimeSky) toggleRealtimeSky();
+        document.getElementById('sky-hour-input').value = '';
+        document.getElementById('sky-time-label').innerText = 'DEFAULT';
+        document.getElementById('sky-time-label').style.color = '#666';
+        setBgStage(currentBgStage);
+        showStatus('Sky reset ke stage default');
+    }
+
+    function toggleRealtimeSky() {
+        isRealtimeSky = !isRealtimeSky;
+        const btn = document.getElementById('btn-realtime-sky');
+        if(isRealtimeSky) {
+            skyTimeActive = true;
+            btn.style.background = '#0ff';
+            btn.style.color = '#000';
+            btn.style.borderColor = '#fff';
+            btn.innerText = '⏱ REALTIME: ON';
+            // Langsung apply jam sekarang
+            const applyRealtime = () => {
+                const now = new Date();
+                const h = now.getHours();
+                const cfg = getSkyConfig(h === 0 ? 23 : h);
+                scene.background = new THREE.Color(cfg.sky);
+                scene.fog = new THREE.FogExp2(cfg.fog, cfg.fogD);
+                renderer.setClearColor(cfg.sky, 1);
+                updateSkyObjects(h);
+                const padded = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+                document.getElementById('sky-time-label').innerText = padded + ' — ' + cfg.label;
+                document.getElementById('sky-time-label').style.color = '#0f0';
+                document.getElementById('sky-hour-input').value = now.getHours() || 23;
+            };
+            applyRealtime();
+            realtimeSkyInterval = setInterval(applyRealtime, 60000); // update tiap menit
+            showStatus('⏱ Sky follow real-time clock');
+        } else {
+            clearInterval(realtimeSkyInterval);
+            realtimeSkyInterval = null;
+            btn.style.background = '#011';
+            btn.style.color = '#0ff';
+            btn.style.borderColor = '#044';
+            btn.innerText = '⏱ REALTIME: OFF';
+            showStatus('⏱ Realtime sky dimatikan');
+        }
+    }
+
+    // ── SKY OBJECTS ──────────────────────────────────────────────────
+    function initSkyObjects() {
+        if(skyObjectsInitialized) return;
+        skyObjectsInitialized = true;
+
+        // SUN
+        const sunGeo = new THREE.SphereGeometry(8, 16, 16);
+        const sunMat = new THREE.MeshBasicMaterial({ color: 0xfffbe6 });
+        sunMesh = new THREE.Mesh(sunGeo, sunMat);
+        sunMesh.visible = false;
+        scene.add(sunMesh);
+        const glowGeo = new THREE.SphereGeometry(13, 16, 16);
+        const glowMat = new THREE.MeshBasicMaterial({ color: 0xffdd44, transparent: true, opacity: 0.18 });
+        sunMesh.add(new THREE.Mesh(glowGeo, glowMat));
+
+        // Directional light (shadow source)
+        sunLight = new THREE.DirectionalLight(0xfff5cc, 1.2);
+        sunLight.castShadow = false;
+        sunLight.shadow.mapSize.width  = 1024;
+        sunLight.shadow.mapSize.height = 1024;
+        sunLight.shadow.camera.near = 1;
+        sunLight.shadow.camera.far  = 800;
+        sunLight.shadow.camera.left = sunLight.shadow.camera.bottom = -200;
+        sunLight.shadow.camera.right = sunLight.shadow.camera.top   =  200;
+        sunLight.shadow.bias = -0.001;
+        scene.add(sunLight);
+        scene.add(sunLight.target);
+
+        // MOON
+        const moonGeo = new THREE.SphereGeometry(5, 16, 16);
+        moonMesh = new THREE.Mesh(moonGeo, new THREE.MeshBasicMaterial({ color: 0xddeeff }));
+        moonMesh.visible = false;
+        scene.add(moonMesh);
+        const mGlowGeo = new THREE.SphereGeometry(7.5, 16, 16);
+        moonMesh.add(new THREE.Mesh(mGlowGeo, new THREE.MeshBasicMaterial({ color: 0xaaccff, transparent: true, opacity: 0.12 })));
+
+        // CLOUDS
+        for(let c = 0; c < 6; c++) {
+            const cloudGroup = new THREE.Group();
+            const numBlobs = 4 + Math.floor(Math.random() * 4);
+            for(let b = 0; b < numBlobs; b++) {
+                const r = 8 + Math.random() * 10;
+                const blob = new THREE.Mesh(
+                    new THREE.SphereGeometry(r, 8, 8),
+                    new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.55 })
+                );
+                blob.position.set((Math.random()-0.5)*22, (Math.random()-0.5)*8, (Math.random()-0.5)*12);
+                cloudGroup.add(blob);
+            }
+            cloudGroup.position.set(
+                (Math.random()-0.5) * 400,
+                80 + Math.random() * 40,
+                (Math.random()-0.5) * 300 - 50
+            );
+            cloudGroup.userData.driftX = (Math.random()-0.5) * 0.008;
+            cloudGroup.visible = false;
+            scene.add(cloudGroup);
+            cloudMeshes.push(cloudGroup);
+        }
+
+        // STARS
+        const starCount = 800;
+        const starGeo = new THREE.BufferGeometry();
+        const starPos = new Float32Array(starCount * 3);
+        for(let i = 0; i < starCount; i++) {
+            const theta = Math.random() * Math.PI * 2;
+            const phi   = Math.random() * Math.PI * 0.5;
+            const r     = 450;
+            starPos[i*3]   = r * Math.sin(phi) * Math.cos(theta);
+            starPos[i*3+1] = r * Math.cos(phi);
+            starPos[i*3+2] = r * Math.sin(phi) * Math.sin(theta);
+        }
+        starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
+        starMesh = new THREE.Points(starGeo, new THREE.PointsMaterial({ color: 0xffffff, size: 1.2, transparent: true, opacity: 0 }));
+        scene.add(starMesh);
+    }
+
+    function updateSkyObjects(hour) {
+        initSkyObjects();
+        const h = Math.max(0, Math.min(23, hour));
+        const isDay      = h >= 6  && h <= 18;
+        const isNight    = h < 5   || h > 20;
+        const isTwilight = (h >= 5 && h < 7) || (h >= 18 && h <= 21);
+
+        // Posisi matahari: h=6 sunrise, h=12 zenith, h=18 sunset
+        const sunAngle = ((h - 6) / 12) * Math.PI;
+        const sunR = 350;
+        const elevation = Math.max(0, Math.sin(sunAngle));
+        sunMesh.position.set(
+            Math.cos(sunAngle - Math.PI/2) * sunR,
+            Math.max(-30, elevation * 200),
+            -sunR * 0.4
+        );
+        sunMesh.visible = h >= 5 && h <= 19;
+        const sunColor = new THREE.Color();
+        if(elevation < 0.15)     sunColor.setHex(0xff5500);
+        else if(elevation < 0.4) sunColor.setHex(0xffaa33);
+        else                     sunColor.setHex(0xfffbe6);
+        sunMesh.material.color.copy(sunColor);
+
+        // Directional light ikut matahari
+        if(sunLight) {
+            sunLight.position.copy(sunMesh.position);
+            sunLight.target.position.set(0, 0, 0);
+            sunLight.target.updateMatrixWorld();
+            sunLight.intensity = isDay ? Math.max(0.05, elevation * 1.5) : 0;
+            sunLight.color.copy(sunColor);
+        }
+
+        // Bulan berlawanan arah matahari
+        const moonAngle = sunAngle + Math.PI;
+        moonMesh.position.set(
+            Math.cos(moonAngle - Math.PI/2) * sunR,
+            Math.abs(Math.sin(moonAngle)) * 160 + 30,
+            -sunR * 0.4
+        );
+        moonMesh.visible = h < 6 || h >= 18;
+
+        // Awan
+        cloudMeshes.forEach(c => {
+            c.visible = !isNight;
+            const cloudColor = (h >= 17 && h <= 20) ? new THREE.Color(0xff9944) :
+                               isTwilight            ? new THREE.Color(0xffccaa) :
+                                                       new THREE.Color(0xffffff);
+            c.children.forEach(b => {
+                b.material.color.copy(cloudColor);
+                b.material.opacity = isTwilight ? 0.35 : 0.55;
+            });
+            // Drift pelan
+            c.position.x += c.userData.driftX;
+            if(c.position.x > 300) c.position.x = -300;
+            if(c.position.x < -300) c.position.x = 300;
+        });
+
+        // Bintang — fade in saat senja, penuh saat malam
+        let starOpacity = 0;
+        if(h >= 20 || h <= 4)          starOpacity = 1.0;
+        else if(h >= 19 && h < 20)     starOpacity = h - 19;
+        else if(h >= 18 && h < 19)     starOpacity = (h - 18) * 0.5;
+        else if(h > 4  && h <= 5)      starOpacity = 1 - (h - 4);
+        if(starMesh) starMesh.material.opacity = starOpacity;
+    }
+
+    function toggleShadow() {
+        isShadowOn = !isShadowOn;
+        renderer.shadowMap.enabled = isShadowOn;
+        const btn = document.getElementById('btn-shadow-toggle');
+        if(isShadowOn) {
+            if(sunLight) sunLight.castShadow = true;
+            trusses.forEach(t => t.group.traverse(o => {
+                if(o.isMesh) { o.castShadow = true; o.receiveShadow = true; }
+            }));
+            btn.style.background  = '#f90';
+            btn.style.color       = '#000';
+            btn.style.borderColor = '#fff';
+            btn.innerText = '💡 SHADOW: ON';
+            showStatus('Shadow ON — ikut arah matahari');
+        } else {
+            if(sunLight) sunLight.castShadow = false;
+            trusses.forEach(t => t.group.traverse(o => {
+                if(o.isMesh) o.castShadow = false;
+            }));
+            btn.style.background  = '#110800';
+            btn.style.color       = '#f90';
+            btn.style.borderColor = '#630';
+            btn.innerText = '💡 SHADOW: OFF';
+            showStatus('Shadow OFF');
         }
     }
 
     function updateChaseSlotSpd(idx, val) {
         chaseSlotSpeeds[idx] = parseFloat(val) / 100;
+    }
+
+    function resetRigging() {
+        const count = trusses.length;
+        trusses.forEach(t => { if(t.group) scene.remove(t.group); });
+        trusses = [];
+        for(let i = 0; i < count; i++) {
+            const tx = (i - (count-1)/2) * 45;
+            const ty = 14 + (i * 3);
+            const tz = -25;
+            const group = createTruss(100, 4);
+            group.position.set(tx, ty, tz);
+            group.rotation.y = 0;
+            group.rotation.x = 0;
+            scene.add(group);
+            trusses.push({ group, x:tx, y:ty, z:tz, rotY:0, rotX:0, length:100, size:4 });
+        }
+        document.getElementById('truss-qty-val').innerText = count;
+        selectedTrusses = [-1];
+        renderTrussSelectList();
+        updateTrussFaders();
+        // Reset slider UI ke default
+        document.getElementById('rig-posX').value  = 0;
+        document.getElementById('rig-posY').value  = 14;
+        document.getElementById('rig-posZ').value  = -25;
+        document.getElementById('rig-rot').value   = 0;
+        document.getElementById('rig-rotX').value  = 0;
+        document.getElementById('rig-len').value   = 100;
+        document.getElementById('rig-scale').value = 4;
+        showStatus(`↺ Rigging reset ke default (${count} rig)`);
     }
 
     function renderFixList() {
@@ -1311,17 +1622,47 @@
         isFrozen = !isFrozen;
         const btn = document.getElementById('btn-freeze');
         if (isFrozen) {
-            btn.style.background = '#00aaff';
-            btn.style.color = '#000';
+            // Snapshot posisi/dim/gobo terakhir setiap lamp
+            freezeSnapshot = lamps.map(l => ({
+                curPan:   l.state.curPan,
+                curTilt:  l.state.curTilt,
+                curDim:   l.state.curDim,
+                curZoom:  l.state.curZoom,
+                curRot:   l.state.curRot,
+                curGoboX: l.state.curGoboX,
+                x: l.group.position.x,
+                y: l.group.position.y,
+            }));
+            btn.style.background  = '#00aaff';
+            btn.style.color       = '#000';
             btn.style.borderColor = '#00ccff';
-            btn.style.boxShadow = '0 0 10px #00aaff';
+            btn.style.boxShadow   = '0 0 10px #00aaff';
             btn.innerText = '❄ FROZEN';
-            showStatus('FREEZE ON — semua gerak ditahan');
+            showStatus('FREEZE ON — posisi terakhir dikunci');
         } else {
-            btn.style.background = '#001433';
-            btn.style.color = '#00aaff';
+            // Saat freeze OFF: restore cur* ke posisi snapshot
+            // JANGAN override s.pan/s.tilt/s.dim — satuannya berbeda dengan curPan/curTilt
+            // Cukup set curPan/curTilt ke snapshot agar tidak lompat visual
+            if(freezeSnapshot) {
+                lamps.forEach((l, i) => {
+                    const snap = freezeSnapshot[i];
+                    if(!snap) return;
+                    const s = l.state;
+                    s.curPan   = snap.curPan;
+                    s.curTilt  = snap.curTilt;
+                    s.curDim   = snap.curDim;
+                    s.curZoom  = snap.curZoom;
+                    s.curRot   = snap.curRot;
+                    s.curGoboX = snap.curGoboX;
+                    l.group.position.x = snap.x;
+                    l.group.position.y = snap.y;
+                });
+            }
+            freezeSnapshot = null;
+            btn.style.background  = '#001433';
+            btn.style.color       = '#00aaff';
             btn.style.borderColor = '#0055aa';
-            btn.style.boxShadow = 'none';
+            btn.style.boxShadow   = 'none';
             btn.innerText = '❄ FREEZE';
             showStatus('FREEZE OFF — gerak dilanjutkan');
         }
@@ -1330,7 +1671,13 @@
     function createChaseButtons() {
         const c = document.getElementById('chase-slots'); c.innerHTML = '';
         for(let i = 0; i < 12; i++) {
-            const steps = chaseData[i], b = document.createElement('button');
+            const steps = chaseData[i];
+
+            // Wrapper vertikal seperti strobe-unit
+            const wrap = document.createElement('div');
+            wrap.style.cssText = 'display:flex; flex-direction:column; align-items:center; gap:2px; flex-shrink:0;';
+
+            const b = document.createElement('button');
             b.className = 'chase-btn' + (steps.length > 0 ? ' filled' : '');
             b.innerHTML = `C${i+1}`;
             if(steps.length > 0) {
@@ -1352,7 +1699,6 @@
                         document.getElementById('mover-frame-manager').style.display = 'none';
                     } else {
                         activeChaseIdx = i;
-                        // FIX #8: Reset step index saat chase baru dipilih
                         currentStepIdx = 0; stepTimer = 0;
                         document.getElementById('mover-frame-manager').style.display = 'block';
                         document.getElementById('chase-name-display').innerText = `CHASE ${i+1}`;
@@ -1361,7 +1707,18 @@
                     updateButtons();
                 }
             };
-            c.appendChild(b);
+
+            // Slider speed per slot
+            const spd = document.createElement('input');
+            spd.type = 'range';
+            spd.min = 10; spd.max = 300;
+            spd.value = Math.round(chaseSlotSpeeds[i] * 100);
+            spd.style.cssText = 'width:100%; height:3px; appearance:none; background:#333; border-radius:2px; outline:none; touch-action:none; cursor:pointer;';
+            spd.oninput = (e) => { chaseSlotSpeeds[i] = parseFloat(e.target.value) / 100; };
+
+            wrap.appendChild(b);
+            wrap.appendChild(spd);
+            c.appendChild(wrap);
         }
     }
 
@@ -1400,796 +1757,4 @@
             }
             b.onclick = () => {
                 if(isSceneRecording) {
-                    const frame = {
-                        data: lamps.map(l => ({ mode: l.state.mode, sunburst: l.state.sunburst, targetGoboX: l.state.targetGoboX })),
-                        spd: 1.0
-                    };
-                    sceneChaseData[i].push(frame);
-                    createSceneButtons(); renderGoboFrames(i);
-                } else {
-                    if(activeSceneIdx === i) {
-                        activeSceneIdx = -1;
-                        document.getElementById('gobo-frame-manager').style.display = 'none';
-                    } else {
-                        activeSceneIdx = i;
-                        // FIX #8: Reset step index saat scene baru dipilih
-                        currentSceneStepIdx = 0; sceneStepTimer = 0;
-                        document.getElementById('gobo-frame-manager').style.display = 'block';
-                        document.getElementById('gobo-name-display').innerText = `GOBO ${i+1}`;
-                        renderGoboFrames(i);
-                    }
-                    updateButtons();
-                }
-            };
-            c.appendChild(b);
-        }
-    }
-
-    function renderGoboFrames(sceneIdx) {
-        const container = document.getElementById('gobo-frames'); container.innerHTML = '';
-        sceneChaseData[sceneIdx].forEach((frame, idx) => {
-            const div = document.createElement('div');
-            div.className = `frame-card ${(activeSceneIdx === sceneIdx && currentSceneStepIdx === idx) ? 'active' : ''}`;
-            div.innerHTML = `
-                <span style="font-size:7px;">ST ${idx+1}</span>
-                <input type="number" step="0.1" value="${frame.spd || 1.0}" onchange="updateGoboFrameSpd(${sceneIdx}, ${idx}, this.value)">
-                <button class="frame-del" onclick="delGoboFrame(${sceneIdx}, ${idx})">×</button>`;
-            container.appendChild(div);
-        });
-    }
-
-    function updateGoboFrameSpd(sIdx, fIdx, val) { sceneChaseData[sIdx][fIdx].spd = parseFloat(val); }
-    function delGoboFrame(sIdx, fIdx) {
-        // FEATURE 2: Push ke undo stack sebelum hapus
-        undoStack.push({ type: 'gobo', chaseIdx: sIdx, frameIdx: fIdx, frameData: JSON.parse(JSON.stringify(sceneChaseData[sIdx][fIdx])) });
-        sceneChaseData[sIdx].splice(fIdx, 1);
-        if(sceneChaseData[sIdx].length === 0) { activeSceneIdx = -1; document.getElementById('gobo-frame-manager').style.display = 'none'; }
-        createSceneButtons(); renderGoboFrames(sIdx);
-        showUndoToast(`Frame GOBO ${sIdx+1} ST${fIdx+1} dihapus`);
-    }
-
-    function updateButtons() {
-        let refState = (selectedFixtures[0] === -1) ? lamps[0]?.state : lamps[selectedFixtures[0]]?.state;
-        if(!refState) return;
-
-        // Reset semua mode button dulu baru set yang aktif
-        ['btn-beam','btn-prism','btn-fan','btn-dots','btn-sb-pink'].forEach(id => {
-            const el = document.getElementById(id);
-            if(el) el.classList.remove('active');
-        });
-        const modeId = 'btn-' + refState.mode;
-        const modeEl = document.getElementById(modeId);
-        if(modeEl) modeEl.classList.add('active');
-        if(refState.sunburst === 'pink') {
-            const sbEl = document.getElementById('btn-sb-pink');
-            if(sbEl) sbEl.classList.add('active');
-        }
-
-        // FX & strobe buttons
-        document.querySelectorAll('.mini-fx-btn, .btn-strobe-big').forEach(b => {
-            const id = b.id.replace('btn-', '').replace('fx-', '');
-            if(fxState[id]) b.classList.add('active');
-            else b.classList.remove('active');
-        });
-
-        document.querySelectorAll('.chase-btn').forEach((b, i) => b.classList.toggle('active', i === activeChaseIdx));
-        document.querySelectorAll('.col-chase-btn').forEach((b, i) => b.classList.toggle('active', i === activeColorChaseIdx));
-        document.querySelectorAll('.scene-btn').forEach((b, i) => b.classList.toggle('active', i === activeSceneIdx));
-    }
-
-    function resetMixer() {
-        activeChaseIdx = -1; activeColorChaseIdx = -1; activeSceneIdx = -1;
-        currentStepIdx = 0; stepTimer = 0;
-        currentSceneStepIdx = 0; sceneStepTimer = 0;
-
-        // Reset freeze jika aktif
-        if(isFrozen) toggleFreeze();
-
-        lamps.forEach(l => {
-            Object.assign(l.state, { dim:0.8, pan:0, tilt:-0.2, zoom:40, mode:'beam', rainbow:0, sunburst:'off', targetGoboX:0 });
-        });
-        fxState = { circle:false, circleS:false, pargoy:false, sLR:false, sCt:false, sOdd:false, sAll:false };
-        masterX = 0; masterY = 12; globalSpacing = 12;
-        document.getElementById('val-space').value = 12;
-        selAll(); updateButtons(); createSceneButtons(); createChaseButtons();
-        document.getElementById('mover-frame-manager').style.display = 'none';
-        document.getElementById('gobo-frame-manager').style.display = 'none';
-        showStatus("Mixer Di-reset (Rigging Tetap Di Posisinya)");
-    }
-
-    function lerp(a, b, t) { return a + (b - a) * t; }
-
-    function animate() {
-        requestAnimationFrame(animate);
-        const now = Date.now(), total = lamps.length;
-        const globalSpeed   = parseFloat(document.getElementById('val-speed').value) / 100;
-        const smoothVal     = parseFloat(document.getElementById('val-smooth').value) / 100;
-        const delay         = parseFloat(document.getElementById('val-delay').value) / 100;
-        const spread        = parseFloat(document.getElementById('val-spread').value) / 100;
-        const colorSmoothVal = parseFloat(document.getElementById('color-smooth').value) / 100;
-
-        // Beat detection processing
-        processBeatDetection(now);
-
-        if (isAudioPlaying && audioAnalyzer) {
-            audioAnalyzer.getByteFrequencyData(audioDataArray);
-            document.querySelectorAll('.vis-bar').forEach((bar, i) => {
-                const val = audioDataArray[i % audioDataArray.length];
-                bar.style.height = (val / 255 * 100) + '%';
-                bar.style.background = `rgb(0, ${val}, ${255-val})`;
-            });
-        }
-
-        // Color step animation per lamp — skip saat freeze
-        if (!isFrozen) {
-        lamps.forEach((l) => {
-            const s = l.state;
-            if(s.colorSteps.length > 0) {
-                const activeIdx = s.curColStepIdx;
-                const curNode = s.colorSteps[activeIdx];
-                const nextIdx = (activeIdx + 1) % s.colorSteps.length;
-                const nextNode = s.colorSteps[nextIdx];
-                let cFactor = (colorSmoothVal === 0) ? (s.colStepTimer > 0.95 ? 1 : 0) : Math.min(1, s.colStepTimer / Math.max(0.01, 1 - colorSmoothVal * 0.9));
-                s.activeColor.copy(new THREE.Color(curNode.color)).lerp(new THREE.Color(nextNode.color), cFactor);
-                s.colStepTimer += (0.01 * (curNode.speed || 1.0));
-                if(s.colStepTimer >= 1) { s.colStepTimer = 0; s.curColStepIdx = nextIdx; }
-            }
-        });
-
-        // FIX #4: Chase playback - validasi bounds state sebelum interpolasi
-        if(activeChaseIdx !== -1 && !isRecording) {
-            const seq = chaseData[activeChaseIdx];
-            if(seq.length >= 2) {
-                const cur = seq[currentStepIdx];
-                const nIdx = (currentStepIdx + 1) % seq.length;
-                const next = seq[nIdx];
-                const t = stepTimer;
-                const stepSpd = cur.spd || 1.0;
-
-                lamps.forEach((lamp, j) => {
-                    // FIX #4: Cek apakah state index j valid di kedua frame
-                    if(lamp && cur.states[j] && next.states[j]) {
-                        const sA = cur.states[j], sB = next.states[j];
-                        let f = (smoothVal === 0) ? (t > 0.95 ? 1 : 0) : Math.min(1, t / Math.max(0.01, 1 - smoothVal * 0.9));
-                        lamp.state.pan     = lerp(sA.pan, sB.pan, f);
-                        lamp.state.tilt    = lerp(sA.tilt, sB.tilt, f);
-                        lamp.state.targetX = lerp(sA.targetX, sB.targetX, f);
-                        lamp.state.targetY = lerp(sA.targetY, sB.targetY, f);
-                        lamp.state.dim     = lerp(sA.dim, sB.dim, f);
-                        lamp.state.zoom    = lerp(sA.zoom, sB.zoom, f);
-                    }
-                });
-                minibrute.targetX = lerp(cur.mbX, next.mbX, t);
-                minibrute.targetY = lerp(cur.mbY, next.mbY, t);
-                globalSpacing = lerp(cur.sp, next.sp, t);
-
-                // FIX #7: Sinkronkan slider posisi saat chase aktif (tiap beberapa frame agar tidak berat)
-                if(Math.floor(now / 100) % 3 === 0) updateFaderLevels();
-
-                stepTimer += (globalSpeed * 0.04 * stepSpd * (chaseSlotSpeeds[activeChaseIdx] || 1.0));
-                if(stepTimer >= 1) {
-                    stepTimer = 0; currentStepIdx = nIdx;
-                    renderMoverFrames(activeChaseIdx);
-                }
-            }
-        }
-
-        if(activeSceneIdx !== -1 && !isSceneRecording) {
-            const seq = sceneChaseData[activeSceneIdx];
-            if(seq.length >= 2) {
-                const cur = seq[currentSceneStepIdx];
-                const nIdx = (currentSceneStepIdx + 1) % seq.length;
-                const next = seq[nIdx];
-                const t = sceneStepTimer;
-                const stepSpd = cur.spd || 1.0;
-                lamps.forEach((l, j) => {
-                    const sA = cur.data[j], sB = next.data[j];
-                    if(sA && sB) {
-                        l.state.targetGoboX = lerp(sA.targetGoboX, sB.targetGoboX, t);
-                        if(t > 0.5) { l.state.mode = sB.mode; l.state.sunburst = sB.sunburst; }
-                        else { l.state.mode = sA.mode; l.state.sunburst = sA.sunburst; }
-                    }
-                });
-                sceneStepTimer += (globalSpeed * 0.04 * stepSpd);
-                if(sceneStepTimer >= 1) {
-                    sceneStepTimer = 0; currentSceneStepIdx = nIdx;
-                    renderGoboFrames(activeSceneIdx);
-                }
-            }
-        }
-        } // end if (!isFrozen)
-
-        const lerpMotor = 0.28, lerpGobo = 0.12;
-        minibrute.group.position.x += (minibrute.targetX - minibrute.group.position.x) * lerpMotor;
-        minibrute.group.position.y += (minibrute.targetY - minibrute.group.position.y) * lerpMotor;
-        minibrute.light.intensity = isMinibruteActive ? 80 : 0;
-        minibrute.glows.forEach(g => g.material.opacity = isMinibruteActive ? 1.0 : 0);
-        minibrute.surfaces.forEach(s => s.material.emissive.setHex(isMinibruteActive ? 0xffffff : 0x000000));
-
-        const sLRIdx  = isFrozen ? -1 : Math.floor((now / (1000/parseInt(document.getElementById('spd-sLR').value))) % (total*2));
-        const sCtStep = isFrozen ? -1 : Math.floor((now / (1000/parseInt(document.getElementById('spd-sCt').value))) % (Math.ceil(total/2)*2));
-        const sOddPh  = isFrozen ? false : Math.sin(now * (parseInt(document.getElementById('spd-sOdd').value)/150)) > 0;
-        const sAllPh  = isFrozen ? false : Math.sin(now * (parseInt(document.getElementById('spd-sAll').value)/100)) > 0;
-
-        lamps.forEach((l, i) => {
-            const s = l.state;
-            l.group.position.x += (s.targetX - l.group.position.x) * lerpMotor;
-            l.group.position.y += (s.targetY - l.group.position.y) * lerpMotor;
-
-            let d = isMinibruteActive ? 0 : s.dim;
-            if(isBlackout) { d = 0; }
-            else if(!isMinibruteActive) {
-                if(fxState.sLR)  d = (i === (sLRIdx < total ? sLRIdx : (total*2-1)-sLRIdx)) ? s.dim : 0;
-                else if(fxState.sCt)  { const step = sCtStep < Math.ceil(total/2) ? sCtStep : (Math.ceil(total/2)*2-1)-sCtStep; d = (i === step || (total-1)-i === step) ? s.dim : 0; }
-                else if(fxState.sOdd) d = ((i%2===0 && sOddPh) || (i%2!==0 && !sOddPh)) ? s.dim : 0;
-                else if(fxState.sAll) d = sAllPh ? s.dim : 0;
-                d *= masterDimLevel;
-            }
-            s.curDim += (d - s.curDim) * 0.35;
-
-            const tMove = (now*0.001 * globalSpeed) - (i * delay);
-            let tp = s.pan, tt = s.tilt;
-
-            if(!isFrozen) {
-                if(fxState.circle) { tp += Math.cos(tMove*3)*0.8; tt += Math.sin(tMove*3)*0.8; }
-                if(fxState.circleS) {
-                    const isLeft = (i < total / 2);
-                    const dir = isLeft ? 1 : -1;
-                    const symIdx = isLeft ? i : (total - 1 - i);
-                    const tMoveSym = (now*0.001 * globalSpeed) - (symIdx * delay);
-                    tp += Math.cos(tMoveSym*3)*0.8 * dir;
-                    tt += Math.sin(tMoveSym*3)*0.8;
-                }
-                if(fxState.pargoy) { tt += Math.sin(tMove*5)*0.4; }
-            }
-
-            s.curPan  += (tp - s.curPan) * lerpMotor;
-            s.curTilt += (tt - s.curTilt) * lerpMotor;
-            s.curZoom += (s.zoom - s.curZoom) * lerpMotor;
-            l.group.rotation.y = s.curPan;
-            l.head.rotation.x  = s.curTilt;
-            if(!isFrozen) s.curRot += s.rot * 0.01; // stop gobo rotation saat freeze
-            l.emitter.material.opacity = s.curDim * 0.98;
-            l.lens.material.emissiveIntensity = s.curDim * 20;
-
-            if(!isFrozen) s.curGoboX += (s.targetGoboX - s.curGoboX) * lerpGobo;
-            l.wc.position.x = s.curGoboX;
-
-            const bA = Math.max(0, 1 - Math.abs(s.curGoboX - 0)    / 4.0);
-            const pA = Math.max(0, 1 - Math.abs(s.curGoboX - (-15)) / 4.0);
-            const fA = Math.max(0, 1 - Math.abs(s.curGoboX - (-30)) / 4.0);
-            const dA = Math.max(0, 1 - Math.abs(s.curGoboX - (-45)) / 4.0);
-
-            let col = s.activeColor;
-            if(s.rainbow > 0) { col = new THREE.Color(); col.setHSL((now*0.0002 + i*0.1*s.rainbow/10) % 1, 1, 0.5); }
-            const isPSB = (s.sunburst === 'pink'), zs = s.curZoom / 40;
-
-            l.beamShell.material.color.set(isPSB ? 0xffffff : col);
-            l.beamShell.material.opacity = s.curDim * 0.55 * bA;
-            l.beamPink.visible = isPSB && bA > 0.05;
-            l.beamPink.material.opacity = s.curDim * 0.98 * bA;
-            l.beamShell.scale.set(zs, zs, 1);
-            l.beamPink.scale.set(zs * 0.65, zs * 0.65, 1);
-
-            l.prisms.forEach((pg, idx) => {
-                const ang = pg.userData.angle + s.curRot;
-                pg.rotation.set(Math.sin(ang)*(spread*0.3), Math.cos(ang)*(spread*0.3), 0);
-                const shell = pg.children[0], pink = l.pPinkCores[idx];
-                shell.material.color.set(isPSB ? 0xffffff : col);
-                shell.material.opacity = s.curDim * 0.45 * pA;
-                pink.visible = isPSB && pA > 0.05;
-                pink.material.opacity = s.curDim * 0.95 * pA;
-                shell.scale.set(zs*0.4, zs*0.4, 1); pink.scale.set(zs*0.22, zs*0.22, 1);
-            });
-            l.fanContainer.rotation.z = s.curRot;
-            l.fans.forEach((fg, idx) => {
-                fg.rotation.y = fg.userData.offset * (spread * 0.4);
-                const shell = fg.children[0], pink = l.fPinkCores[idx];
-                shell.material.color.set(isPSB ? 0xffffff : col);
-                shell.material.opacity = s.curDim * 0.45 * fA;
-                pink.visible = isPSB && fA > 0.05;
-                pink.material.opacity = s.curDim * 0.95 * fA;
-                shell.scale.set(zs*0.4, zs*0.4, 1); pink.scale.set(zs*0.22, zs*0.22, 1);
-            });
-            l.dotsContainer.rotation.z = s.curRot;
-            l.dots.forEach((dg, idx) => {
-                const ang = dg.userData.angle;
-                dg.rotation.set(Math.sin(ang)*(spread*0.5), Math.cos(ang)*(spread*0.5), 0);
-                const shell = dg.children[0], pink = l.dPinkCores[idx];
-                shell.material.color.set(isPSB ? 0xffffff : col);
-                shell.material.opacity = s.curDim * 0.4 * dA;
-                pink.visible = isPSB && dA > 0.05;
-                pink.material.opacity = s.curDim * 0.9 * dA;
-                shell.scale.set(zs*0.2, zs*0.2, 1); pink.scale.set(zs*0.12, zs*0.12, 1);
-            });
-        });
-        renderer.render(scene, camera);
-    }
-
-    function initVisualizer() {
-        const vis = document.getElementById('audio-visualizer');
-        for(let i = 0; i < VIS_BARS; i++) {
-            const bar = document.createElement('div'); bar.className = 'vis-bar'; vis.appendChild(bar);
-        }
-    }
-
-    // FIX #3: Audio upload tidak bocor memory — disconnect source lama sebelum buat yang baru
-    function handleAudioUpload(input) {
-        if (!input.files || !input.files[0]) return;
-        const file = input.files[0];
-        document.getElementById('audio-filename').innerText = file.name.toUpperCase();
-
-        // Hentikan dan bersihkan player lama
-        if(audioPlayer) {
-            audioPlayer.pause();
-            audioPlayer.src = '';
-            isAudioPlaying = false;
-            document.getElementById('audio-play-btn').innerText = 'PLAY';
-        }
-
-        // FIX #3: Disconnect source lama dari AudioContext agar tidak bocor
-        if(audioSource) {
-            try { audioSource.disconnect(); } catch(e) {}
-            audioSource = null;
-        }
-
-        // Buat AudioContext sekali saja, jangan buat ulang
-        if(!audioContext) {
-            audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        }
-
-        audioPlayer = new Audio();
-        audioPlayer.src = URL.createObjectURL(file);
-        audioPlayer.loop = true;
-        audioPlayer.volume = document.getElementById('audio-vol').value / 100;
-        audioPlayer.crossOrigin = 'anonymous';
-
-        // Buat source & analyzer baru, pasang ke AudioContext yang sudah ada
-        audioSource   = audioContext.createMediaElementSource(audioPlayer);
-        audioAnalyzer = audioContext.createAnalyser();
-        audioSource.connect(audioAnalyzer);
-        audioAnalyzer.connect(audioContext.destination);
-        audioAnalyzer.fftSize = 64;
-        audioDataArray = new Uint8Array(audioAnalyzer.frequencyBinCount);
-
-        // Auto-connect beat analyzer to same audio source
-        beatAnalyzer = audioAnalyzer;
-        beatDataArray = audioDataArray;
-    }
-
-    function toggleAudio() {
-        if(!audioPlayer) return;
-        if(audioContext && audioContext.state === 'suspended') audioContext.resume();
-        if(isAudioPlaying) {
-            audioPlayer.pause();
-            document.getElementById('audio-play-btn').innerText = 'PLAY';
-        } else {
-            audioPlayer.play();
-            document.getElementById('audio-play-btn').innerText = 'PAUSE';
-        }
-        isAudioPlaying = !isAudioPlaying;
-    }
-
-    function updateAudioVol(v) { if(audioPlayer) audioPlayer.volume = v/100; }
-
-    // FIX #4: changeFixCount sekarang reset chaseData agar tidak ada referensi fixture lama yang crash
-    function changeFixCount(delta) {
-        let next = fixCount + delta;
-        if(next < 1 || next > 12) return;
-        fixCount = next;
-        document.getElementById('fix-qty-val').innerText = fixCount;
-
-        // Reset chase/scene data karena jumlah fixture berubah (state lama tidak valid)
-        chaseData = Array.from({length: 12}, () => []);
-        sceneChaseData = Array.from({length: 10}, () => []);
-        activeChaseIdx = -1; activeSceneIdx = -1;
-        currentStepIdx = 0; stepTimer = 0;
-        currentSceneStepIdx = 0; sceneStepTimer = 0;
-        document.getElementById('mover-frame-manager').style.display = 'none';
-        document.getElementById('gobo-frame-manager').style.display = 'none';
-
-        lamps.forEach(l => scene.remove(l.group));
-        lamps = [];
-        spawnBeams(fixCount);
-        selAll();
-        createSceneButtons();
-        createChaseButtons();
-        showStatus(`Fixture diubah ke ${fixCount}. Chase & Gobo data di-reset.`);
-    }
-
-    function addColorStep() {
-        const targetIndices = selectedFixtures[0] === -1 ? lamps.map((_, i) => i) : selectedFixtures;
-        targetIndices.forEach(idx => { lamps[idx].state.colorSteps.push({ color: '#00ffff', speed: 1.0 }); });
-        renderColorSteps();
-    }
-
-    function removeColorStep(stepIdx) {
-        const targetIndices = selectedFixtures[0] === -1 ? lamps.map((_, i) => i) : selectedFixtures;
-        targetIndices.forEach(idx => {
-            if(lamps[idx].state.colorSteps.length <= 1) return;
-            lamps[idx].state.colorSteps.splice(stepIdx, 1);
-        });
-        renderColorSteps();
-    }
-
-    function updateColorValue(stepIdx, val) {
-        const targetIndices = selectedFixtures[0] === -1 ? lamps.map((_, i) => i) : selectedFixtures;
-        targetIndices.forEach(idx => { if(lamps[idx].state.colorSteps[stepIdx]) lamps[idx].state.colorSteps[stepIdx].color = val; });
-    }
-
-    function updateColorSpeed(stepIdx, val) {
-        const targetIndices = selectedFixtures[0] === -1 ? lamps.map((_, i) => i) : selectedFixtures;
-        const spd = parseFloat(val) || 1.0;
-        targetIndices.forEach(idx => { if(lamps[idx].state.colorSteps[stepIdx]) lamps[idx].state.colorSteps[stepIdx].speed = spd; });
-    }
-
-    function renderColorSteps() {
-        const container = document.getElementById('color-engine-container');
-        container.innerHTML = '';
-        const idxToGet = (selectedFixtures[0] === -1) ? 0 : selectedFixtures[0];
-        if (!lamps[idxToGet] || !lamps[idxToGet].state) return;
-        const displaySteps = lamps[idxToGet].state.colorSteps;
-        const displayIdx   = lamps[idxToGet].state.curColStepIdx;
-        displaySteps.forEach((step, i) => {
-            const div = document.createElement('div');
-            div.className = `color-step-node ${i === displayIdx ? 'active' : ''}`;
-            div.innerHTML = `
-                <input type="color" class="color-input-mini" value="${step.color}" oninput="updateColorValue(${i}, this.value)">
-                <input type="number" class="color-step-speed" value="${step.speed}" step="0.1" min="0.1" oninput="updateColorSpeed(${i}, this.value)">
-                <span style="position:absolute; top:2px; right:4px; cursor:pointer; color:#f55; font-weight:bold;" onclick="removeColorStep(${i})">×</span>`;
-            container.appendChild(div);
-        });
-    }
-
-    function toggleColorRecord() {
-        isColorRecording = !isColorRecording;
-        document.getElementById('rec-color-toggle').classList.toggle('active', isColorRecording);
-    }
-
-    function createColorChaseButtons() {
-        const c = document.getElementById('color-chase-slots'); c.innerHTML = '';
-        for(let i = 0; i < 8; i++) {
-            const b = document.createElement('button');
-            b.className = 'col-chase-btn' + (colorChaseData[i].length > 0 ? ' filled' : '');
-            b.innerHTML = i+1;
-            b.onclick = () => {
-                if(isColorRecording) {
-                    colorChaseData[i] = lamps.map(l => JSON.parse(JSON.stringify(l.state.colorSteps)));
-                    createColorChaseButtons();
-                } else if(colorChaseData[i].length > 0) {
-                    activeColorChaseIdx = (activeColorChaseIdx === i ? -1 : i);
-                    if(activeColorChaseIdx !== -1) {
-                        lamps.forEach((l, idx) => {
-                            if(colorChaseData[i][idx]) {
-                                l.state.colorSteps = JSON.parse(JSON.stringify(colorChaseData[i][idx]));
-                                l.state.curColStepIdx = 0;
-                                l.state.colStepTimer = 0;
-                            }
-                        });
-                    }
-                    updateButtons(); renderColorSteps();
-                }
-            };
-            c.appendChild(b);
-        }
-    }
-
-    function showStatus(msg, isError = false) {
-        const el = document.getElementById('status-msg');
-        el.innerText = msg;
-        el.style.color = isError ? '#f00' : '#0f0';
-        setTimeout(() => { if(el.innerText === msg) el.innerText = ''; }, 4000);
-    }
-
-    // ── FEATURE 2: Undo System ─────────────────────────────────────────
-    function showUndoToast(msg) {
-        const toast = document.getElementById('undo-toast');
-        toast.childNodes[0].textContent = msg + ' ';
-        toast.classList.add('show');
-        if(undoToastTimer) clearTimeout(undoToastTimer);
-        undoToastTimer = setTimeout(() => { toast.classList.remove('show'); }, 5000);
-    }
-
-    function doUndo() {
-        if(undoStack.length === 0) return;
-        const action = undoStack.pop();
-        if(action.type === 'chase') {
-            chaseData[action.chaseIdx].splice(action.frameIdx, 0, action.frameData);
-            createChaseButtons();
-            renderMoverFrames(action.chaseIdx);
-            if(activeChaseIdx !== action.chaseIdx) {
-                activeChaseIdx = action.chaseIdx;
-                document.getElementById('mover-frame-manager').style.display = 'block';
-                document.getElementById('chase-name-display').innerText = `CHASE ${action.chaseIdx+1}`;
-            }
-            showStatus(`Undo: Frame CHASE ${action.chaseIdx+1} ST${action.frameIdx+1} dikembalikan`);
-        } else if(action.type === 'gobo') {
-            sceneChaseData[action.chaseIdx].splice(action.frameIdx, 0, action.frameData);
-            createSceneButtons();
-            renderGoboFrames(action.chaseIdx);
-            if(activeSceneIdx !== action.chaseIdx) {
-                activeSceneIdx = action.chaseIdx;
-                document.getElementById('gobo-frame-manager').style.display = 'block';
-                document.getElementById('gobo-name-display').innerText = `GOBO ${action.chaseIdx+1}`;
-            }
-            showStatus(`Undo: Frame GOBO ${action.chaseIdx+1} ST${action.frameIdx+1} dikembalikan`);
-        }
-        document.getElementById('undo-toast').classList.remove('show');
-    }
-
-    // ── FEATURE 3: Tap Tempo ───────────────────────────────────────────
-    function tapTempo() {
-        const now = Date.now();
-        // Buang tap yang lebih dari 3 detik lalu (dianggap sesi baru)
-        tapTimes = tapTimes.filter(t => now - t < 3000);
-        tapTimes.push(now);
-
-        // Minimal 2 tap untuk hitung BPM
-        if(tapTimes.length >= 2) {
-            const intervals = [];
-            for(let i = 1; i < tapTimes.length; i++) intervals.push(tapTimes[i] - tapTimes[i-1]);
-            const avgInterval = intervals.reduce((a,b) => a+b, 0) / intervals.length;
-            const bpm = Math.round(60000 / avgInterval);
-            const clampedBpm = Math.max(20, Math.min(300, bpm));
-
-            // Map BPM ke slider speed (slider: 1–200, baseline 100=1x)
-            // 120 BPM → speed 100, setiap BPM berbeda berskala linear
-            const speedVal = Math.max(1, Math.min(200, Math.round(clampedBpm / 120 * 100)));
-            document.getElementById('val-speed').value = speedVal;
-            document.getElementById('bpm-display').innerText = `${clampedBpm} BPM`;
-        } else {
-            document.getElementById('bpm-display').innerText = 'TAP...';
-        }
-
-        // Visual flash pada tombol
-        const btn = document.getElementById('tap-btn');
-        btn.classList.add('flash');
-        if(tapFlashTimer) clearTimeout(tapFlashTimer);
-        tapFlashTimer = setTimeout(() => btn.classList.remove('flash'), 120);
-
-        // Reset tap list jika sudah 8 tap (cukup akurat)
-        if(tapTimes.length >= 8) tapTimes = tapTimes.slice(-4);
-    }
-
-    // ── FEATURE 4: Version Compatibility Check ────────────────────────
-    const FIELD_MAP = {
-        'lampColorSteps': 'Color steps per fixture',
-        'trusses':        'Data rigging / truss',
-        'fxState':        'Status FX aktif',
-        'masterX':        'Posisi master X',
-        'masterY':        'Posisi master Y',
-        'globalSpacing':  'Spacing antar fixture',
-    };
-
-    function checkCompatibility(project) {
-        const warnings = [];
-        const fileVer = project.version || '< 6.1';
-
-        // Field yang wajib ada
-        const required = ['chaseData', 'sceneChaseData', 'colorChaseData'];
-        required.forEach(f => { if(!project[f]) warnings.push(`Field wajib hilang: ${f}`); });
-
-        // Field opsional yang mungkin tidak ada di versi lama
-        Object.entries(FIELD_MAP).forEach(([field, label]) => {
-            if(project[field] === undefined) warnings.push(`${label} (${field}) tidak ditemukan — akan pakai default`);
-        });
-
-        return { fileVer, warnings };
-    }
-
-    function showCompatModal(fileVer, warnings, onConfirm) {
-        const modal   = document.getElementById('compat-modal');
-        const msgEl   = document.getElementById('compat-msg');
-        const listEl  = document.getElementById('compat-list');
-
-        msgEl.innerHTML = `File dari versi <b style="color:#f90">${fileVer}</b> dimuat ke versi <b style="color:#0ff">${CURRENT_VERSION}</b>.`;
-        listEl.innerHTML = warnings.map(w => `<li>${w}</li>`).join('');
-        modal.classList.add('show');
-
-        // Store callback
-        modal._onConfirm = onConfirm;
-    }
-
-    function closeCompatModal(proceed) {
-        const modal = document.getElementById('compat-modal');
-        modal.classList.remove('show');
-        if(proceed && modal._onConfirm) modal._onConfirm();
-        modal._onConfirm = null;
-    }
-
-    function applyProject(project) {
-        fixCount      = project.fixCount || 6;
-        globalSpacing = project.globalSpacing || 12;
-        masterX       = project.masterX !== undefined ? project.masterX : 0;
-        masterY       = project.masterY !== undefined ? project.masterY : 12;
-        document.getElementById('fix-qty-val').innerText = fixCount;
-        document.getElementById('val-space').value = globalSpacing;
-
-        lamps.forEach(l => scene.remove(l.group));
-        lamps = [];
-        spawnBeams(fixCount);
-
-        if(project.lampColorSteps && project.lampColorSteps.length > 0) {
-            lamps.forEach((l, idx) => {
-                if(project.lampColorSteps[idx]) {
-                    l.state.colorSteps    = JSON.parse(JSON.stringify(project.lampColorSteps[idx]));
-                    l.state.curColStepIdx = 0;
-                    l.state.colStepTimer  = 0;
-                }
-            });
-        }
-
-        chaseData      = project.chaseData;
-        sceneChaseData = project.sceneChaseData;
-        colorChaseData = project.colorChaseData;
-        fxState = project.fxState || { circle:false, circleS:false, pargoy:false, sLR:false, sCt:false, sOdd:false, sAll:false };
-
-        if(project.trusses && project.trusses.length > 0) {
-            trusses.forEach(t => { if(t.group) scene.remove(t.group); });
-            trusses = [];
-            project.trusses.forEach(tData => {
-                const group = createTruss(tData.length, tData.size);
-                group.position.set(tData.x, tData.y, tData.z || -25);
-                group.rotation.y = THREE.MathUtils.degToRad(tData.rotY || 0);
-                group.rotation.x = THREE.MathUtils.degToRad(tData.rotX || 0);
-                scene.add(group);
-                trusses.push({ group, x:tData.x, y:tData.y, z:tData.z||-25, rotY:tData.rotY||0, rotX:tData.rotX||0, length:tData.length, size:tData.size });
-            });
-            document.getElementById('truss-qty-val').innerText = trusses.length;
-            selectedTrusses = [-1];
-            renderTrussSelectList();
-            updateTrussFaders();
-        }
-
-        undoStack = []; // Clear undo saat load project baru
-        activeChaseIdx = -1; activeSceneIdx = -1; activeColorChaseIdx = -1;
-        currentStepIdx = 0; stepTimer = 0;
-        currentSceneStepIdx = 0; sceneStepTimer = 0;
-
-        selAll(); createChaseButtons(); createSceneButtons();
-        createColorChaseButtons(); updateButtons(); renderColorSteps();
-        document.getElementById('mover-frame-manager').style.display = 'none';
-        document.getElementById('gobo-frame-manager').style.display = 'none';
-        showStatus(`Proyek v${project.version || '?'} berhasil dimuat!`);
-    }
-
-    // ── Save / Load ───────────────────────────────────────────────────
-    function saveProject() {
-        try {
-            const project = {
-                version: CURRENT_VERSION,
-                timestamp: Date.now(),
-                fixCount, globalSpacing, masterX, masterY, fxState,
-                chaseData, sceneChaseData, colorChaseData,
-                lampColorSteps: lamps.map(l => l.state.colorSteps),
-                trusses: trusses.map(t => ({ x:t.x, y:t.y, z:t.z, rotY:t.rotY, rotX:t.rotX, length:t.length, size:t.size }))
-            };
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(project));
-            const a = document.createElement('a');
-            a.setAttribute("href", dataStr);
-            a.setAttribute("download", `PhotonicMixer_v${CURRENT_VERSION}_${new Date().toISOString().slice(0,10)}.json`);
-            a.click();
-            showStatus("Project Berhasil Diunduh!");
-        } catch(err) {
-            console.error(err); showStatus("Gagal Menyimpan Project!", true);
-        }
-    }
-
-    function loadProject(input) {
-        if (!input.files || !input.files[0]) return;
-        const file = input.files[0];
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            try {
-                const project = JSON.parse(e.target.result);
-
-                // FEATURE 4: Wajib field check
-                if (!project.chaseData || !project.sceneChaseData || !project.colorChaseData) {
-                    throw new Error("Format file proyek tidak valid — field wajib hilang.");
-                }
-
-                // FEATURE 4: Compatibility check
-                const { fileVer, warnings } = checkCompatibility(project);
-                const isDifferentVersion = fileVer !== CURRENT_VERSION;
-
-                if(isDifferentVersion || warnings.length > 0) {
-                    // Tampilkan modal konfirmasi terlebih dahulu
-                    showCompatModal(fileVer, warnings, () => applyProject(project));
-                } else {
-                    // Versi sama dan tidak ada warning → langsung muat
-                    applyProject(project);
-                }
-            } catch(err) {
-                console.error(err); showStatus(`Gagal: ${err.message}`, true);
-            }
-        };
-        reader.readAsText(file);
-        input.value = '';
-    }
-
-    // ── AUTO-SAVE & SESSION RESTORE ───────────────────────────────────
-    const AUTOSAVE_KEY = 'photonic_mixer_autosave';
-    const AUTOSAVE_INTERVAL = 10000; // simpan tiap 10 detik
-
-    function getSessionData() {
-        return {
-            version: CURRENT_VERSION,
-            timestamp: Date.now(),
-            fixCount, globalSpacing, masterX, masterY, fxState,
-            chaseData, sceneChaseData, colorChaseData,
-            lampColorSteps: lamps.map(l => l.state.colorSteps),
-            trusses: trusses.map(t => ({ x:t.x, y:t.y, z:t.z, rotY:t.rotY, rotX:t.rotX, length:t.length, size:t.size }))
-        };
-    }
-
-    function autoSave() {
-        try {
-            // Jangan save kalau belum ada perubahan (lamps belum spawn)
-            if(lamps.length === 0) return;
-            const data = getSessionData();
-            localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(data));
-        } catch(e) {
-            // localStorage penuh atau tidak tersedia — diam saja
-            console.warn('Auto-save gagal:', e);
-        }
-    }
-
-    function formatTimestamp(ts) {
-        const d = new Date(ts);
-        const pad = n => String(n).padStart(2, '0');
-        return `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
-    }
-
-    function checkSavedSession() {
-        try {
-            const raw = localStorage.getItem(AUTOSAVE_KEY);
-            if(!raw) return false;
-            const data = JSON.parse(raw);
-            // Validasi minimal
-            if(!data.chaseData || !data.timestamp) return false;
-            // Tampilkan modal dengan info waktu terakhir simpan
-            document.getElementById('restore-timestamp').innerText = formatTimestamp(data.timestamp);
-            document.getElementById('restore-modal').classList.add('show');
-            return true;
-        } catch(e) {
-            return false;
-        }
-    }
-
-    function restoreSession() {
-        try {
-            const raw = localStorage.getItem(AUTOSAVE_KEY);
-            if(!raw) return;
-            const data = JSON.parse(raw);
-            document.getElementById('restore-modal').classList.remove('show');
-            applyProject(data);
-            showStatus('Session sebelumnya berhasil dipulihkan!');
-        } catch(e) {
-            document.getElementById('restore-modal').classList.remove('show');
-            showStatus('Gagal memulihkan session!', true);
-        }
-    }
-
-    function discardSession() {
-        localStorage.removeItem(AUTOSAVE_KEY);
-        document.getElementById('restore-modal').classList.remove('show');
-        showStatus('Session lama dihapus. Memulai fresh.');
-    }
-
-    window.onload = function() {
-        init();
-        // Cek session tersimpan setelah init selesai
-        setTimeout(() => {
-            checkSavedSession();
-        }, 500); // delay kecil agar canvas sudah render dulu
-
-        // Auto-save tiap 10 detik
-        setInterval(autoSave, AUTOSAVE_INTERVAL);
-
-        // Auto-save juga saat user mau tutup/refresh halaman
-        window.addEventListener('beforeunload', autoSave);
-    };
-</script>
-</div><!-- end app-root -->
-</body>
-</html>
+         
