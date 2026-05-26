@@ -195,15 +195,15 @@ body{
 
     <div class="error pulse">404</div>
 
-    <div class="warning">
+    <div class="warning" id="warningText">
         ⚠ Versi Tidak Didukung Lagi
     </div>
 
-    <div class="title">
+    <div class="title" id="titleText">
         Versi Pothonic Lighting Sudah Kadaluarsa
     </div>
 
-    <div class="desc">
+    <div class="desc" id="descText">
         Halaman atau versi yang Anda akses sudah tidak lagi didukung.
         Untuk mendapatkan fitur terbaru, peningkatan performa,
         dan perbaikan bug, silakan beralih ke versi terbaru atau
@@ -215,7 +215,7 @@ body{
             Home
         </a>
 
-        <a href="https://roichan-cloud.github.io/Pothonic-Mixer-Remake/v6.7" class="btn latest">
+        <a href="https://roichan-cloud.github.io/Pothonic-Mixer-Remake/v6.9" class="btn latest">
             Pergi Ke Versi Terbaru
         </a>
 
@@ -229,6 +229,31 @@ body{
     </div>
 
 </div>
+
+<script>
+const path = window.location.pathname.toLowerCase();
+
+if (
+    path === "/pothonic-mixer-remake/beta" ||
+    path.endsWith("/beta")
+) {
+    document.getElementById("warningText").textContent =
+        "🚫 Beta Ditutup";
+
+    document.getElementById("titleText").textContent =
+        "Versi Beta Sudah Ditutup";
+
+    document.getElementById("descText").textContent =
+        "Program beta Pothonic Lighting telah ditutup dan tidak lagi tersedia. Silakan gunakan versi stabil terbaru.";
+
+    document.title = "Pothonic Lighting - Beta Closed";
+
+    const betaButton = document.querySelector(".beta");
+    if (betaButton) {
+        betaButton.style.display = "none";
+    }
+}
+</script>
 
 </body>
 </html>
