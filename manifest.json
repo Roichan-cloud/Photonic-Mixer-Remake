@@ -1,0 +1,24 @@
+{
+  "name": "Pothonic Mixer Pro",
+  "short_name": "Pothonic",
+  "description": "Professional 3D Lighting Mixer",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#000000",
+  "theme_color": "#00cc44",
+  "icons": [
+    {
+      "src": "app.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "app.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
