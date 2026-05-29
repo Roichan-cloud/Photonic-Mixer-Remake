@@ -5,7 +5,7 @@
   "start_url": "/Pothonic-Mixer-Remake/",
   "scope": "/Pothonic-Mixer-Remake/",
   "display": "standalone",
-  "orientation": "landscape",
+  "orientation": "portrait",
   "background_color": "#000000",
   "theme_color": "#00cc44",
   "icons": [
