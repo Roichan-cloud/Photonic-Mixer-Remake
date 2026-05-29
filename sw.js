@@ -1,9 +1,9 @@
 const CACHE_NAME = 'pothonic-mixer-v1';
 const ASSETS = [
-  './',
-  './index.html',
-  './manifest.json',
-  './app.png',
+  '/Pothonic-Mixer-Remake/',
+  '/Pothonic-Mixer-Remake/index.html',
+  '/Pothonic-Mixer-Remake/manifest.json',
+  '/Pothonic-Mixer-Remake/app.png',
   'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js'
 ];
 
