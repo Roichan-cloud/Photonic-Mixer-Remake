@@ -63,7 +63,7 @@ These differences exist because the project is a complete reimplementation rathe
 
 ### Remake
 
-Developed and maintained by the repository owner.
+Developed and maintained by Ian Studio Localize.
 
 ## License
 
