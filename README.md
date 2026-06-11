@@ -6,7 +6,7 @@ A modern recreation of the original Photonic Lighting website, built as a person
 
 This project is a remake inspired by the original website:
 
-https://photonic-lighting-v6-0-byizul.netlify.app
+https://photonic-lighting-v7-0-byijulz-20ca12.zulljallbrek.workers.dev/
 
 The goal of this project is to recreate the user interface, visual design, and overall functionality of the original website while improving my understanding of front-end development, website structure, and modern web technologies.
 
@@ -59,7 +59,7 @@ These differences exist because the project is a complete reimplementation rathe
 
 ### Original Website
 
-[Visit Original Website](https://photonic-lighting-v6-0-byizul.netlify.app)
+[Visit Original Website](https://photonic-lighting-v7-0-byijulz-20ca12.zulljallbrek.workers.dev/)
 
 ### Remake
 
