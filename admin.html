@@ -1,1011 +1,1446 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Admin Panel — Pothonic Mixer Pro</title>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>⚙️ Admin Panel — Giveaway</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
-*{box-sizing:border-box;margin:0;padding:0;}
-body{background:#f0fdf4;font-family:'Segoe UI',sans-serif;color:#111;min-height:100vh;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --lime:#5DBA00;--lime-l:#7DDB1A;--lime-b:#A6F022;--lime-pale:#EDFFD0;
+  --white:#fff;--bg:#F4F7F0;--dark:#1A2E00;--text:#2D4A00;
+  --muted:#6B8F3A;--border:#D4F0A0;--red:#FF4444;--orange:#FF8C00;
+  --sidebar:#1A2E00;--sidebar-hover:rgba(255,255,255,.08);
+  --card:#fff;
+}
+html,body{height:100%;font-family:'Poppins',sans-serif;background:var(--bg);color:var(--text)}
 
-/* LOGIN */
-#login-screen{position:fixed;inset:0;background:linear-gradient(135deg,#00cc44,#00ff88);display:flex;align-items:center;justify-content:center;z-index:9999;}
-.login-card{background:#fff;border-radius:20px;padding:36px 28px;width:320px;max-width:90vw;box-shadow:0 8px 40px rgba(0,0,0,0.15);text-align:center;}
-.login-logo{width:72px;height:72px;border-radius:16px;margin-bottom:14px;box-shadow:0 4px 16px rgba(0,204,68,0.3);}
-.login-title{font-size:18px;font-weight:700;color:#111;margin-bottom:4px;}
-.login-sub{font-size:12px;color:#888;margin-bottom:24px;}
-.login-input{width:100%;padding:12px 14px;border:1.5px solid #e0e0e0;border-radius:10px;font-size:14px;margin-bottom:12px;outline:none;transition:border 0.2s;}
-.login-input:focus{border-color:#00cc44;}
-.login-btn{width:100%;padding:13px;background:linear-gradient(90deg,#00cc44,#00ff88);color:#000;font-weight:700;font-size:15px;border:none;border-radius:10px;cursor:pointer;margin-top:4px;transition:opacity 0.2s;}
-.login-btn:hover{opacity:0.9;}
-.login-err{color:#e53e3e;font-size:12px;margin-top:8px;display:none;}
-.login-info{font-size:11px;color:#aaa;margin-top:14px;}
+/* ── LOGIN ── */
+#login-screen{position:fixed;inset:0;background:linear-gradient(135deg,#0D1A00,#1A3300);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px}
+.login-box{background:var(--white);border-radius:28px;padding:40px 32px;max-width:380px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.login-logo{font-size:48px;margin-bottom:16px}
+.login-title{font-family:'Nunito',sans-serif;font-weight:900;font-size:24px;color:var(--dark);margin-bottom:4px}
+.login-sub{font-size:13px;color:var(--muted);margin-bottom:28px}
+.l-label{font-size:12px;font-weight:600;color:var(--muted);letter-spacing:1px;text-transform:uppercase;display:block;text-align:left;margin-bottom:6px}
+.l-input{width:100%;background:#F5F5F5;border:2px solid #E0E0E0;border-radius:12px;padding:13px 16px;color:var(--dark);font-family:'Poppins',sans-serif;font-size:15px;outline:none;margin-bottom:14px;transition:border-color .2s}
+.l-input:focus{border-color:var(--lime)}
+.l-err{background:#FFF0F0;border:1px solid #FFB3B3;border-radius:10px;padding:10px;font-size:13px;color:#CC0000;margin-bottom:14px;display:none}
+.l-btn{width:100%;background:linear-gradient(135deg,var(--lime),var(--lime-l));color:var(--white);font-family:'Nunito',sans-serif;font-weight:900;font-size:16px;padding:14px;border:none;border-radius:14px;cursor:pointer;box-shadow:0 4px 16px rgba(93,186,0,.4);transition:transform .15s}
+.l-btn:hover{transform:translateY(-2px)}
 
-/* TOPBAR */
-#topbar{background:#fff;border-bottom:2px solid #00cc44;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,204,68,0.1);}
-.topbar-left{display:flex;align-items:center;gap:10px;}
-.topbar-logo{width:32px;height:32px;border-radius:8px;}
-.topbar-title{font-size:15px;font-weight:700;color:#00aa33;}
-.topbar-badge{background:#00cc44;color:#000;font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;}
-.logout-btn{background:#ff4444;color:#fff;border:none;padding:7px 14px;border-radius:8px;font-size:12px;cursor:pointer;font-weight:600;}
+/* ── LAYOUT ── */
+#app{display:none;height:100vh;overflow:hidden}
+.sidebar{width:240px;background:var(--sidebar);height:100vh;position:fixed;left:0;top:0;display:flex;flex-direction:column;padding:24px 0;z-index:100;transition:transform .3s}
+.sb-logo{padding:0 20px 24px;border-bottom:1px solid rgba(255,255,255,.1)}
+.sb-logo-icon{font-size:32px;margin-bottom:4px}
+.sb-logo-title{font-family:'Nunito',sans-serif;font-weight:900;font-size:17px;color:var(--white)}
+.sb-logo-sub{font-size:11px;color:rgba(255,255,255,.5)}
+.sb-nav{flex:1;padding:16px 12px;overflow-y:auto}
+.sb-section{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.35);padding:12px 8px 6px}
+.sb-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;cursor:pointer;transition:background .2s;margin-bottom:2px;color:rgba(255,255,255,.7);font-size:14px;font-weight:600;text-decoration:none}
+.sb-item:hover,.sb-item.active{background:var(--sidebar-hover);color:var(--white)}
+.sb-item.active{background:rgba(93,186,0,.2);color:var(--lime-b)}
+.sb-item .si{font-size:18px;width:24px;text-align:center}
+.sb-bottom{padding:16px 12px;border-top:1px solid rgba(255,255,255,.1)}
+.sb-logout{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;cursor:pointer;color:rgba(255,255,255,.5);font-size:13px;font-weight:600;transition:color .2s}
+.sb-logout:hover{color:var(--red)}
 
-/* TABS */
-#tab-bar{background:#fff;border-bottom:1px solid #e0e0e0;display:flex;overflow-x:auto;-webkit-overflow-scrolling:touch;position:sticky;top:53px;z-index:99;padding:0 8px;}
-#tab-bar::-webkit-scrollbar{display:none;}
-.tab-btn{padding:11px 16px;font-size:12px;font-weight:600;color:#888;border:none;background:none;cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;transition:all 0.2s;flex-shrink:0;}
-.tab-btn.active{color:#00aa33;border-bottom-color:#00cc44;}
+.main{margin-left:240px;height:100vh;overflow-y:auto;padding:28px 24px}
 
-/* CONTENT */
-#content{padding:16px;max-width:800px;margin:0 auto;}
-.tab-panel{display:none;}
-.tab-panel.active{display:block;}
+/* ── TOPBAR ── */
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
+.page-title{font-family:'Nunito',sans-serif;font-weight:900;font-size:24px;color:var(--dark)}
+.page-sub{font-size:13px;color:var(--muted);margin-top:2px}
+.topbar-right{display:flex;align-items:center;gap:10px}
+.badge-online{background:var(--lime-pale);color:var(--lime);font-size:12px;font-weight:700;padding:6px 14px;border-radius:50px;border:1px solid var(--border)}
 
-/* CARDS */
-.card{background:#fff;border-radius:14px;padding:16px;margin-bottom:14px;box-shadow:0 2px 10px rgba(0,0,0,0.06);border:1px solid #e8f5e9;}
-.card-title{font-size:13px;font-weight:700;color:#00aa33;margin-bottom:12px;display:flex;align-items:center;gap:6px;}
-.card-title .icon{font-size:16px;}
+/* ── CARDS ── */
+.cards-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:16px;margin-bottom:24px}
+.stat-card{background:var(--card);border-radius:20px;padding:20px;border:2px solid var(--border);box-shadow:0 2px 8px rgba(0,0,0,.04)}
+.stat-card.green{border-color:var(--lime-b);background:linear-gradient(135deg,var(--lime-pale),var(--white))}
+.stat-label{font-size:12px;font-weight:600;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px}
+.stat-val{font-family:'Nunito',sans-serif;font-weight:900;font-size:36px;color:var(--dark)}
+.stat-val.lime{color:var(--lime)}
+.stat-icon{font-size:28px;margin-bottom:8px}
 
-/* STATS GRID */
-.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
-.stat-card{background:#fff;border-radius:12px;padding:14px;text-align:center;border:1px solid #e8f5e9;box-shadow:0 2px 8px rgba(0,0,0,0.05);}
-.stat-num{font-size:28px;font-weight:800;color:#00aa33;}
-.stat-label{font-size:10px;color:#888;margin-top:2px;}
-.stat-sub{font-size:9px;color:#00cc44;margin-top:1px;}
+/* ── SECTION ── */
+.section{background:var(--card);border-radius:20px;padding:24px;border:2px solid var(--border);box-shadow:0 2px 8px rgba(0,0,0,.04);margin-bottom:20px}
+.section-title{font-family:'Nunito',sans-serif;font-weight:900;font-size:17px;color:var(--dark);margin-bottom:16px;display:flex;align-items:center;gap:8px}
 
-/* BUTTONS */
-.btn-green{background:linear-gradient(90deg,#00cc44,#00ff88);color:#000;border:none;padding:10px 18px;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;width:100%;margin-bottom:8px;transition:opacity 0.2s;}
-.btn-green:hover{opacity:0.85;}
-.btn-red{background:#ff4444;color:#fff;border:none;padding:10px 18px;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;width:100%;margin-bottom:8px;}
-.btn-yellow{background:#ffcc00;color:#000;border:none;padding:10px 18px;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;width:100%;margin-bottom:8px;}
-.btn-gray{background:#f0f0f0;color:#555;border:none;padding:10px 18px;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;width:100%;margin-bottom:8px;}
+/* ── TABLE ── */
+.tbl-toolbar{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.tbl-search{flex:1;min-width:180px;background:var(--bg);border:2px solid var(--border);border-radius:12px;padding:10px 14px;font-family:'Poppins',sans-serif;font-size:14px;outline:none;color:var(--dark);transition:border-color .2s}
+.tbl-search:focus{border-color:var(--lime)}
+.tbl-filter{background:var(--bg);border:2px solid var(--border);border-radius:12px;padding:10px 14px;font-size:13px;outline:none;color:var(--dark);cursor:pointer}
+.badge-pending{background:#FFF3D0;color:#A06000;border:1px solid #FFD880}
+.badge-approved{background:#E8FFD0;color:#3A8A00;border:1px solid #B0E87A}
+.badge-rejected{background:#FFE8E8;color:#CC0000;border:1px solid #FFB3B3}
+.izin-card{background:var(--white);border:2px solid var(--border);border-radius:16px;padding:16px 18px;margin-bottom:12px}
+.izin-card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:8px}
+.izin-card-tiktok{font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;color:var(--dark)}
+.izin-card-time{font-size:11px;color:var(--muted)}
+.izin-card-alasan{font-size:13px;color:var(--text);background:var(--bg);border-radius:10px;padding:10px 14px;margin-bottom:12px;line-height:1.5}
+.izin-card-actions{display:flex;gap:8px;flex-wrap:wrap}
+.btn-approve{background:#E8FFD0;color:#3A8A00;border:1px solid #B0E87A;padding:7px 14px;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer}
+.btn-reject{background:#FFE8E8;color:#CC0000;border:1px solid #FFB3B3;padding:7px 14px;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer}
+.btn-approve:hover{background:#B0E87A}.btn-reject:hover{background:#FFB3B3}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead{background:var(--lime-pale)}
+th{padding:12px 16px;text-align:left;font-family:'Nunito',sans-serif;font-weight:800;font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);white-space:nowrap}
+td{padding:12px 16px;border-top:1px solid var(--border);vertical-align:middle}
+tr:hover td{background:#FAFFEE}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:50px;font-size:11px;font-weight:700}
+.badge-valid{background:#E8FFD0;color:#3A8A00;border:1px solid #B0E87A}
+.badge-invalid{background:#FFE8E8;color:#CC0000;border:1px solid #FFB3B3}
+.badge-winner{background:#FFF3D0;color:#A06000;border:1px solid #FFD880}
+.tbl-actions{display:flex;gap:6px}
+.act-btn{padding:5px 10px;border-radius:8px;border:none;cursor:pointer;font-size:12px;font-weight:700;transition:opacity .2s}
+.act-btn:hover{opacity:.8}
+.btn-valid{background:#E8FFD0;color:#3A8A00}
+.btn-invalid{background:#FFE8E8;color:#CC0000}
+.btn-del{background:#FFE8E8;color:#CC0000}
+.tbl-empty{text-align:center;padding:40px;color:var(--muted);font-size:14px}
+.tbl-pager{display:flex;align-items:center;justify-content:space-between;margin-top:14px;font-size:13px;color:var(--muted)}
+.pager-btns{display:flex;gap:6px}
+.pager-btn{padding:6px 14px;border-radius:8px;border:2px solid var(--border);background:var(--white);color:var(--dark);cursor:pointer;font-weight:700;font-size:12px;transition:border-color .2s}
+.pager-btn:hover:not(:disabled){border-color:var(--lime)}
+.pager-btn:disabled{opacity:.4;cursor:not-allowed}
 
-/* INPUT */
-.admin-input{width:100%;padding:10px 12px;border:1.5px solid #ddd;border-radius:9px;font-size:13px;margin-bottom:10px;outline:none;}
-.admin-input:focus{border-color:#00cc44;}
-.admin-textarea{width:100%;padding:10px 12px;border:1.5px solid #ddd;border-radius:9px;font-size:13px;margin-bottom:10px;outline:none;min-height:80px;resize:vertical;}
-.admin-textarea:focus{border-color:#00cc44;}
-.admin-label{font-size:12px;color:#555;margin-bottom:5px;display:block;font-weight:600;}
-.admin-select{width:100%;padding:10px 12px;border:1.5px solid #ddd;border-radius:9px;font-size:13px;margin-bottom:10px;outline:none;background:#fff;}
+/* ── FORM INPUT (settings & undian) ── */
+.field-row{margin-bottom:16px}
+.field-label{font-size:12px;font-weight:600;color:var(--muted);letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:7px}
+.field-input{width:100%;background:var(--bg);border:2px solid var(--border);border-radius:12px;padding:12px 16px;font-family:'Poppins',sans-serif;font-size:14px;color:var(--dark);outline:none;transition:border-color .2s}
+.field-input:focus{border-color:var(--lime)}
+.field-row-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.field-hint{font-size:12px;color:var(--muted2);margin-top:5px}
+.settings-btn{background:linear-gradient(135deg,var(--lime),var(--lime-l));color:var(--white);font-family:'Nunito',sans-serif;font-weight:900;font-size:15px;padding:13px 28px;border:none;border-radius:14px;cursor:pointer;box-shadow:0 4px 16px rgba(93,186,0,.35);transition:transform .15s}
+.settings-btn:hover{transform:translateY(-2px)}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--dark);color:var(--white);font-family:'Nunito',sans-serif;font-weight:700;font-size:14px;padding:14px 22px;border-radius:16px;box-shadow:0 8px 24px rgba(0,0,0,.2);z-index:9998;transform:translateY(80px);opacity:0;transition:transform .3s,opacity .3s}
+.toast.show{transform:translateY(0);opacity:1}
 
-/* TOGGLE */
-.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f0f0f0;}
-.toggle-row:last-child{border-bottom:none;}
-.toggle-label{font-size:13px;font-weight:600;color:#333;}
-.toggle-sub{font-size:11px;color:#888;}
-.switch{position:relative;display:inline-block;width:44px;height:24px;flex-shrink:0;}
-.switch input{opacity:0;width:0;height:0;}
-.slider-sw{position:absolute;cursor:pointer;inset:0;background:#ccc;border-radius:24px;transition:.3s;}
-.slider-sw:before{position:absolute;content:"";height:18px;width:18px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.3s;}
-input:checked+.slider-sw{background:#00cc44;}
-input:checked+.slider-sw:before{transform:translateX(20px);}
+/* ── UNDIAN ── */
+.slot-machine{background:var(--dark);border-radius:24px;padding:32px;text-align:center;margin-bottom:24px;position:relative;overflow:hidden}
+.slot-machine::before{content:'🎰';position:absolute;right:-20px;top:-20px;font-size:120px;opacity:.08}
+.slot-title{font-family:'Nunito',sans-serif;font-weight:900;font-size:20px;color:var(--white);margin-bottom:24px}
+.slot-screen{background:#0D1A00;border:3px solid var(--lime-b);border-radius:16px;padding:24px;min-height:120px;display:flex;align-items:center;justify-content:center;margin-bottom:20px;position:relative;overflow:hidden}
+.slot-text{font-family:'Nunito',sans-serif;font-weight:900;font-size:28px;color:var(--lime-b);text-align:center;word-break:break-all}
+.slot-text.spinning{animation:spinText .1s linear infinite}
+@keyframes spinText{0%{opacity:0}50%{opacity:1}100%{opacity:0}}
+.slot-controls{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.slot-btn{padding:13px 28px;border-radius:14px;border:none;cursor:pointer;font-family:'Nunito',sans-serif;font-weight:900;font-size:15px;transition:transform .15s,box-shadow .15s}
+.slot-btn:hover{transform:translateY(-2px)}
+.slot-start{background:linear-gradient(135deg,var(--lime),var(--lime-l));color:var(--white);box-shadow:0 4px 16px rgba(93,186,0,.4)}
+.slot-ulang{background:rgba(255,255,255,.1);color:var(--white);border:2px solid rgba(255,255,255,.2)!important}
+.slot-ulang:hover{background:rgba(255,255,255,.15)}
+.slot-save{background:linear-gradient(135deg,#FFE135,#FFA500);color:var(--dark);box-shadow:0 4px 16px rgba(255,165,0,.4)}
+.winner-prize-input{background:rgba(255,255,255,.1);border:2px solid rgba(93,186,0,.4);border-radius:12px;padding:10px 16px;color:var(--white);font-family:'Poppins',sans-serif;font-size:14px;outline:none;width:200px;text-align:center}
+.winner-prize-input::placeholder{color:rgba(255,255,255,.4)}
+.winners-log{margin-top:16px}
+.winner-log-item{background:rgba(93,186,0,.1);border:1px solid rgba(93,186,0,.25);border-radius:12px;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.wl-name{font-family:'Nunito',sans-serif;font-weight:800;color:var(--lime-b);font-size:15px}
+.wl-rank{font-size:20px}
+.wl-del{background:rgba(255,68,68,.15);border:1px solid rgba(255,68,68,.3);color:var(--red);border-radius:8px;padding:4px 10px;font-size:12px;font-weight:700;cursor:pointer}
 
-/* TABLE */
-.admin-table{width:100%;border-collapse:collapse;font-size:11px;}
-.admin-table th{background:#f0fdf4;color:#00aa33;padding:8px 10px;text-align:left;font-weight:700;border-bottom:2px solid #00cc44;}
-.admin-table td{padding:8px 10px;border-bottom:1px solid #f0f0f0;color:#333;vertical-align:top;}
-.admin-table tr:last-child td{border-bottom:none;}
-.badge-success{background:#d4edda;color:#155724;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;}
-.badge-fail{background:#f8d7da;color:#721c24;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;}
-.badge-online{background:#d4edda;color:#155724;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;}
-.badge-info{background:#d1ecf1;color:#0c5460;padding:2px 8px;border-radius:20px;font-size:10px;}
+/* UNDIAN TABS */
+.undian-tab{padding:11px 22px;border-radius:12px;border:2px solid var(--border);background:var(--white);color:var(--muted);font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;cursor:pointer;transition:all .2s}
+.undian-tab.active{background:linear-gradient(135deg,var(--lime),var(--lime-l));color:white;border-color:transparent}
 
-/* REALTIME DOT */
-.rt-dot{width:8px;height:8px;background:#00cc44;border-radius:50%;display:inline-block;animation:rtPulse 1s infinite;}
-@keyframes rtPulse{0%,100%{opacity:1;}50%{opacity:0.3;}}
+/* SPIN WHEEL */
+.wheel-wrap{position:relative;display:flex;justify-content:center;align-items:center;padding:10px 0}
+.wheel-pointer{position:absolute;top:-8px;left:50%;transform:translateX(-50%);font-size:34px;color:var(--lime-b);z-index:10;text-shadow:0 2px 8px rgba(0,0,0,.6)}
+#wheel-canvas{border-radius:50%;box-shadow:0 0 0 6px rgba(255,255,255,.15),0 8px 32px rgba(0,0,0,.3);max-width:100%;width:min(420px,90vw);height:min(420px,90vw)}
 
-/* STATUS */
-.status-ok{color:#00aa33;font-size:12px;font-weight:600;}
-.status-err{color:#ff4444;font-size:12px;font-weight:600;}
-.divider{height:1px;background:#f0f0f0;margin:12px 0;}
+/* CERTIFICATE */
+.cert-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
 
-/* NOTIF TOAST */
-#admin-toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#00aa33;color:#fff;padding:10px 22px;border-radius:10px;font-size:13px;font-weight:600;z-index:99999;opacity:0;transition:opacity 0.3s;pointer-events:none;}
-#admin-toast.show{opacity:1;}
+/* ── CHART ── */
+.chart-wrap{position:relative;height:200px}
 
-/* CHART */
-.chart-wrap{position:relative;height:200px;width:100%;}
+/* ── PAGES ── */
+.page{display:none}
+.page.active{display:block}
+
+/* ── CONFIRM MODAL ── */
+.modal-ov{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:8888;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-ov.show{display:flex}
+.modal-box{background:var(--white);border-radius:20px;padding:28px;max-width:340px;width:100%;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.2)}
+.modal-icon{font-size:40px;margin-bottom:12px}
+.modal-title{font-family:'Nunito',sans-serif;font-weight:900;font-size:18px;color:var(--dark);margin-bottom:8px}
+.modal-body{font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.5}
+.modal-actions{display:flex;gap:10px;justify-content:center}
+.modal-cancel{padding:11px 24px;border-radius:12px;border:2px solid var(--border);background:var(--white);color:var(--dark);font-weight:700;cursor:pointer;font-size:14px}
+.modal-confirm{padding:11px 24px;border-radius:12px;border:none;background:var(--red);color:var(--white);font-weight:700;cursor:pointer;font-size:14px}
+
+@media(max-width:768px){
+  .sidebar{transform:translateX(-100%)}
+  .sidebar.open{transform:translateX(0)}
+  .main{margin-left:0;padding:16px}
+  .hamburger{display:flex!important}
+  .field-row-2{grid-template-columns:1fr}
+}
+.hamburger{display:none;position:fixed;top:16px;left:16px;z-index:200;background:var(--dark);border:none;border-radius:10px;padding:10px;cursor:pointer;flex-direction:column;gap:4px}
+.hamburger span{display:block;width:20px;height:2px;background:var(--white);border-radius:2px}
 </style>
 </head>
 <body>
 
-<!-- LOGIN SCREEN -->
+<!-- LOGIN -->
 <div id="login-screen">
-  <div class="login-card">
-    <img src="app.png" class="login-logo" alt="logo">
+  <div class="login-box">
+    <div class="login-logo">🔐</div>
     <div class="login-title">Admin Panel</div>
-    <div class="login-sub">Pothonic Mixer Pro</div>
-    <input class="login-input" id="login-user" type="text" placeholder="Username" autocomplete="off">
-    <input class="login-input" id="login-pass" type="password" placeholder="Password">
-    <button class="login-btn" onclick="doLogin()">🔐 Masuk</button>
-    <div class="login-err" id="login-err"></div>
-    <div class="login-info">⚠️ Izin lokasi diperlukan untuk login</div>
+    <div class="login-sub">Masuk dengan akun Firebase kamu</div>
+    <label class="l-label">Email</label>
+    <input class="l-input" id="l-user" type="email" placeholder="email@kamu.com"/>
+    <label class="l-label">Password</label>
+    <input class="l-input" id="l-pass" type="password" placeholder="Password"/>
+    <div class="l-err" id="l-err">❌ Email atau password salah!</div>
+    <button class="l-btn" id="l-btn">Masuk →</button>
   </div>
 </div>
 
-<!-- MAIN APP -->
-<div id="main-app" style="display:none;">
+<!-- APP -->
+<div id="app">
 
-  <!-- TOPBAR -->
-  <div id="topbar">
-    <div class="topbar-left">
-      <img src="app.png" class="topbar-logo">
-      <div>
-        <div class="topbar-title">Admin Panel</div>
-      </div>
-      <span class="topbar-badge"><span class="rt-dot"></span> LIVE</span>
+  <!-- HAMBURGER -->
+  <button class="hamburger" id="hamburger">
+    <span></span><span></span><span></span>
+  </button>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar" id="sidebar">
+    <div class="sb-logo">
+      <div class="sb-logo-icon">🎉</div>
+      <div class="sb-logo-title">Admin Panel</div>
+      <div class="sb-logo-sub">Giveaway Manager</div>
     </div>
-    <button class="logout-btn" onclick="doLogout()">Keluar</button>
+    <div class="sb-nav">
+      <div class="sb-section">Menu</div>
+      <div class="sb-item active" data-page="dashboard"><span class="si">📊</span> Dashboard</div>
+      <div class="sb-item" data-page="peserta"><span class="si">👥</span> Peserta</div>
+      <div class="sb-item" data-page="undian"><span class="si">🎰</span> Undian</div>
+      <div class="sb-item" data-page="live"><span class="si">📺</span> Layar Live</div>
+      <div class="sb-item" data-page="pemenang"><span class="si">🏆</span> Pemenang</div>
+      <div class="sb-item" data-page="izin"><span class="si">📩</span> Izin Daftar</div>
+      <div class="sb-section">Pengaturan</div>
+      <div class="sb-item" data-page="settings"><span class="si">⚙️</span> Pengaturan</div>
+    </div>
+    <div class="sb-bottom">
+      <div style="padding:8px 12px 10px;font-size:11px;color:rgba(255,255,255,.35);word-break:break-all" id="sb-email"></div>
+      <div class="sb-logout" id="btn-logout"><span>🚪</span> Keluar</div>
+    </div>
   </div>
 
-  <!-- TAB BAR -->
-  <div id="tab-bar">
-    <button class="tab-btn active" onclick="switchTab('dashboard')">📊 Dashboard</button>
-    <button class="tab-btn" onclick="switchTab('announcement')">📢 Announcement</button>
-    <button class="tab-btn" onclick="switchTab('notification')">🔔 Notifikasi</button>
-    <button class="tab-btn" onclick="switchTab('maintenance')">🚧 Maintenance</button>
-    <button class="tab-btn" onclick="switchTab('analytics')">📈 Analytics</button>
-    <button class="tab-btn" onclick="switchTab('users')">👥 Users</button>
-    <button class="tab-btn" onclick="switchTab('settings')">⚙️ Settings</button>
-    <button class="tab-btn" onclick="switchTab('loginlog')">📝 Riwayat Login</button>
-    <button class="tab-btn" onclick="switchTab('security')">🛡️ Keamanan</button>
-  </div>
-
-  <div id="content">
+  <!-- MAIN -->
+  <div class="main">
 
     <!-- DASHBOARD -->
-    <div class="tab-panel active" id="tab-dashboard">
-      <div class="stats-grid">
-        <div class="stat-card"><div class="stat-num" id="stat-online">-</div><div class="stat-label">Online Sekarang</div><div class="stat-sub">Realtime</div></div>
-        <div class="stat-card"><div class="stat-num" id="stat-today">-</div><div class="stat-label">Kunjungan Hari Ini</div></div>
-        <div class="stat-card"><div class="stat-num" id="stat-total">-</div><div class="stat-label">Total Kunjungan</div></div>
-        <div class="stat-card"><div class="stat-num" id="stat-retention">-%</div><div class="stat-label">Retention Rate</div></div>
+    <div class="page active" id="page-dashboard">
+      <div class="topbar">
+        <div><div class="page-title">📊 Dashboard</div><div class="page-sub">Ringkasan giveaway kamu</div></div>
+        <div class="topbar-right"><div class="badge-online">🟢 Live</div></div>
       </div>
-      <div class="card">
-        <div class="card-title"><span class="icon">📱</span> Status App</div>
-        <div class="toggle-row">
-          <div><div class="toggle-label">Maintenance Mode</div><div class="toggle-sub" id="maint-status-dash">Tidak aktif</div></div>
-          <span id="dash-maint-badge" class="badge-info">OFF</span>
-        </div>
-        <div class="toggle-row">
-          <div><div class="toggle-label">Versi App</div><div class="toggle-sub" id="dash-version">v6.9</div></div>
-          <span class="badge-success">LIVE</span>
-        </div>
-        <div class="toggle-row">
-          <div><div class="toggle-label">Force Update</div><div class="toggle-sub" id="dash-force">Tidak aktif</div></div>
-          <span id="dash-force-badge" class="badge-info">OFF</span>
-        </div>
+      <div class="cards-row">
+        <div class="stat-card green"><div class="stat-icon">👥</div><div class="stat-label">Total Peserta</div><div class="stat-val lime" id="stat-total">-</div></div>
+        <div class="stat-card"><div class="stat-icon">✅</div><div class="stat-label">Peserta Valid</div><div class="stat-val" id="stat-valid">-</div></div>
+        <div class="stat-card"><div class="stat-icon">🚫</div><div class="stat-label">Tidak Valid</div><div class="stat-val" id="stat-invalid">-</div></div>
+        <div class="stat-card"><div class="stat-icon">🏆</div><div class="stat-label">Pemenang</div><div class="stat-val" id="stat-winner">-</div></div>
       </div>
-      <div class="card">
-        <div class="card-title"><span class="icon">👥</span> Online Users <span class="rt-dot" style="margin-left:4px;"></span></div>
-        <div id="online-users-list"><div style="color:#aaa;font-size:12px;">Memuat...</div></div>
+      <div class="section">
+        <div class="section-title">⏳ Status Countdown</div>
+        <div id="dash-countdown" style="font-family:'Nunito',sans-serif;font-size:18px;font-weight:800;color:var(--lime)">Memuat...</div>
+        <div id="dash-target" style="font-size:13px;color:var(--muted);margin-top:6px"></div>
       </div>
-      <div class="card">
-        <div class="card-title"><span class="icon">⏱️</span> Heatmap Waktu Aktif</div>
-        <div class="chart-wrap"><canvas id="heatmap-chart"></canvas></div>
+      <div class="section">
+        <div class="section-title">📈 Pendaftar Per Hari (7 hari terakhir)</div>
+        <div class="chart-wrap"><canvas id="chart-daily"></canvas></div>
       </div>
     </div>
 
-    <!-- ANNOUNCEMENT -->
-    <div class="tab-panel" id="tab-announcement">
-      <div class="card">
-        <div class="card-title"><span class="icon">📢</span> Kirim Pengumuman</div>
-        <label class="admin-label">Judul</label>
-        <input class="admin-input" id="ann-title" placeholder="Judul pengumuman...">
-        <label class="admin-label">Pesan</label>
-        <textarea class="admin-textarea" id="ann-msg" placeholder="Isi pengumuman..."></textarea>
-        <label class="admin-label">Tipe</label>
-        <select class="admin-select" id="ann-type">
-          <option value="info">ℹ️ Info</option>
-          <option value="warning">⚠️ Peringatan</option>
-          <option value="success">✅ Sukses</option>
-          <option value="error">❌ Error</option>
-        </select>
-        <label class="admin-label">Custom Icon (URL gambar, opsional)</label>
-        <input class="admin-input" id="ann-icon" placeholder="https://... (kosongkan untuk pakai emoji default)">
-        <label class="admin-label">Durasi tampil (detik, 0 = permanen)</label>
-        <input class="admin-input" id="ann-duration" type="number" placeholder="0" value="10" min="0" max="300">
-        <button class="btn-green" onclick="sendAnnouncement()">📢 Kirim Pengumuman</button>
-        <button class="btn-gray" onclick="clearAnnouncement()">🗑️ Hapus Pengumuman Aktif</button>
+    <!-- PESERTA -->
+    <div class="page" id="page-peserta">
+      <div class="topbar">
+        <div><div class="page-title">👥 Peserta</div><div class="page-sub">Kelola semua pendaftar giveaway</div></div>
       </div>
-      <div class="card">
-        <div class="card-title"><span class="icon">💬</span> Banner/MOTD</div>
-        <label class="admin-label">Pesan selamat datang (muncul saat app dibuka)</label>
-        <textarea class="admin-textarea" id="motd-msg" placeholder="Selamat datang di Pothonic Mixer Pro!"></textarea>
-        <button class="btn-green" onclick="saveMOTD()">💾 Simpan MOTD</button>
-        <button class="btn-gray" onclick="clearMOTD()">🗑️ Hapus MOTD</button>
-      </div>
-    </div>
-
-    <!-- NOTIFICATION -->
-    <div class="tab-panel" id="tab-notification">
-      <div class="card">
-        <div class="card-title"><span class="icon">🔔</span> Kirim Push Notification</div>
-        <label class="admin-label">Judul Notifikasi</label>
-        <input class="admin-input" id="notif-title" placeholder="Judul...">
-        <label class="admin-label">Pesan</label>
-        <textarea class="admin-textarea" id="notif-msg" placeholder="Isi notifikasi..."></textarea>
-        <label class="admin-label">Target</label>
-        <select class="admin-select" id="notif-target">
-          <option value="all">👥 Semua User</option>
-          <option value="specific">🎯 Device Tertentu</option>
-        </select>
-        <div id="notif-specific-wrap" style="display:none;">
-          <input class="admin-input" id="notif-device-id" placeholder="Device ID...">
+      <div class="section">
+        <div class="tbl-toolbar">
+          <input class="tbl-search" id="search-input" placeholder="🔍 Cari username TikTok..." oninput="filterTable()"/>
+          <select class="tbl-filter" id="filter-status" onchange="filterTable()">
+            <option value="">Semua Status</option>
+            <option value="valid">✅ Valid</option>
+            <option value="invalid">🚫 Tidak Valid</option>
+          </select>
         </div>
-        <label class="admin-label">Jadwalkan (opsional)</label>
-        <input class="admin-input" id="notif-schedule" type="datetime-local">
-        <button class="btn-green" onclick="sendNotification()">🚀 Kirim Notifikasi</button>
-      </div>
-      <div class="card">
-        <div class="card-title"><span class="icon">📋</span> Riwayat Notifikasi</div>
-        <div id="notif-history"><div style="color:#aaa;font-size:12px;">Memuat...</div></div>
-      </div>
-    </div>
-
-    <!-- MAINTENANCE -->
-    <div class="tab-panel" id="tab-maintenance">
-      <div class="card">
-        <div class="card-title"><span class="icon">🚧</span> Maintenance Mode</div>
-        <div class="toggle-row">
-          <div><div class="toggle-label">Aktifkan Maintenance</div><div class="toggle-sub">App akan tampil halaman maintenance</div></div>
-          <label class="switch"><input type="checkbox" id="maint-toggle" onchange="toggleMaintenance()"><span class="slider-sw"></span></label>
-        </div>
-        <div class="divider"></div>
-        <label class="admin-label">Pesan Maintenance</label>
-        <textarea class="admin-textarea" id="maint-msg" placeholder="Sedang dalam pemeliharaan. Mohon tunggu..."></textarea>
-        <label class="admin-label">Estimasi Selesai</label>
-        <input class="admin-input" id="maint-eta" type="datetime-local">
-        <button class="btn-green" onclick="saveMaintenance()">💾 Simpan Pengaturan</button>
-      </div>
-      <div class="card">
-        <div class="card-title"><span class="icon">🔄</span> Force Update</div>
-        <label class="admin-label">Pesan Update</label>
-        <textarea class="admin-textarea" id="update-msg" placeholder="Versi baru tersedia! Silakan reload."></textarea>
-        <button class="btn-green" onclick="sendForceUpdate()">🚀 Kirim Force Update ke Semua User</button>
-        <button class="btn-gray" onclick="clearForceUpdate()">🗑️ Hapus Force Update</button>
-      </div>
-    </div>
-
-    <!-- ANALYTICS -->
-    <div class="tab-panel" id="tab-analytics">
-      <div class="stats-grid">
-        <div class="stat-card"><div class="stat-num" id="an-today">-</div><div class="stat-label">Hari Ini</div></div>
-        <div class="stat-card"><div class="stat-num" id="an-week">-</div><div class="stat-label">7 Hari</div></div>
-        <div class="stat-card"><div class="stat-num" id="an-month">-</div><div class="stat-label">30 Hari</div></div>
-        <div class="stat-card"><div class="stat-num" id="an-ret">-%</div><div class="stat-label">Retention</div></div>
-      </div>
-      <div class="card">
-        <div class="card-title"><span class="icon">⏱️</span> Heatmap Jam Aktif</div>
-        <div class="chart-wrap"><canvas id="hour-chart"></canvas></div>
-      </div>
-      <div class="card">
-        <div class="card-title"><span class="icon">📱</span> Device Statistics</div>
-        <div class="chart-wrap"><canvas id="device-chart"></canvas></div>
-        <div id="device-stats-list" style="margin-top:12px;"></div>
-      </div>
-      <div class="card">
-        <div class="card-title"><span class="icon">📅</span> Kunjungan 7 Hari Terakhir</div>
-        <div class="chart-wrap"><canvas id="visit-chart"></canvas></div>
-      </div>
-    </div>
-
-    <!-- USERS -->
-    <div class="tab-panel" id="tab-users">
-      <div class="card">
-        <div class="card-title"><span class="icon">🟢</span> Online Sekarang <span class="rt-dot" style="margin-left:4px;"></span></div>
-        <div id="online-detail-list"><div style="color:#aaa;font-size:12px;">Memuat...</div></div>
-      </div>
-      <div class="card">
-        <div class="card-title"><span class="icon">⏱️</span> User Sessions</div>
-        <div style="overflow-x:auto;">
-          <table class="admin-table" id="session-table">
-            <thead><tr><th>Device</th><th>Durasi</th><th>Terakhir</th><th>Status</th></tr></thead>
-            <tbody id="session-tbody"><tr><td colspan="4" style="color:#aaa;">Memuat...</td></tr></tbody>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>#</th><th>Username TikTok</th><th>Status</th><th>Waktu Daftar</th><th>Aksi</th></tr></thead>
+            <tbody id="peserta-tbody"></tbody>
           </table>
         </div>
+        <div class="tbl-pager">
+          <div id="pager-info">-</div>
+          <div class="pager-btns">
+            <button class="pager-btn" id="btn-prev" onclick="changePage(-1)">← Prev</button>
+            <button class="pager-btn" id="btn-next" onclick="changePage(1)">Next →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- UNDIAN -->
+    <div class="page" id="page-undian">
+      <div class="topbar"><div><div class="page-title">🎰 Undian</div><div class="page-sub">Pilih pemenang secara acak & adil</div></div></div>
+
+      <div style="display:flex;gap:10px;margin-bottom:16px">
+        <button class="undian-tab active" id="tab-slot" data-mode="slot">🎰 Slot Machine</button>
+        <button class="undian-tab" id="tab-wheel" data-mode="wheel">🎡 Roda Keberuntungan</button>
+      </div>
+
+      <!-- MODE: SLOT MACHINE -->
+      <div class="slot-machine" id="undian-slot">
+        <div class="slot-title">🎰 Mesin Undian Pemenang</div>
+        <div class="slot-screen">
+          <div class="slot-text" id="slot-text">Tekan "Mulai Undian" untuk memilih pemenang!</div>
+        </div>
+        <div style="margin-bottom:16px">
+          <input class="winner-prize-input" id="prize-input" placeholder="Nominal hadiah (contoh: Rp 500.000)"/>
+        </div>
+        <div class="slot-controls">
+          <button class="slot-btn slot-start" id="btn-undian-start">🎰 Mulai Undian</button>
+          <button class="slot-btn slot-ulang" id="btn-undian-ulang">🔄 Ulang</button>
+          <button class="slot-btn slot-save" id="btn-undian-save">💾 Simpan Pemenang</button>
+        </div>
+      </div>
+
+      <!-- MODE: SPIN WHEEL -->
+      <div class="slot-machine" id="undian-wheel" style="display:none">
+        <div class="slot-title">🎡 Roda Keberuntungan</div>
+        <div class="wheel-wrap">
+          <div class="wheel-pointer">▼</div>
+          <canvas id="wheel-canvas" width="420" height="420"></canvas>
+        </div>
+        <div id="wheel-winner-display" style="font-family:'Nunito',sans-serif;font-weight:900;font-size:20px;color:var(--lime-b);text-align:center;margin:16px 0;min-height:28px"></div>
+
+        <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;justify-content:center">
+          <div style="flex:1;min-width:140px">
+            <label style="display:block;font-size:11px;font-weight:700;color:rgba(255,255,255,.6);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">Jumlah Pemenang</label>
+            <input class="winner-prize-input" id="winner-count-input" type="number" min="1" value="1" style="width:100%"/>
+          </div>
+          <div style="flex:2;min-width:200px">
+            <label style="display:block;font-size:11px;font-weight:700;color:rgba(255,255,255,.6);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">Nominal Hadiah per Pemenang</label>
+            <input class="winner-prize-input" id="prize-input-wheel" placeholder="Contoh: Rp 500.000" style="width:100%"/>
+          </div>
+        </div>
+
+        <div class="slot-controls">
+          <button class="slot-btn slot-start" id="btn-wheel-spin">🎡 Putar &amp; Pilih Pemenang</button>
+          <button class="slot-btn slot-save" id="btn-wheel-save" style="display:none">💾 Simpan Pemenang</button>
+        </div>
+        <p style="font-size:11px;color:rgba(255,255,255,.4);text-align:center;margin-top:10px">Setiap putaran final — tidak ada tombol ulang agar undian tetap 100% murni dan adil.</p>
+      </div>
+
+      <div class="section">
+        <div class="section-title">📋 Pemenang Sesi Ini</div>
+        <div id="winners-log-wrap">
+          <p style="font-size:13px;color:var(--muted)">Belum ada undian. Tekan "Mulai Undian" di atas.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- LAYAR LIVE -->
+    <div class="page" id="page-live">
+      <div class="topbar"><div><div class="page-title">📺 Layar Live</div><div class="page-sub">Tampilan full-screen untuk di-share saat live</div></div></div>
+      <div class="section">
+        <p style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.6">Buka tampilan full-screen berisi counter peserta dan countdown raksasa — cocok untuk di-screen-share saat live TikTok atau Zoom. Klik tombol di bawah untuk membuka di tab baru.</p>
+        <button id="btn-open-live" style="padding:14px 28px;border-radius:14px;border:none;background:linear-gradient(135deg,var(--lime),var(--lime-l));color:white;font-family:'Nunito',sans-serif;font-weight:800;font-size:15px;cursor:pointer;box-shadow:0 4px 16px rgba(93,186,0,.35)">📺 Buka Layar Live</button>
+      </div>
+    </div>
+
+    <!-- PEMENANG -->
+    <div class="page" id="page-pemenang">
+      <div class="topbar"><div><div class="page-title">🏆 Pemenang</div><div class="page-sub">Daftar pemenang yang sudah tersimpan</div></div></div>
+      <div class="section">
+        <div id="pemenang-list"></div>
+      </div>
+    </div>
+
+    <!-- IZIN DAFTAR -->
+    <div class="page" id="page-izin">
+      <div class="topbar"><div><div class="page-title">📩 Izin Daftar</div><div class="page-sub">Permohonan daftar ulang dari peserta</div></div></div>
+      <div class="section">
+        <div class="section-title">📋 Daftar Permohonan</div>
+        <div id="izin-list"><p style="font-size:13px;color:var(--muted)">Memuat data...</p></div>
       </div>
     </div>
 
     <!-- SETTINGS -->
-    <div class="tab-panel" id="tab-settings">
-      <div class="card">
-        <div class="card-title"><span class="icon">🎨</span> Tampilan App</div>
-        <label class="admin-label">Nama App</label>
-        <input class="admin-input" id="set-appname" placeholder="Pothonic Mixer Pro">
-        <label class="admin-label">Versi App</label>
-        <input class="admin-input" id="set-version" placeholder="v6.9">
-        <label class="admin-label">Warna Tema (hex)</label>
-        <input class="admin-input" id="set-color" type="color" value="#00cc44" style="height:44px;cursor:pointer;">
-        <label class="admin-label">Custom Watermark</label>
-        <input class="admin-input" id="set-watermark" placeholder="BY IAN STUDIO LOCALIZE">
-        <button class="btn-green" onclick="saveAppSettings()">💾 Simpan & Terapkan</button>
+    <div class="page" id="page-settings">
+      <div class="topbar"><div><div class="page-title">⚙️ Pengaturan</div><div class="page-sub">Kustomisasi halaman giveaway dari sini</div></div></div>
+
+      <!-- Umum -->
+      <div class="section">
+        <div class="section-title">🎉 Info Giveaway</div>
+        <div class="field-row-2">
+          <div class="field-row"><label class="field-label">Nama Penyelenggara</label><input class="field-input" id="s-admin" placeholder="Nama kamu"/></div>
+          <div class="field-row"><label class="field-label">Jumlah Dana Giveaway</label><input class="field-input" id="s-amount" placeholder="Contoh: Rp 500.000"/></div>
+        </div>
+        <div class="field-row"><label class="field-label">Deskripsi Hero</label><input class="field-input" id="s-desc" placeholder="Deskripsi singkat giveaway"/></div>
+        <div class="field-row-2">
+          <div class="field-row"><label class="field-label">Link Saluran WhatsApp</label><input class="field-input" id="s-wa" placeholder="https://whatsapp.com/channel/..."/></div>
+          <div class="field-row"><label class="field-label">Link Akun TikTok</label><input class="field-input" id="s-tt" placeholder="https://tiktok.com/@..."/></div>
+        </div>
       </div>
-      <div class="card">
-        <div class="card-title"><span class="icon">🔑</span> Ubah Kredensial Admin</div>
-        <label class="admin-label">Username Baru</label>
-        <input class="admin-input" id="new-user" placeholder="Username baru">
-        <label class="admin-label">Password Baru</label>
-        <input class="admin-input" id="new-pass" type="password" placeholder="Password baru">
-        <label class="admin-label">Konfirmasi Password</label>
-        <input class="admin-input" id="new-pass2" type="password" placeholder="Ulangi password">
-        <button class="btn-green" onclick="changeCredentials()">🔐 Ubah Kredensial</button>
+
+      <!-- Countdown -->
+      <div class="section">
+        <div class="section-title">⏳ Countdown</div>
+        <div class="field-row">
+          <label class="field-label">Tanggal & Jam Berakhir</label>
+          <input class="field-input" id="s-target" type="datetime-local"/>
+          <div class="field-hint">Ini yang mengatur hitungan mundur di halaman utama</div>
+        </div>
+      </div>
+
+      <!-- Popup -->
+      <div class="section">
+        <div class="section-title">📢 Pop-up Pengumuman</div>
+        <div class="field-row-2">
+          <div class="field-row"><label class="field-label">Icon Pop-up</label><input class="field-input" id="s-popup-icon" placeholder="Emoji, contoh: 📢"/></div>
+          <div class="field-row"><label class="field-label">Judul Pop-up</label><input class="field-input" id="s-popup-title" placeholder="Judul pengumuman"/></div>
+        </div>
+        <div class="field-row">
+          <label class="field-label">Isi Pop-up</label>
+          <textarea class="field-input" id="s-popup-body" rows="4" placeholder="Isi teks pengumuman (boleh pakai HTML seperti <strong>tebal</strong>)" style="resize:vertical"></textarea>
+          <div class="field-hint">Boleh pakai HTML: &lt;strong&gt;tebal&lt;/strong&gt;, &lt;br/&gt; untuk baris baru</div>
+        </div>
+        <div class="field-row" style="display:flex;align-items:center;gap:10px">
+          <input type="checkbox" id="s-popup-enabled" style="width:20px;height:20px;accent-color:var(--lime)"/>
+          <label for="s-popup-enabled" style="font-size:14px;font-weight:600;color:var(--text);cursor:pointer">Tampilkan pop-up di halaman utama</label>
+        </div>
+      </div>
+
+      <button class="settings-btn" id="btn-save-settings">💾 Simpan Semua Pengaturan</button>
+
+      <!-- RESET GIVEAWAY -->
+      <div class="section" style="margin-top:20px;border-color:#FFD0D0">
+        <div class="section-title" style="color:var(--red)">🔄 Reset Giveaway</div>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.6">Hapus semua data peserta, pemenang, dan izin daftar sekaligus untuk memulai giveaway baru. <strong style="color:var(--red)">Aksi ini tidak bisa dibatalkan!</strong></p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button id="btn-reset-semua" style="padding:12px 24px;border-radius:12px;border:2px solid #FFB3B3;background:#FFE8E8;color:var(--red);font-family:'Nunito',sans-serif;font-weight:800;font-size:14px;cursor:pointer">🗑️ Reset Semua Data</button>
+          <button id="btn-reset-peserta" style="padding:12px 24px;border-radius:12px;border:2px solid var(--border);background:var(--white);color:var(--muted);font-family:'Nunito',sans-serif;font-weight:800;font-size:14px;cursor:pointer">👥 Reset Peserta Saja</button>
+        </div>
+      </div>
+      <div class="section" style="margin-top:20px;border-color:#FFD0D0">
+        <div class="section-title" style="color:var(--red)">⛔ Hentikan Giveaway</div>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.6">Giveaway bisa dihentikan dengan 2 cara: manual oleh admin (dengan alasan), atau otomatis saat countdown habis.</p>
+
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap">
+          <div id="status-giveaway" style="font-family:'Nunito',sans-serif;font-weight:800;font-size:14px"></div>
+        </div>
+
+        <div class="field-row-2" style="margin-bottom:14px">
+          <div>
+            <label class="field-label">Mode Giveaway</label>
+            <select class="field-input" id="stop-mode">
+              <option value="manual">Manual — Berakhir berdasarkan pencapaian</option>
+              <option value="countdown">Countdown — Berakhir saat waktu habis</option>
+            </select>
+            <div class="field-hint" id="stop-mode-hint">Manual: tidak ada timer, admin yang tentukan kapan berhenti berdasarkan pencapaian (misal: 250 follower baru)</div>
+          </div>
+          <div id="stop-reason-wrap">
+            <label class="field-label" id="stop-reason-label">Target / Pencapaian</label>
+            <input class="field-input" id="stop-reason-input" placeholder="Contoh: 250 Follower Baru Diumumkan"/>
+            <div class="field-hint" id="stop-reason-hint">Ditampilkan ke peserta sebagai syarat berakhirnya giveaway</div>
+          </div>
+        </div>
+
+        <button id="btn-toggle-giveaway" style="padding:12px 24px;border-radius:12px;border:none;font-family:'Nunito',sans-serif;font-weight:800;font-size:14px;cursor:pointer;transition:opacity .2s">-</button>
       </div>
     </div>
 
-    <!-- LOGIN LOG -->
-    <div class="tab-panel" id="tab-loginlog">
-      <div class="card">
-        <div class="card-title"><span class="icon">📝</span> Riwayat Login Admin</div>
-        <button class="btn-gray" onclick="loadLoginLog()">🔄 Refresh</button>
-        <div style="overflow-x:auto;margin-top:8px;">
-          <table class="admin-table">
-            <thead><tr><th>Waktu</th><th>Status</th><th>Lokasi</th><th>Device</th><th>IP</th></tr></thead>
-            <tbody id="login-log-tbody"><tr><td colspan="5" style="color:#aaa;">Memuat...</td></tr></tbody>
-          </table>
-        </div>
-      </div>
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- CONFIRM MODAL -->
+<div class="modal-ov" id="confirm-modal">
+  <div class="modal-box">
+    <div class="modal-icon" id="modal-icon">⚠️</div>
+    <div class="modal-title" id="modal-title">Konfirmasi</div>
+    <div class="modal-body" id="modal-body">Yakin?</div>
+    <div class="modal-actions">
+      <button class="modal-cancel" id="modal-cancel-btn">Batal</button>
+      <button class="modal-confirm" id="modal-confirm-btn">Ya, Lanjutkan</button>
     </div>
+  </div>
+</div>
 
-    <!-- SECURITY -->
-    <div class="tab-panel" id="tab-security">
-      <div class="card">
-        <div class="card-title"><span class="icon">🛡️</span> Login Attempt Alert</div>
-        <div class="toggle-row">
-          <div><div class="toggle-label">Notif saat ada percobaan login</div><div class="toggle-sub">Push notif ke admin saat login gagal</div></div>
-          <label class="switch"><input type="checkbox" id="alert-toggle" onchange="saveSecuritySettings()" checked><span class="slider-sw"></span></label>
-        </div>
-        <div class="toggle-row">
-          <div><div class="toggle-label">Auto Lock setelah 3x gagal</div><div class="toggle-sub">Login diblokir 30 menit</div></div>
-          <label class="switch"><input type="checkbox" id="autolock-toggle" onchange="saveSecuritySettings()" checked><span class="slider-sw"></span></label>
-        </div>
-        <div class="toggle-row">
-          <div><div class="toggle-label">Auto Logout Admin</div><div class="toggle-sub">Logout otomatis setelah 30 menit idle</div></div>
-          <label class="switch"><input type="checkbox" id="autologout-toggle" onchange="saveSecuritySettings()" checked><span class="slider-sw"></span></label>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-title"><span class="icon">🚫</span> Banned Devices</div>
-        <div id="banned-list"><div style="color:#aaa;font-size:12px;">Tidak ada device yang dibanned</div></div>
-        <div class="divider"></div>
-        <label class="admin-label">Ban Device ID</label>
-        <input class="admin-input" id="ban-device-id" placeholder="Device ID...">
-        <input class="admin-input" id="ban-reason" placeholder="Alasan ban...">
-        <button class="btn-red" onclick="banDevice()">🚫 Ban Device</button>
-      </div>
-    </div>
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
 
-  </div><!-- /content -->
-</div><!-- /main-app -->
+<!-- FIREBASE SDK -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+import {
+  getFirestore, doc, getDoc, setDoc, addDoc, deleteDoc, updateDoc,
+  collection, onSnapshot, query, orderBy, getDocs, serverTimestamp, where
+} from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+import {
+  getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+import { firebaseConfig } from "./firebase-config.js";
 
-<div id="admin-toast"></div>
+const app  = initializeApp(firebaseConfig);
+const db   = getFirestore(app);
+const auth = getAuth(app);
 
-<script>
-// ═══════════════════════════════════════════
-// FIREBASE CONFIG — GANTI DENGAN MILIKMU
-// ═══════════════════════════════════════════
-const firebaseConfig = {
-  apiKey: "AIzaSyCcJH1ZbQhyuKzu1W5ETut59xlLdzejkWE",
-  authDomain: "photonic-mixer-remake.firebaseapp.com",
-  projectId: "photonic-mixer-remake",
-  storageBucket: "photonic-mixer-remake.firebasestorage.app",
-  messagingSenderId: "924318711559",
-  appId: "1:924318711559:web:f2249624c4ee1be35b8fa2"
-};
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+// ── State ──
+let allPeserta = [];
+let filteredPeserta = [];
+let currentPage = 1;
+const PER_PAGE = 15;
+let lastWinner = null;
+let sessionWinners = [];
+let dailyChart = null;
+let unsubPeserta = null;
+let cdDashInterval = null;
 
-// ═══════════════════════════════════════════
-// TABS
-// ═══════════════════════════════════════════
-function switchTab(name) {
-  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('tab-'+name).classList.add('active');
-  event.target.classList.add('active');
-  if(name==='dashboard') loadDashboard();
-  if(name==='analytics') loadAnalytics();
-  if(name==='users') loadUsers();
-  if(name==='loginlog') loadLoginLog();
-  if(name==='notification') loadNotifHistory();
-  if(name==='settings') loadSettings();
-  if(name==='security') loadSecurity();
-  if(name==='maintenance') loadMaintenance();
-}
+// ── AUTH STATE LISTENER ──
+onAuthStateChanged(auth, user => {
+  if (user) {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    const emailEl = document.getElementById('sb-email');
+    if (emailEl) emailEl.textContent = user.email;
+    initApp();
+  } else {
+    document.getElementById('login-screen').style.display = 'flex';
+    document.getElementById('app').style.display = 'none';
+  }
+});
 
-// ═══════════════════════════════════════════
-// TOAST
-// ═══════════════════════════════════════════
-function toast(msg, isErr=false) {
-  const t = document.getElementById('admin-toast');
-  t.textContent = msg;
-  t.style.background = isErr ? '#e53e3e' : '#00aa33';
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2800);
-}
-
-// ═══════════════════════════════════════════
-// GET DEVICE INFO
-// ═══════════════════════════════════════════
-function getDeviceInfo() {
-  const ua = navigator.userAgent;
-  let device = 'Unknown';
-  if(/Android/.test(ua)) { const m=ua.match(/Android.*?;\s*(.*?)\)/); device=m?m[1]:'Android'; }
-  else if(/iPhone|iPad/.test(ua)) device = 'iOS Device';
-  else device = 'Desktop';
-  const browser = /Chrome/.test(ua)?'Chrome':/Firefox/.test(ua)?'Firefox':/Safari/.test(ua)?'Safari':'Other';
-  return { device, browser, ua, screenW: screen.width, screenH: screen.height };
-}
-
-function getDeviceId() {
-  let id = localStorage.getItem('_poth_did');
-  if(!id) { id = 'D'+Math.random().toString(36).substr(2,12).toUpperCase(); localStorage.setItem('_poth_did',id); }
-  return id;
-}
-
-// ═══════════════════════════════════════════
-// LOGIN
-// ═══════════════════════════════════════════
-let adminLoggedIn = false;
-let idleTimer = null;
-
-function resetIdle() {
-  clearTimeout(idleTimer);
-  idleTimer = setTimeout(() => { if(adminLoggedIn) { doLogout(); toast('Auto logout: idle 30 menit','err'); }}, 30*60*1000);
-}
-document.addEventListener('touchstart', resetIdle);
-document.addEventListener('click', resetIdle);
-
+// ── LOGIN dengan Firebase Auth ──
 async function doLogin() {
-  const user = document.getElementById('login-user').value.trim();
-  const pass = document.getElementById('login-pass').value.trim();
-  const errEl = document.getElementById('login-err');
-  errEl.style.display = 'none';
-  if(!user||!pass) { errEl.textContent='Username/password kosong'; errEl.style.display='block'; return; }
+  const email = document.getElementById('l-user').value.trim();
+  const pass  = document.getElementById('l-pass').value;
+  const err   = document.getElementById('l-err');
+  const btn   = document.getElementById('l-btn');
 
-  // Cek geo dulu
-  errEl.textContent = '📍 Memeriksa lokasi...'; errEl.style.display='block'; errEl.style.color='#888';
-  let locationData = null;
-  try {
-    locationData = await new Promise((res, rej) => {
-      navigator.geolocation.getCurrentPosition(
-        p => res({ lat: p.coords.latitude, lng: p.coords.longitude, acc: p.coords.accuracy }),
-        e => rej(e),
-        { timeout: 8000 }
-      );
-    });
-  } catch(e) {
-    errEl.textContent = '❌ Izin lokasi ditolak. Login tidak dapat dilanjutkan.';
-    errEl.style.color = '#e53e3e'; errEl.style.display = 'block';
-    await logLoginAttempt(user, false, null, 'Lokasi ditolak');
+  if (!email || !pass) {
+    err.textContent = '❌ Email dan password wajib diisi!';
+    err.style.display = 'block';
+    setTimeout(() => err.style.display='none', 3000);
     return;
   }
 
-  errEl.textContent = '🔐 Memeriksa kredensial...'; errEl.style.color='#888';
+  btn.textContent = '⏳ Memeriksa...';
+  btn.disabled = true;
+  err.style.display = 'none';
 
   try {
-    // Cek lock
-    const lockDoc = await db.collection('admin_security').doc('lock').get();
-    if(lockDoc.exists) {
-      const lockData = lockDoc.data();
-      if(lockData.locked && lockData.until > Date.now()) {
-        const menit = Math.ceil((lockData.until - Date.now())/60000);
-        errEl.textContent = `🔒 Login diblokir. Coba lagi dalam ${menit} menit.`;
-        errEl.style.color='#e53e3e'; errEl.style.display='block';
-        return;
-      }
-    }
-
-    // Ambil kredensial dari Firestore
-    const credDoc = await db.collection('admin_config').doc('credentials').get();
-    if(!credDoc.exists) { errEl.textContent='❌ Konfigurasi admin tidak ditemukan'; errEl.style.color='#e53e3e'; return; }
-    const cred = credDoc.data();
-
-    if(user === cred.username && pass === cred.password) {
-      await logLoginAttempt(user, true, locationData, 'Berhasil');
-      await db.collection('admin_security').doc('lock').set({ locked:false, attempts:0, until:0 });
-      adminLoggedIn = true;
-      document.getElementById('login-screen').style.display = 'none';
-      document.getElementById('main-app').style.display = 'block';
-      resetIdle();
-      loadDashboard();
-      setupRealtimeListeners();
-    } else {
-      // Tambah attempt
-      const attempts = (lockDoc.exists ? (lockDoc.data().attempts||0) : 0) + 1;
-      const autoLock = (await db.collection('admin_config').doc('security').get()).data()?.autoLock !== false;
-      if(autoLock && attempts >= 3) {
-        await db.collection('admin_security').doc('lock').set({ locked:true, attempts, until: Date.now()+30*60*1000 });
-        errEl.textContent='🔒 3x gagal! Login diblokir 30 menit.';
-      } else {
-        await db.collection('admin_security').doc('lock').set({ locked:false, attempts, until:0 });
-        errEl.textContent=`❌ Username/password salah (${attempts}/3)`;
-      }
-      errEl.style.color='#e53e3e'; errEl.style.display='block';
-      await logLoginAttempt(user, false, locationData, 'Password salah');
-      await sendLoginAlertNotif(false, locationData);
-    }
+    await signInWithEmailAndPassword(auth, email, pass);
   } catch(e) {
-    errEl.textContent='❌ Error: '+e.message; errEl.style.color='#e53e3e'; errEl.style.display='block';
+    const msg = {
+      'auth/user-not-found':     '❌ Email tidak terdaftar!',
+      'auth/wrong-password':     '❌ Password salah!',
+      'auth/invalid-email':      '❌ Format email tidak valid!',
+      'auth/too-many-requests':  '❌ Terlalu banyak percobaan. Coba lagi nanti.',
+      'auth/invalid-credential': '❌ Email atau password salah!',
+    }[e.code] || '❌ Login gagal: ' + e.message;
+    err.textContent = msg;
+    err.style.display = 'block';
+    setTimeout(() => err.style.display='none', 4000);
+  }
+
+  btn.textContent = 'Masuk →';
+  btn.disabled = false;
+}
+
+// ── LOGOUT ──
+async function doLogout() {
+  if (unsubPeserta) unsubPeserta();
+  if (cdDashInterval) clearInterval(cdDashInterval);
+  await signOut(auth);
+  document.getElementById('l-user').value = '';
+  document.getElementById('l-pass').value = '';
+  allPeserta = []; sessionWinners = []; lastWinner = null;
+}
+
+// ── INIT ──
+function initApp() {
+  mintaNotifAdmin();
+  listenPeserta();
+  loadSettings();
+  loadPemenang();
+  loadGiveawayStatus();
+}
+
+// ── NOTIFIKASI BROWSER ADMIN ──
+async function mintaNotifAdmin() {
+  if (!('Notification' in window)) return;
+  if (Notification.permission !== 'granted' && Notification.permission !== 'denied') {
+    await Notification.requestPermission();
   }
 }
 
-async function logLoginAttempt(username, success, location, reason) {
-  const dev = getDeviceInfo();
-  let ipData = {};
-  try {
-    const r = await fetch('https://ipapi.co/json/');
-    ipData = await r.json();
-  } catch(e){}
-  await db.collection('login_logs').add({
-    timestamp: Date.now(),
-    username,
-    success,
-    reason,
-    location: location ? { lat:location.lat, lng:location.lng, acc:location.acc } : null,
-    city: ipData.city||'Unknown',
-    country: ipData.country_name||'Unknown',
-    ip: ipData.ip||'Unknown',
-    device: dev.device,
-    browser: dev.browser,
-    screen: `${dev.screenW}x${dev.screenH}`,
-    deviceId: getDeviceId()
-  });
-}
-
-async function sendLoginAlertNotif(success, location) {
-  try {
-    const secDoc = await db.collection('admin_config').doc('security').get();
-    if(secDoc.exists && secDoc.data().loginAlert === false) return;
-    await db.collection('admin_notifications').add({
-      type: 'login_alert',
-      success,
-      timestamp: Date.now(),
-      location,
-      device: getDeviceInfo().device,
-      read: false
-    });
-  } catch(e){}
-}
-
-function doLogout() {
-  adminLoggedIn = false;
-  document.getElementById('main-app').style.display = 'none';
-  document.getElementById('login-screen').style.display = 'flex';
-  document.getElementById('login-pass').value = '';
-}
-
-// ═══════════════════════════════════════════
-// DASHBOARD
-// ═══════════════════════════════════════════
-async function loadDashboard() {
-  try {
-    const snap = await db.collection('app_config').doc('settings').get();
-    const data = snap.exists ? snap.data() : {};
-    document.getElementById('dash-version').textContent = data.version||'v6.9';
-    document.getElementById('set-appname').value = data.appName||'Pothonic Mixer Pro';
-    document.getElementById('set-version').value = data.version||'v6.9';
-    document.getElementById('set-watermark').value = data.watermark||'BY IAN STUDIO LOCALIZE';
-
-    const maintSnap = await db.collection('app_config').doc('maintenance').get();
-    const maint = maintSnap.exists ? maintSnap.data() : {};
-    const maintOn = maint.active||false;
-    document.getElementById('maint-status-dash').textContent = maintOn?'Aktif':'Tidak aktif';
-    document.getElementById('dash-maint-badge').textContent = maintOn?'ON':'OFF';
-    document.getElementById('dash-maint-badge').className = maintOn?'badge-fail':'badge-info';
-
-    const fuSnap = await db.collection('app_config').doc('force_update').get();
-    const fu = fuSnap.exists ? fuSnap.data() : {};
-    document.getElementById('dash-force').textContent = fu.active?'Aktif':'Tidak aktif';
-    document.getElementById('dash-force-badge').textContent = fu.active?'ON':'OFF';
-    document.getElementById('dash-force-badge').className = fu.active?'badge-fail':'badge-info';
-
-    loadHeatmapChart('heatmap-chart');
-    loadVisitStats();
-  } catch(e){}
-}
-
-async function loadVisitStats() {
-  try {
-    const today = new Date().toISOString().split('T')[0];
-    const snap = await db.collection('visits').where('date','==',today).get();
-    document.getElementById('stat-today').textContent = snap.size;
-    const allSnap = await db.collection('visits').get();
-    document.getElementById('stat-total').textContent = allSnap.size;
-    const uniqueDays = new Set(allSnap.docs.map(d=>d.data().date));
-    const returningDates = [...uniqueDays].filter(d => {
-      return allSnap.docs.filter(doc=>doc.data().date===d && doc.data().returning).length > 0;
-    });
-    const ret = uniqueDays.size > 0 ? Math.round((returningDates.length/uniqueDays.size)*100) : 0;
-    document.getElementById('stat-retention').textContent = ret+'%';
-    document.getElementById('an-ret').textContent = ret+'%';
-  } catch(e){}
-}
-
-// ═══════════════════════════════════════════
-// REALTIME ONLINE USERS
-// ═══════════════════════════════════════════
-function setupRealtimeListeners() {
-  db.collection('online_users').onSnapshot(snap => {
-    const count = snap.size;
-    document.getElementById('stat-online').textContent = count;
-    const list = document.getElementById('online-users-list');
-    const detailList = document.getElementById('online-detail-list');
-    if(count === 0) {
-      list.innerHTML = '<div style="color:#aaa;font-size:12px;">Tidak ada user online</div>';
-      detailList.innerHTML = '<div style="color:#aaa;font-size:12px;">Tidak ada user online</div>';
-      return;
-    }
-    let html = '';
-    let detailHtml = '<div style="overflow-x:auto;"><table class="admin-table"><thead><tr><th>Device</th><th>Browser</th><th>Layar</th><th>Sejak</th></tr></thead><tbody>';
-    snap.forEach(doc => {
-      const d = doc.data();
-      const since = d.since ? new Date(d.since).toLocaleTimeString('id-ID') : '-';
-      html += `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #f0f0f0;">
-        <span class="rt-dot"></span>
-        <div><div style="font-size:12px;font-weight:600;">${d.device||'Unknown'}</div>
-        <div style="font-size:10px;color:#888;">${d.browser||''} · ${since}</div></div>
-      </div>`;
-      detailHtml += `<tr><td>${d.device||'-'}</td><td>${d.browser||'-'}</td><td>${d.screen||'-'}</td><td>${since}</td></tr>`;
-    });
-    detailHtml += '</tbody></table></div>';
-    list.innerHTML = html;
-    detailList.innerHTML = detailHtml;
-  });
-}
-
-// ═══════════════════════════════════════════
-// HEATMAP CHART
-// ═══════════════════════════════════════════
-let heatmapChartInst = null, hourChartInst = null, deviceChartInst = null, visitChartInst = null;
-
-async function loadHeatmapChart(canvasId) {
-  try {
-    const snap = await db.collection('visits').get();
-    const hours = Array(24).fill(0);
-    snap.forEach(doc => {
-      const h = doc.data().hour;
-      if(h>=0 && h<24) hours[h]++;
-    });
-    const ctx = document.getElementById(canvasId);
-    if(!ctx) return;
-    if(heatmapChartInst) heatmapChartInst.destroy();
-    heatmapChartInst = new Chart(ctx, {
-      type:'bar',
-      data:{ labels: Array.from({length:24},(_,i)=>i+'h'), datasets:[{ label:'Kunjungan', data:hours, backgroundColor:'rgba(0,204,68,0.7)', borderRadius:4 }]},
-      options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true, ticks:{stepSize:1}}} }
-    });
-  } catch(e){}
-}
-
-// ═══════════════════════════════════════════
-// ANALYTICS
-// ═══════════════════════════════════════════
-async function loadAnalytics() {
-  await loadVisitStats();
-  await loadHeatmapChart('hour-chart');
-
-  try {
-    // 7 hari kunjungan
-    const allSnap = await db.collection('visits').get();
-    const dayMap = {};
-    const devMap = {};
-    allSnap.forEach(doc => {
-      const d = doc.data();
-      dayMap[d.date] = (dayMap[d.date]||0)+1;
-      const dev = d.device||'Unknown';
-      devMap[dev] = (devMap[dev]||0)+1;
-    });
-
-    // 7 hari chart
-    const days = [], counts = [];
-    for(let i=6;i>=0;i--) {
-      const d = new Date(); d.setDate(d.getDate()-i);
-      const key = d.toISOString().split('T')[0];
-      days.push(d.toLocaleDateString('id-ID',{day:'numeric',month:'short'}));
-      counts.push(dayMap[key]||0);
-    }
-    const week = counts.reduce((a,b)=>a+b,0);
-    document.getElementById('an-today').textContent = dayMap[new Date().toISOString().split('T')[0]]||0;
-    document.getElementById('an-week').textContent = week;
-    document.getElementById('an-month').textContent = allSnap.size;
-
-    const vCtx = document.getElementById('visit-chart');
-    if(visitChartInst) visitChartInst.destroy();
-    visitChartInst = new Chart(vCtx, {
-      type:'line',
-      data:{ labels:days, datasets:[{ label:'Kunjungan', data:counts, borderColor:'#00cc44', backgroundColor:'rgba(0,204,68,0.1)', fill:true, tension:0.4, pointBackgroundColor:'#00cc44' }]},
-      options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}} }
-    });
-
-    // Device chart
-    const devLabels = Object.keys(devMap);
-    const devData = Object.values(devMap);
-    const colors = ['#00cc44','#00aaff','#ff6644','#ffcc00','#aa44ff','#ff4488'];
-    const dCtx = document.getElementById('device-chart');
-    if(deviceChartInst) deviceChartInst.destroy();
-    deviceChartInst = new Chart(dCtx, {
-      type:'doughnut',
-      data:{ labels:devLabels, datasets:[{ data:devData, backgroundColor:colors.slice(0,devLabels.length), borderWidth:0 }]},
-      options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom', labels:{font:{size:11}}}} }
-    });
-
-    let devHtml = '';
-    devLabels.forEach((l,i) => {
-      const pct = Math.round((devData[i]/devData.reduce((a,b)=>a+b,0))*100);
-      devHtml += `<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #f0f0f0;font-size:12px;">
-        <span><span style="background:${colors[i]};width:10px;height:10px;display:inline-block;border-radius:2px;margin-right:6px;"></span>${l}</span>
-        <span style="font-weight:700;">${devData[i]} (${pct}%)</span></div>`;
-    });
-    document.getElementById('device-stats-list').innerHTML = devHtml;
-  } catch(e){}
-}
-
-// ═══════════════════════════════════════════
-// USERS / SESSIONS
-// ═══════════════════════════════════════════
-async function loadUsers() {
-  try {
-    const snap = await db.collection('user_sessions').orderBy('lastSeen','desc').limit(30).get();
-    const tbody = document.getElementById('session-tbody');
-    if(snap.empty) { tbody.innerHTML='<tr><td colspan="4" style="color:#aaa;">Belum ada sesi</td></tr>'; return; }
-    let rows = '';
-    snap.forEach(doc => {
-      const d = doc.data();
-      const dur = d.duration ? Math.round(d.duration/60)+'m' : '-';
-      const last = d.lastSeen ? new Date(d.lastSeen).toLocaleString('id-ID') : '-';
-      const isOnline = (Date.now() - (d.lastSeen||0)) < 60000;
-      rows += `<tr><td>${d.device||'-'}</td><td>${dur}</td><td>${last}</td><td>${isOnline?'<span class="badge-online">Online</span>':'<span class="badge-info">Offline</span>'}</td></tr>`;
-    });
-    tbody.innerHTML = rows;
-  } catch(e){}
-}
-
-// ═══════════════════════════════════════════
-// ANNOUNCEMENT
-// ═══════════════════════════════════════════
-async function sendAnnouncement() {
-  const title = document.getElementById('ann-title').value.trim();
-  const msg = document.getElementById('ann-msg').value.trim();
-  const type = document.getElementById('ann-type').value;
-  const duration = parseInt(document.getElementById('ann-duration').value) || 0;
-  const iconUrl = document.getElementById('ann-icon').value.trim();
-  if(!title||!msg) { toast('Judul dan pesan harus diisi',true); return; }
-  try {
-    await db.collection('app_config').doc('announcement').set({
-      title, msg, type, duration, iconUrl: iconUrl||'', timestamp: Date.now(), active:true
-    });
-    toast('✅ Pengumuman berhasil dikirim!');
-  } catch(e) { toast('Error: '+e.message, true); }
-}
-async function clearAnnouncement() {
-  await db.collection('app_config').doc('announcement').set({ active:false });
-  toast('🗑️ Pengumuman dihapus');
-}
-async function saveMOTD() {
-  const msg = document.getElementById('motd-msg').value.trim();
-  await db.collection('app_config').doc('motd').set({ msg, active:!!msg, timestamp:Date.now() });
-  toast('✅ MOTD disimpan!');
-}
-async function clearMOTD() {
-  await db.collection('app_config').doc('motd').set({ active:false });
-  toast('🗑️ MOTD dihapus');
-}
-
-// ═══════════════════════════════════════════
-// NOTIFICATION
-// ═══════════════════════════════════════════
-document.getElementById('notif-target').addEventListener('change', function() {
-  document.getElementById('notif-specific-wrap').style.display = this.value==='specific'?'block':'none';
-});
-async function sendNotification() {
-  const title = document.getElementById('notif-title').value.trim();
-  const msg = document.getElementById('notif-msg').value.trim();
-  if(!title||!msg) { toast('Judul dan pesan harus diisi',true); return; }
-  const target = document.getElementById('notif-target').value;
-  const schedule = document.getElementById('notif-schedule').value;
-  const deviceId = document.getElementById('notif-device-id').value.trim();
-
-  const WORKER_URL = 'https://lighting.roichannoob.workers.dev';
-
-  try {
-    let playerId = null;
-    if(target === 'specific' && deviceId) {
-      const snap = await db.collection('onesignal_players').doc(deviceId).get();
-      if(!snap.exists) { toast('Device ID tidak ditemukan', true); return; }
-      playerId = snap.data().playerId;
-    }
-
-    const res = await fetch(WORKER_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title, msg, target, playerId })
-    });
-
-    const result = await res.json();
-    if(result.id) {
-      toast('🚀 Notifikasi berhasil dikirim ke ' + (result.recipients||0) + ' user!');
-      // Simpan ke Firestore untuk riwayat
-      await db.collection('push_notifications').add({
-        title, msg, target,
-        deviceId: target==='specific'?deviceId:null,
-        scheduledAt: schedule ? new Date(schedule).getTime() : null,
-        sentAt: Date.now(),
-        status: schedule?'scheduled':'sent',
-        timestamp: Date.now(),
-        onesignalId: result.id,
-        recipients: result.recipients||0
-      });
-      loadNotifHistory();
-    } else {
-      toast('Error: ' + JSON.stringify(result.errors||result), true);
-    }
-  } catch(e) {
-    toast('Error: ' + e.message, true);
+function kirimNotifAdmin(title, body) {
+  if (Notification.permission === 'granted') {
+    new Notification(title, { body });
   }
 }
-async function loadNotifHistory() {
-  try {
-    const snap = await db.collection('push_notifications').orderBy('timestamp','desc').limit(20).get();
-    const el = document.getElementById('notif-history');
-    if(snap.empty) { el.innerHTML='<div style="color:#aaa;font-size:12px;">Belum ada notifikasi</div>'; return; }
-    let html = '<div style="overflow-x:auto;"><table class="admin-table"><thead><tr><th>Waktu</th><th>Judul</th><th>Target</th><th>Status</th></tr></thead><tbody>';
-    snap.forEach(doc => {
-      const d = doc.data();
-      const time = new Date(d.timestamp).toLocaleString('id-ID');
-      html += `<tr><td>${time}</td><td>${d.title}</td><td>${d.target==='all'?'Semua':d.deviceId||'-'}</td><td><span class="${d.status==='sent'?'badge-success':'badge-info'}">${d.status}</span></td></tr>`;
-    });
-    html += '</tbody></table></div>';
-    el.innerHTML = html;
-  } catch(e){}
-}
 
-// ═══════════════════════════════════════════
-// MAINTENANCE
-// ═══════════════════════════════════════════
-async function loadMaintenance() {
-  try {
-    const snap = await db.collection('app_config').doc('maintenance').get();
-    const d = snap.exists ? snap.data() : {};
-    document.getElementById('maint-toggle').checked = d.active||false;
-    document.getElementById('maint-msg').value = d.msg||'';
-    if(d.eta) document.getElementById('maint-eta').value = new Date(d.eta).toISOString().slice(0,16);
-    const fuSnap = await db.collection('app_config').doc('force_update').get();
-    const fu = fuSnap.exists ? fuSnap.data() : {};
-    document.getElementById('force-update-toggle').checked = fu.active||false;
-    document.getElementById('latest-version').value = fu.version||'';
-    document.getElementById('update-msg').value = fu.msg||'';
-  } catch(e){}
-}
-async function toggleMaintenance() {
-  const active = document.getElementById('maint-toggle').checked;
-  await db.collection('app_config').doc('maintenance').set({ active }, { merge:true });
-  toast(active ? '🚧 Maintenance aktif' : '✅ Maintenance dinonaktifkan');
-}
-async function saveMaintenance() {
-  const msg = document.getElementById('maint-msg').value;
-  const etaVal = document.getElementById('maint-eta').value;
-  const active = document.getElementById('maint-toggle').checked;
-  await db.collection('app_config').doc('maintenance').set({ active, msg, eta: etaVal?new Date(etaVal).getTime():null, updatedAt:Date.now() });
-  toast('💾 Pengaturan maintenance disimpan!');
-}
-async function sendForceUpdate() {
-  const msg = document.getElementById('update-msg').value || 'Versi baru tersedia! Silakan reload.';
-  await db.collection('app_config').doc('force_update').set({
-    active: true, msg, timestamp: Date.now(), updatedAt: Date.now()
+// ── REAL-TIME PESERTA ──
+let prevPesertaCount = -1;
+function listenPeserta() {
+  const q = query(collection(db,'peserta'), orderBy('createdAt','desc'));
+  unsubPeserta = onSnapshot(q, snap => {
+    const newCount = snap.size;
+    // Kirim notif kalau ada peserta baru (bukan load pertama)
+    if (prevPesertaCount !== -1 && newCount > prevPesertaCount) {
+      const newest = snap.docs[0]?.data();
+      kirimNotifAdmin('🎉 Peserta Baru!', `${newest?.tiktokDisplay || 'Seseorang'} baru saja mendaftar. Total: ${newCount} peserta.`);
+    }
+    prevPesertaCount = newCount;
+    allPeserta = snap.docs.map(d => ({id:d.id, ...d.data()}));
+    updateStats();
+    filterTable();
+    buildChart();
+    if (document.getElementById('undian-wheel').style.display !== 'none' && !wheelSpinning) drawWheel();
   });
-  toast('🚀 Force update dikirim ke semua user!');
-}
-async function clearForceUpdate() {
-  await db.collection('app_config').doc('force_update').set({ active: false, updatedAt: Date.now() });
-  toast('🗑️ Force update dihapus!');
 }
 
-// ═══════════════════════════════════════════
-// SETTINGS
-// ═══════════════════════════════════════════
-async function loadSettings() {
-  const snap = await db.collection('app_config').doc('settings').get();
-  const d = snap.exists ? snap.data() : {};
-  document.getElementById('set-appname').value = d.appName||'Pothonic Mixer Pro';
-  document.getElementById('set-version').value = d.version||'v6.9';
-  document.getElementById('set-color').value = d.themeColor||'#00cc44';
-  document.getElementById('set-watermark').value = d.watermark||'BY IAN STUDIO LOCALIZE';
-}
-async function saveAppSettings() {
-  const appName = document.getElementById('set-appname').value;
-  const version = document.getElementById('set-version').value;
-  const themeColor = document.getElementById('set-color').value;
-  const watermark = document.getElementById('set-watermark').value;
-  await db.collection('app_config').doc('settings').set({ appName, version, themeColor, watermark, updatedAt:Date.now() });
-  toast('✅ Pengaturan diterapkan ke semua user!');
-}
-async function changeCredentials() {
-  const user = document.getElementById('new-user').value.trim();
-  const pass = document.getElementById('new-pass').value;
-  const pass2 = document.getElementById('new-pass2').value;
-  if(!user||!pass) { toast('Semua field harus diisi',true); return; }
-  if(pass !== pass2) { toast('Password tidak cocok',true); return; }
-  await db.collection('admin_config').doc('credentials').set({ username:user, password:pass });
-  toast('🔐 Kredensial berhasil diubah!');
-  document.getElementById('new-user').value='';
-  document.getElementById('new-pass').value='';
-  document.getElementById('new-pass2').value='';
+function updateStats() {
+  const total = allPeserta.length;
+  const valid = allPeserta.filter(p=>p.status==='valid').length;
+  const invalid = allPeserta.filter(p=>p.status==='invalid').length;
+  document.getElementById('stat-total').textContent   = total;
+  document.getElementById('stat-valid').textContent   = valid;
+  document.getElementById('stat-invalid').textContent = invalid;
 }
 
-// ═══════════════════════════════════════════
-// LOGIN LOG
-// ═══════════════════════════════════════════
-async function loadLoginLog() {
-  try {
-    const snap = await db.collection('login_logs').orderBy('timestamp','desc').limit(50).get();
-    const tbody = document.getElementById('login-log-tbody');
-    if(snap.empty) { tbody.innerHTML='<tr><td colspan="5" style="color:#aaa;">Belum ada riwayat</td></tr>'; return; }
-    let rows = '';
-    snap.forEach(doc => {
-      const d = doc.data();
-      const time = new Date(d.timestamp).toLocaleString('id-ID');
-      const loc = d.location ? `<a href="https://maps.google.com/?q=${d.location.lat},${d.location.lng}" target="_blank" style="color:#00aa33;font-size:10px;">📍 ${d.city||'Lihat'}</a>` : `<span style="color:#aaa;">${d.city||'-'}</span>`;
-      rows += `<tr>
-        <td style="white-space:nowrap;font-size:10px;">${time}</td>
-        <td>${d.success?'<span class="badge-success">✅ Berhasil</span>':'<span class="badge-fail">❌ Gagal</span>'}</td>
-        <td>${loc}</td>
-        <td style="font-size:10px;">${d.device||'-'}<br><span style="color:#aaa;">${d.browser||''}</span></td>
-        <td style="font-size:10px;">${d.ip||'-'}</td>
+// ── TABLE ──
+function filterTable() {
+  const q = document.getElementById('search-input').value.toLowerCase();
+  const f = document.getElementById('filter-status').value;
+  filteredPeserta = allPeserta.filter(p => {
+    const matchQ = !q || p.tiktokDisplay?.toLowerCase().includes(q) || p.tiktok?.includes(q);
+    const matchF = !f || p.status===f;
+    return matchQ && matchF;
+  });
+  currentPage = 1;
+  renderTable();
+}
+
+function renderTable() {
+  const tbody = document.getElementById('peserta-tbody');
+  const start = (currentPage-1)*PER_PAGE;
+  const slice = filteredPeserta.slice(start, start+PER_PAGE);
+  const total = filteredPeserta.length;
+  const totalPages = Math.ceil(total/PER_PAGE)||1;
+
+  if (slice.length===0) {
+    tbody.innerHTML = `<tr><td colspan="5" class="tbl-empty">Tidak ada data peserta.</td></tr>`;
+  } else {
+    tbody.innerHTML = slice.map((p,i) => {
+      const no = start+i+1;
+      const ts = p.createdAt?.toDate ? formatDate(p.createdAt.toDate()) : '-';
+      let badge = `<span class="badge badge-valid">✅ Valid</span>`;
+      if (p.status==='invalid') badge = `<span class="badge badge-invalid">🚫 Tidak Valid</span>`;
+      return `<tr>
+        <td>${no}</td>
+        <td><strong>${p.tiktokDisplay||p.tiktok}</strong></td>
+        <td>${badge}</td>
+        <td style="font-size:12px;color:var(--muted)">${ts}</td>
+        <td>
+          <div class="tbl-actions">
+            ${p.status!=='valid'?`<button class="act-btn btn-valid" data-action="valid" data-id="${p.id}">✅ Valid</button>`:''}
+            ${p.status!=='invalid'?`<button class="act-btn btn-invalid" data-action="invalid" data-id="${p.id}">🚫 Invalid</button>`:''}
+            <button class="act-btn btn-del" data-action="delete" data-id="${p.id}" data-name="${p.tiktokDisplay||p.tiktok}">🗑️</button>
+          </div>
+        </td>
       </tr>`;
-    });
-    tbody.innerHTML = rows;
-  } catch(e){}
+    }).join('');
+  }
+
+  document.getElementById('pager-info').textContent = `${total} peserta — Halaman ${currentPage}/${totalPages}`;
+  document.getElementById('btn-prev').disabled = currentPage<=1;
+  document.getElementById('btn-next').disabled = currentPage>=totalPages;
 }
 
-// ═══════════════════════════════════════════
-// SECURITY
-// ═══════════════════════════════════════════
-async function loadSecurity() {
+function changePage(d) { currentPage += d; renderTable(); }
+
+async function setStatus(id, status) {
   try {
-    const snap = await db.collection('admin_config').doc('security').get();
-    const d = snap.exists ? snap.data() : {};
-    document.getElementById('alert-toggle').checked = d.loginAlert !== false;
-    document.getElementById('autolock-toggle').checked = d.autoLock !== false;
-    document.getElementById('autologout-toggle').checked = d.autoLogout !== false;
-    const bannedSnap = await db.collection('banned_devices').get();
-    const el = document.getElementById('banned-list');
-    if(bannedSnap.empty) { el.innerHTML='<div style="color:#aaa;font-size:12px;">Tidak ada device yang dibanned</div>'; return; }
-    let html = '<div style="overflow-x:auto;"><table class="admin-table"><thead><tr><th>Device ID</th><th>Alasan</th><th>Aksi</th></tr></thead><tbody>';
-    bannedSnap.forEach(doc => {
-      const d = doc.data();
-      html += `<tr><td style="font-size:10px;">${doc.id}</td><td>${d.reason||'-'}</td><td><button onclick="unbanDevice('${doc.id}')" style="background:#ff4444;color:#fff;border:none;padding:3px 8px;border-radius:4px;font-size:10px;cursor:pointer;">Unban</button></td></tr>`;
-    });
-    html += '</tbody></table></div>';
-    el.innerHTML = html;
-  } catch(e){}
-}
-async function saveSecuritySettings() {
-  await db.collection('admin_config').doc('security').set({
-    loginAlert: document.getElementById('alert-toggle').checked,
-    autoLock: document.getElementById('autolock-toggle').checked,
-    autoLogout: document.getElementById('autologout-toggle').checked
-  });
-  toast('🛡️ Pengaturan keamanan disimpan!');
-}
-async function banDevice() {
-  const id = document.getElementById('ban-device-id').value.trim();
-  const reason = document.getElementById('ban-reason').value.trim();
-  if(!id) { toast('Device ID harus diisi',true); return; }
-  await db.collection('banned_devices').doc(id).set({ reason, bannedAt:Date.now() });
-  toast('🚫 Device dibanned!');
-  loadSecurity();
-}
-async function unbanDevice(id) {
-  await db.collection('banned_devices').doc(id).delete();
-  toast('✅ Device di-unban!');
-  loadSecurity();
+    await updateDoc(doc(db,'peserta',id), {status});
+    showToast(status==='valid' ? '✅ Peserta divalidasi!' : '🚫 Peserta diinvalidasi!');
+  } catch(e) { showToast('❌ Gagal update status'); }
 }
 
-// Enter key login
-document.getElementById('login-pass').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+// ── DELETE ──
+let pendingDeleteId = null;
+function confirmDelete(id, name) {
+  pendingDeleteId = id;
+  document.getElementById('modal-icon').textContent='🗑️';
+  document.getElementById('modal-title').textContent='Hapus Peserta';
+  document.getElementById('modal-body').textContent=`Hapus "${name}" dari daftar peserta? Aksi ini tidak bisa dibatalkan.`;
+  document.getElementById('modal-confirm-btn').onclick = async () => {
+    try {
+      await deleteDoc(doc(db,'peserta',pendingDeleteId));
+      closeModal(); showToast('🗑️ Peserta dihapus!');
+    } catch(e) { showToast('❌ Gagal menghapus'); closeModal(); }
+  };
+  document.getElementById('confirm-modal').classList.add('show');
+}
+function closeModal() { document.getElementById('confirm-modal').classList.remove('show'); }
+
+// ── UNDIAN SLOT MACHINE ──
+let undianRunning = false, undianInterval = null;
+let validPeserta = [];
+
+async function startUndian() {
+  if (undianRunning) return;
+  validPeserta = allPeserta.filter(p => p.status==='valid');
+  const usedTiktoks = sessionWinners.map(w => w.tiktok);
+  const pool = validPeserta.filter(p => !usedTiktoks.includes(p.tiktok));
+
+  if (pool.length === 0) { showToast('❌ Tidak ada peserta valid yang tersisa!'); return; }
+
+  undianRunning = true;
+  lastWinner = null;
+  const slotText = document.getElementById('slot-text');
+  slotText.className = 'slot-text spinning';
+
+  let ticks = 0;
+  const totalTicks = 30 + Math.floor(Math.random()*20);
+  undianInterval = setInterval(() => {
+    const rnd = pool[Math.floor(Math.random()*pool.length)];
+    slotText.textContent = rnd.tiktokDisplay || rnd.tiktok;
+    ticks++;
+    if (ticks >= totalTicks) {
+      clearInterval(undianInterval);
+      lastWinner = pool[Math.floor(Math.random()*pool.length)];
+      slotText.className = 'slot-text';
+      slotText.textContent = '🎉 ' + (lastWinner.tiktokDisplay||lastWinner.tiktok) + ' 🎉';
+      undianRunning = false;
+      showToast('🎰 Pemenang terpilih!');
+    }
+  }, 80);
+}
+
+function ulangUndian() {
+  if (undianRunning) { clearInterval(undianInterval); undianRunning = false; }
+  lastWinner = null;
+  document.getElementById('slot-text').className = 'slot-text';
+  document.getElementById('slot-text').textContent = 'Tekan "Mulai Undian" untuk memilih pemenang!';
+  showToast('🔄 Undian direset!');
+}
+
+async function saveWinner() {
+  if (!lastWinner) { showToast('❌ Belum ada pemenang terpilih!'); return; }
+  const prize = document.getElementById('prize-input').value.trim();
+  if (!prize) { showToast('❌ Isi nominal hadiah dulu!'); return; }
+  const rank = sessionWinners.length + 1;
+  try {
+    await addDoc(collection(db,'pemenang'), { tiktok: lastWinner.tiktokDisplay||lastWinner.tiktok, prize, rank, savedAt: serverTimestamp() });
+    sessionWinners.push({tiktok: lastWinner.tiktok, rank});
+    renderWinnersLog();
+    document.getElementById('stat-winner').textContent = sessionWinners.length;
+    lastWinner = null;
+    document.getElementById('slot-text').textContent = 'Pemenang disimpan! Tekan undian lagi untuk peserta berikutnya.';
+    document.getElementById('prize-input').value = '';
+    showToast('💾 Pemenang disimpan ke Firebase!');
+  } catch(e) { showToast('❌ Gagal menyimpan'); }
+}
+
+function renderWinnersLog() {
+  const wrap = document.getElementById('winners-log-wrap');
+  if (sessionWinners.length===0) { wrap.innerHTML='<p style="font-size:13px;color:var(--muted)">Belum ada undian.</p>'; return; }
+  const rankEmoji=['🥇','🥈','🥉','4️⃣','5️⃣'];
+  wrap.innerHTML = '<div class="winners-log">' + sessionWinners.map((w,i)=>`
+    <div class="winner-log-item">
+      <span class="wl-rank">${rankEmoji[i]||i+1}</span>
+      <span class="wl-name">${w.tiktok}</span>
+    </div>`).join('') + '</div>';
+}
+
+// ── UNDIAN MODE TAB SWITCH ──
+function switchUndianMode(mode) {
+  document.getElementById('tab-slot').classList.toggle('active', mode==='slot');
+  document.getElementById('tab-wheel').classList.toggle('active', mode==='wheel');
+  document.getElementById('undian-slot').style.display  = mode==='slot'  ? 'block' : 'none';
+  document.getElementById('undian-wheel').style.display = mode==='wheel' ? 'block' : 'none';
+  if (mode === 'wheel') drawWheel();
+}
+
+// ── SPIN WHEEL ──
+let wheelRotation = 0;
+let wheelSpinning = false;
+let wheelSegments = [];
+let wheelPendingWinners = []; // hasil spin multi-winner yang siap disimpan
+const wheelColors = ['#5DBA00','#7DDB1A','#A6F022','#FFE135','#FF8C00','#FF4FA3','#3DBAB4','#9B6DF5'];
+
+function getWheelPool(excludeTiktoks = []) {
+  const used = [...sessionWinners.map(w => w.tiktok), ...excludeTiktoks];
+  return allPeserta.filter(p => p.status==='valid' && !used.includes(p.tiktok));
+}
+
+function drawWheel(highlightIndex = -1) {
+  const canvas = document.getElementById('wheel-canvas');
+  const ctx = canvas.getContext('2d');
+  // Render di resolusi tinggi tetap (420x420) lalu di-scale CSS, jadi teks selalu tajam
+  const SIZE = 420;
+  canvas.width = SIZE; canvas.height = SIZE;
+  const cx = SIZE/2, cy = SIZE/2, r = SIZE/2 - 8;
+
+  wheelSegments = getWheelPool(wheelPendingWinners.map(w=>w.tiktok));
+  ctx.clearRect(0,0,SIZE,SIZE);
+
+  if (wheelSegments.length === 0) {
+    ctx.fillStyle = '#EEE';
+    ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#999';
+    ctx.font = 'bold 16px Nunito, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Tidak ada peserta valid', cx, cy);
+    return;
+  }
+
+  const segAngle = (Math.PI*2) / wheelSegments.length;
+  // Ukuran font menyesuaikan jumlah segmen — makin banyak makin kecil, tapi ada batas minimum
+  let fontSize = 17;
+  if (wheelSegments.length > 8)  fontSize = 15;
+  if (wheelSegments.length > 14) fontSize = 13;
+  if (wheelSegments.length > 20) fontSize = 11;
+  if (wheelSegments.length > 30) fontSize = 9;
+  const maxChars = wheelSegments.length > 20 ? 10 : wheelSegments.length > 12 ? 13 : 16;
+
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(wheelRotation);
+
+  wheelSegments.forEach((p, i) => {
+    const start = i * segAngle;
+    const end   = start + segAngle;
+    ctx.beginPath();
+    ctx.moveTo(0,0);
+    ctx.arc(0,0,r,start,end);
+    ctx.closePath();
+    ctx.fillStyle = wheelColors[i % wheelColors.length];
+    ctx.fill();
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Label username — selalu tampil, dengan auto-size dan outline biar kebaca jelas
+    ctx.save();
+    ctx.rotate(start + segAngle/2);
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
+    ctx.font = `800 ${fontSize}px Nunito, sans-serif`;
+    const label = (p.tiktokDisplay||p.tiktok).slice(0, maxChars);
+    const labelX = r - 14;
+    // Outline gelap supaya kontras di semua warna segmen
+    ctx.strokeStyle = 'rgba(0,0,0,.45)';
+    ctx.lineWidth = 3;
+    ctx.lineJoin = 'round';
+    ctx.strokeText(label, labelX, 0);
+    ctx.fillStyle = '#fff';
+    ctx.fillText(label, labelX, 0);
+    ctx.restore();
+  });
+
+  // Highlight pemenang (lingkaran tengah pulse saat hasil)
+  ctx.restore();
+
+  // Center hub
+  ctx.beginPath();
+  ctx.arc(cx, cy, 22, 0, Math.PI*2);
+  ctx.fillStyle = '#fff';
+  ctx.fill();
+  ctx.strokeStyle = wheelColors[0];
+  ctx.lineWidth = 3;
+  ctx.stroke();
+}
+
+// Putar roda 1x dan resolve dengan pemenangnya (dipakai untuk single & multi)
+function spinOnce(pool) {
+  return new Promise(resolve => {
+    const segAngle = (Math.PI*2) / pool.length;
+    const winnerIndex = Math.floor(Math.random() * pool.length);
+    const extraSpins = 6 + Math.random()*2;
+    const targetSegMid = winnerIndex * segAngle + segAngle/2;
+    const targetRotation = (extraSpins * Math.PI*2) + ( -Math.PI/2 - targetSegMid );
+
+    const startRotation = wheelRotation;
+    const duration = 3600;
+    const startTime = performance.now();
+
+    function animateSpin(now) {
+      const elapsed = now - startTime;
+      const t = Math.min(elapsed/duration, 1);
+      const eased = 1 - Math.pow(1-t, 4);
+      wheelRotation = startRotation + targetRotation * eased;
+      drawWheel();
+      if (t < 1) {
+        requestAnimationFrame(animateSpin);
+      } else {
+        resolve(pool[winnerIndex]);
+      }
+    }
+    requestAnimationFrame(animateSpin);
+  });
+}
+
+// Putar roda otomatis sebanyak N kali berurutan (tanpa perlu tombol ulang)
+async function spinWheel() {
+  if (wheelSpinning) return;
+
+  const countInput = document.getElementById('winner-count-input');
+  const targetCount = Math.max(1, parseInt(countInput.value) || 1);
+
+  wheelSpinning = true;
+  wheelPendingWinners = [];
+  document.getElementById('btn-wheel-spin').disabled = true;
+  document.getElementById('btn-wheel-save').style.display = 'none';
+  document.getElementById('wheel-winner-display').textContent = '';
+
+  for (let i = 0; i < targetCount; i++) {
+    const pool = getWheelPool(wheelPendingWinners.map(w=>w.tiktok));
+    if (pool.length === 0) {
+      showToast(`⚠️ Peserta valid habis. Hanya berhasil memilih ${wheelPendingWinners.length} dari ${targetCount} pemenang.`);
+      break;
+    }
+    document.getElementById('wheel-winner-display').textContent =
+      targetCount > 1 ? `Mengundi pemenang ke-${i+1} dari ${targetCount}...` : 'Mengundi...';
+
+    const winner = await spinOnce(pool);
+    wheelPendingWinners.push(winner);
+
+    // Jeda singkat antar putaran biar tidak instan ke putaran berikutnya
+    if (i < targetCount - 1) await new Promise(r => setTimeout(r, 700));
+  }
+
+  wheelSpinning = false;
+  document.getElementById('btn-wheel-spin').disabled = false;
+
+  if (wheelPendingWinners.length > 0) {
+    const names = wheelPendingWinners.map(w => w.tiktokDisplay||w.tiktok).join(', ');
+    document.getElementById('wheel-winner-display').textContent = `🎉 ${names} 🎉`;
+    document.getElementById('btn-wheel-save').style.display = 'inline-block';
+    showToast(wheelPendingWinners.length > 1 ? `🎡 ${wheelPendingWinners.length} pemenang terpilih!` : '🎡 Pemenang terpilih!');
+  }
+}
+
+async function saveWheelWinner() {
+  if (wheelPendingWinners.length === 0) { showToast('❌ Belum ada pemenang terpilih!'); return; }
+  const prize = document.getElementById('prize-input-wheel').value.trim();
+  if (!prize) { showToast('❌ Isi nominal hadiah dulu!'); return; }
+
+  const btn = document.getElementById('btn-wheel-save');
+  btn.disabled = true;
+  btn.textContent = 'Menyimpan...';
+
+  try {
+    for (const w of wheelPendingWinners) {
+      const rank = sessionWinners.length + 1;
+      await addDoc(collection(db,'pemenang'), { tiktok: w.tiktokDisplay||w.tiktok, prize, rank, savedAt: serverTimestamp() });
+      sessionWinners.push({tiktok: w.tiktok, rank});
+    }
+    renderWinnersLog();
+    document.getElementById('stat-winner').textContent = sessionWinners.length;
+
+    const savedCount = wheelPendingWinners.length;
+    wheelPendingWinners = [];
+    document.getElementById('wheel-winner-display').textContent = `${savedCount} pemenang disimpan! Putar lagi untuk peserta berikutnya.`;
+    document.getElementById('prize-input-wheel').value = '';
+    btn.style.display = 'none';
+    drawWheel();
+    showToast('💾 Pemenang disimpan ke Firebase!');
+  } catch(e) {
+    showToast('❌ Gagal menyimpan');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '💾 Simpan Pemenang';
+  }
+}
+
+// ── PEMENANG PAGE ──
+async function loadPemenang() {
+  const snap = await getDocs(query(collection(db,'pemenang'), orderBy('rank','asc')));
+  const rankEmoji=['🥇','🥈','🥉','4️⃣','5️⃣'];
+  const list = document.getElementById('pemenang-list');
+  if (snap.empty) { list.innerHTML='<p style="font-size:14px;color:var(--muted);text-align:center;padding:24px">Belum ada pemenang tersimpan.</p>'; return; }
+  list.innerHTML = snap.docs.map(d=>{
+    const w=d.data();
+    return `<div style="display:flex;align-items:center;gap:14px;background:var(--lime-pale);border:2px solid var(--border);border-radius:16px;padding:14px 18px;margin-bottom:10px;flex-wrap:wrap">
+      <div style="font-size:28px">${rankEmoji[w.rank-1]||w.rank}</div>
+      <div style="flex:1;min-width:120px">
+        <div style="font-family:'Nunito',sans-serif;font-weight:800;font-size:15px">${w.tiktok}</div>
+        <div style="font-size:12px;color:var(--muted)">TikTok</div>
+      </div>
+      <div style="font-family:'Nunito',sans-serif;font-weight:900;font-size:15px;color:var(--lime)">${w.prize}</div>
+      <button class="act-btn" style="background:#FFF3D0;color:#A06000" data-action="cert" data-tiktok="${w.tiktok}" data-prize="${w.prize}" data-rank="${w.rank}">📜 Sertifikat</button>
+      <button class="act-btn btn-del" data-action="deletepemenang" data-id="${d.id}">🗑️ Hapus</button>
+    </div>`;
+  }).join('');
+  document.getElementById('stat-winner').textContent = snap.size;
+}
+
+function deletePemenang(id) {
+  document.getElementById('modal-icon').textContent='🗑️';
+  document.getElementById('modal-title').textContent='Hapus Pemenang';
+  document.getElementById('modal-body').textContent='Yakin ingin menghapus pemenang ini? Data di halaman publik juga akan hilang.';
+  document.getElementById('modal-confirm-btn').onclick = async () => {
+    await deleteDoc(doc(db,'pemenang',id));
+    closeModal(); loadPemenang(); showToast('🗑️ Pemenang dihapus!');
+  };
+  document.getElementById('confirm-modal').classList.add('show');
+}
+
+// ── SERTIFIKAT PEMENANG (PDF) ──
+async function generateSertifikat(tiktok, prize, rank) {
+  showToast('⏳ Membuat sertifikat...');
+  try {
+    const { jsPDF } = window.jspdf;
+    const docPdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+    const W = 297, H = 210;
+
+    // Ambil nama admin & nama giveaway dari settings
+    const snap = await getDoc(doc(db,'settings','main'));
+    const s = snap.exists() ? snap.data() : {};
+    const adminName = s.adminName || 'Admin Giveaway';
+    const giveawayAmount = s.giveawayAmount || 'Giveaway Dana';
+
+    // Background
+    docPdf.setFillColor(247, 255, 240); // off white-green
+    docPdf.rect(0, 0, W, H, 'F');
+
+    // Border lime
+    docPdf.setDrawColor(93, 186, 0);
+    docPdf.setLineWidth(2);
+    docPdf.rect(8, 8, W-16, H-16);
+    docPdf.setLineWidth(0.5);
+    docPdf.rect(12, 12, W-24, H-24);
+
+    // Header
+    docPdf.setTextColor(93, 186, 0);
+    docPdf.setFont('helvetica', 'bold');
+    docPdf.setFontSize(14);
+    docPdf.text('SERTIFIKAT PEMENANG', W/2, 40, { align: 'center' });
+
+    docPdf.setTextColor(26, 46, 0);
+    docPdf.setFontSize(28);
+    docPdf.text(giveawayAmount.toUpperCase(), W/2, 52, { align: 'center' });
+
+    // Rank badge text
+    const rankLabel = {1:'JUARA 1', 2:'JUARA 2', 3:'JUARA 3'}[rank] || `JUARA ${rank}`;
+    docPdf.setFontSize(12);
+    docPdf.setTextColor(160, 96, 0);
+    docPdf.text(rankLabel, W/2, 65, { align: 'center' });
+
+    // "Diberikan kepada"
+    docPdf.setFont('helvetica', 'normal');
+    docPdf.setFontSize(13);
+    docPdf.setTextColor(107, 143, 58);
+    docPdf.text('Dengan bangga sertifikat ini diberikan kepada', W/2, 85, { align: 'center' });
+
+    // Nama pemenang
+    docPdf.setFont('helvetica', 'bold');
+    docPdf.setFontSize(36);
+    docPdf.setTextColor(26, 46, 0);
+    docPdf.text(tiktok, W/2, 105, { align: 'center' });
+
+    // Garis bawah nama
+    docPdf.setDrawColor(93, 186, 0);
+    docPdf.setLineWidth(1);
+    const nameWidth = docPdf.getTextWidth(tiktok);
+    docPdf.line(W/2 - nameWidth/2 - 5, 110, W/2 + nameWidth/2 + 5, 110);
+
+    // Deskripsi
+    docPdf.setFont('helvetica', 'normal');
+    docPdf.setFontSize(13);
+    docPdf.setTextColor(45, 74, 0);
+    docPdf.text('sebagai pemenang resmi dalam giveaway yang diselenggarakan dengan', W/2, 122, { align: 'center' });
+    docPdf.text('penuh transparansi dan keadilan.', W/2, 129, { align: 'center' });
+
+    // Hadiah box
+    docPdf.setFillColor(237, 255, 208);
+    docPdf.roundedRect(W/2 - 40, 140, 80, 20, 4, 4, 'F');
+    docPdf.setFont('helvetica', 'bold');
+    docPdf.setFontSize(18);
+    docPdf.setTextColor(93, 186, 0);
+    docPdf.text(prize, W/2, 152, { align: 'center' });
+
+    // Footer: tanggal & admin
+    const tgl = new Date().toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric' });
+    docPdf.setFont('helvetica', 'normal');
+    docPdf.setFontSize(10);
+    docPdf.setTextColor(107, 143, 58);
+    docPdf.text(`Diterbitkan pada ${tgl}`, W/2, 175, { align: 'center' });
+
+    docPdf.setFont('helvetica', 'bold');
+    docPdf.setFontSize(11);
+    docPdf.setTextColor(26, 46, 0);
+    docPdf.text(adminName, W/2, 192, { align: 'center' });
+    docPdf.setDrawColor(180, 180, 180);
+    docPdf.setLineWidth(0.3);
+    docPdf.line(W/2 - 30, 186, W/2 + 30, 186);
+    docPdf.setFont('helvetica', 'normal');
+    docPdf.setFontSize(8);
+    docPdf.setTextColor(150, 150, 150);
+    docPdf.text('Penyelenggara Giveaway', W/2, 197, { align: 'center' });
+
+    docPdf.save(`Sertifikat-${tiktok.replace('@','')}.pdf`);
+    showToast('✅ Sertifikat berhasil dibuat!');
+  } catch(e) {
+    console.error(e);
+    showToast('❌ Gagal membuat sertifikat');
+  }
+}
+
+// ── SETTINGS ──
+async function loadSettings() {
+  try {
+    const snap = await getDoc(doc(db,'settings','main'));
+    if (!snap.exists()) return;
+    const s = snap.data();
+    document.getElementById('s-admin').value        = s.adminName||'';
+    document.getElementById('s-amount').value       = s.giveawayAmount||'';
+    document.getElementById('s-desc').value         = s.heroDesc||'';
+    document.getElementById('s-wa').value           = s.linkWA||'';
+    document.getElementById('s-tt').value           = s.linkTikTok||'';
+    document.getElementById('s-popup-icon').value   = s.popupIcon||'📢';
+    document.getElementById('s-popup-title').value  = s.popupTitle||'';
+    document.getElementById('s-popup-body').value   = s.popupBody||'';
+    document.getElementById('s-popup-enabled').checked = s.popupEnabled!==false;
+    if (s.targetDate) {
+      const dt = new Date(s.targetDate);
+      const local = new Date(dt.getTime()-dt.getTimezoneOffset()*60000).toISOString().slice(0,16);
+      document.getElementById('s-target').value = local;
+    }
+    updateDashCountdown(s.targetDate);
+  } catch(e) { console.error('Load settings error:', e); }
+}
+
+async function saveSettings() {
+  const targetVal = document.getElementById('s-target').value;
+  const data = {
+    adminName:      document.getElementById('s-admin').value.trim(),
+    giveawayAmount: document.getElementById('s-amount').value.trim(),
+    heroDesc:       document.getElementById('s-desc').value.trim(),
+    linkWA:         document.getElementById('s-wa').value.trim(),
+    linkTikTok:     document.getElementById('s-tt').value.trim(),
+    popupIcon:      document.getElementById('s-popup-icon').value.trim(),
+    popupTitle:     document.getElementById('s-popup-title').value.trim(),
+    popupBody:      document.getElementById('s-popup-body').value.trim(),
+    popupEnabled:   document.getElementById('s-popup-enabled').checked,
+    targetDate:     targetVal ? new Date(targetVal).toISOString() : null,
+    updatedAt:      serverTimestamp(),
+  };
+  try {
+    await setDoc(doc(db,'settings','main'), data, {merge:true});
+    showToast('✅ Pengaturan disimpan! Halaman publik otomatis terupdate.');
+    updateDashCountdown(data.targetDate);
+  } catch(e) { showToast('❌ Gagal menyimpan: '+e.message); }
+}
+
+// ── DASHBOARD COUNTDOWN ──
+function updateDashCountdown(targetDate) {
+  if (cdDashInterval) clearInterval(cdDashInterval);
+  if (!targetDate) { document.getElementById('dash-countdown').textContent = 'Belum diatur'; return; }
+  const target = new Date(targetDate);
+  const bulan=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+  const pad = n => String(n).padStart(2,'0');
+  document.getElementById('dash-target').textContent =
+    `Target: ${target.getDate()} ${bulan[target.getMonth()]} ${target.getFullYear()} ${pad(target.getHours())}:${pad(target.getMinutes())} WIB`;
+  function tick() {
+    const diff = target - new Date();
+    if (diff<=0) { document.getElementById('dash-countdown').textContent='Giveaway telah berakhir!'; clearInterval(cdDashInterval); return; }
+    const d=Math.floor(diff/86400000),h=Math.floor((diff%86400000)/3600000),m=Math.floor((diff%3600000)/60000),s=Math.floor((diff%60000)/1000);
+    document.getElementById('dash-countdown').textContent=`${d} hari ${pad(h)} jam ${pad(m)} menit ${pad(s)} detik`;
+  }
+  tick(); cdDashInterval = setInterval(tick,1000);
+}
+
+// ── RESET GIVEAWAY ──
+async function resetCollection(colName) {
+  const snap = await getDocs(collection(db, colName));
+  const deletes = snap.docs.map(d => deleteDoc(doc(db, colName, d.id)));
+  await Promise.all(deletes);
+}
+
+async function resetSemua() {
+  document.getElementById('modal-icon').textContent  = '🔄';
+  document.getElementById('modal-title').textContent = 'Reset Semua Data';
+  document.getElementById('modal-body').textContent  = 'Ini akan menghapus SEMUA peserta, pemenang, dan izin daftar. Giveaway akan dimulai dari awal. Aksi ini tidak bisa dibatalkan!';
+  document.getElementById('modal-confirm-btn').style.background = 'var(--red)';
+  document.getElementById('modal-confirm-btn').onclick = async () => {
+    closeModal();
+    showToast('⏳ Mereset data...');
+    try {
+      await Promise.all([
+        resetCollection('peserta'),
+        resetCollection('pemenang'),
+        resetCollection('izin_daftar'),
+      ]);
+      // Reset status giveaway jadi aktif
+      await setDoc(doc(db,'settings','main'), {giveawayActive: true, stopReason: ''}, {merge:true});
+      sessionWinners = []; lastWinner = null;
+      giveawayActiveStatus = true;
+      updateStopBtn();
+      showToast('✅ Semua data berhasil direset!');
+    } catch(e) { showToast('❌ Gagal reset: '+e.message); }
+  };
+  document.getElementById('confirm-modal').classList.add('show');
+}
+
+async function resetPesertaSaja() {
+  document.getElementById('modal-icon').textContent  = '👥';
+  document.getElementById('modal-title').textContent = 'Reset Peserta';
+  document.getElementById('modal-body').textContent  = 'Ini akan menghapus semua data peserta dan izin daftar. Data pemenang tetap tersimpan. Aksi ini tidak bisa dibatalkan!';
+  document.getElementById('modal-confirm-btn').style.background = 'var(--red)';
+  document.getElementById('modal-confirm-btn').onclick = async () => {
+    closeModal();
+    showToast('⏳ Mereset peserta...');
+    try {
+      await Promise.all([
+        resetCollection('peserta'),
+        resetCollection('izin_daftar'),
+      ]);
+      showToast('✅ Data peserta berhasil direset!');
+    } catch(e) { showToast('❌ Gagal reset: '+e.message); }
+  };
+  document.getElementById('confirm-modal').classList.add('show');
+}
+function goPage(name) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.sb-item').forEach(i=>i.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  document.querySelector(`[data-page="${name}"]`).classList.add('active');
+  if(name==='dashboard') buildChart();
+  if(name==='pemenang')  loadPemenang();
+  if(name==='izin')      loadIzin();
+  document.getElementById('sidebar').classList.remove('open');
+}
+
+// ── IZIN DAFTAR ──
+async function loadIzin() {
+  const list = document.getElementById('izin-list');
+  list.innerHTML = '<p style="font-size:13px;color:var(--muted)">Memuat...</p>';
+  try {
+    const snap = await getDocs(query(collection(db,'izin_daftar'), orderBy('createdAt','desc')));
+    if (snap.empty) { list.innerHTML='<p style="font-size:13px;color:var(--muted);text-align:center;padding:20px">Belum ada permohonan izin.</p>'; return; }
+    list.innerHTML = '';
+    snap.forEach(d => {
+      const iz = d.data();
+      const ts = iz.createdAt?.toDate ? formatDate(iz.createdAt.toDate()) : '-';
+      const badgeMap = {pending:'badge-pending',approved:'badge-approved',rejected:'badge-rejected'};
+      const labelMap = {pending:'Menunggu',approved:'Disetujui',rejected:'Ditolak'};
+      const card = document.createElement('div');
+      card.className = 'izin-card';
+      card.innerHTML = `
+        <div class="izin-card-head">
+          <div class="izin-card-tiktok">${iz.tiktok}</div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="badge ${badgeMap[iz.status]||'badge-pending'}">${labelMap[iz.status]||iz.status}</span>
+            <span class="izin-card-time">${ts}</span>
+          </div>
+        </div>
+        <div class="izin-card-alasan">"${iz.alasan}"</div>
+        ${iz.status==='pending' ? `
+        <div class="izin-card-actions">
+          <button class="btn-approve" data-action="approve-izin" data-id="${d.id}">✅ Setujui</button>
+          <button class="btn-reject"  data-action="reject-izin"  data-id="${d.id}">❌ Tolak</button>
+        </div>` : ''}
+      `;
+      list.appendChild(card);
+    });
+  } catch(e) { list.innerHTML='<p style="color:var(--red);font-size:13px">Gagal memuat data.</p>'; }
+}
+
+async function updateIzinStatus(id, status) {
+  try {
+    await updateDoc(doc(db,'izin_daftar',id), {status, updatedAt: serverTimestamp()});
+    showToast(status==='approved' ? '✅ Permohonan disetujui!' : '❌ Permohonan ditolak!');
+    loadIzin();
+  } catch(e) { showToast('❌ Gagal update status izin'); }
+}
+
+// ── STOP / AKTIFKAN GIVEAWAY ──
+let giveawayActiveStatus = true;
+
+async function loadGiveawayStatus() {
+  try {
+    const snap = await getDoc(doc(db,'settings','main'));
+    const s = snap.exists() ? snap.data() : {};
+    giveawayActiveStatus = s.giveawayActive !== false;
+    // Set stop mode select
+    const mode = s.stopMode || 'manual';
+    document.getElementById('stop-mode').value = mode;
+    // Set alasan
+    document.getElementById('stop-reason-input').value = s.stopReason || '';
+    updateStopBtn();
+  } catch(e) {}
+}
+
+function updateStopBtn() {
+  const statusEl = document.getElementById('status-giveaway');
+  const btn      = document.getElementById('btn-toggle-giveaway');
+  if (giveawayActiveStatus) {
+    statusEl.innerHTML = '<span style="color:var(--lime)">● Giveaway Aktif</span>';
+    btn.textContent = '⛔ Hentikan Giveaway';
+    btn.style.cssText = 'background:#FFE8E8;color:var(--red);padding:12px 24px;border-radius:12px;border:2px solid #FFB3B3;font-family:Nunito,sans-serif;font-weight:800;font-size:14px;cursor:pointer';
+  } else {
+    statusEl.innerHTML = '<span style="color:var(--red)">● Giveaway Dihentikan</span>';
+    btn.textContent = '▶️ Aktifkan Kembali';
+    btn.style.cssText = 'background:#E8FFD0;color:#3A8A00;padding:12px 24px;border-radius:12px;border:2px solid #B0E87A;font-family:Nunito,sans-serif;font-weight:800;font-size:14px;cursor:pointer';
+  }
+}
+
+async function toggleGiveaway() {
+  const newStatus   = !giveawayActiveStatus;
+  const stopMode    = document.getElementById('stop-mode').value;
+  const stopReason  = document.getElementById('stop-reason-input').value.trim();
+
+  let konfirmMsg = '';
+  if (newStatus) {
+    konfirmMsg = 'Aktifkan kembali giveaway? Form pendaftaran akan dibuka lagi.';
+  } else {
+    if (stopMode === 'countdown') {
+      konfirmMsg = 'Giveaway akan dihentikan otomatis saat countdown habis. Lanjutkan?';
+    } else {
+      konfirmMsg = `Hentikan giveaway sekarang secara manual?${stopReason ? `\n\nAlasan: "${stopReason}"` : ''}`;
+    }
+  }
+
+  document.getElementById('modal-icon').textContent  = newStatus ? '▶️' : '⛔';
+  document.getElementById('modal-title').textContent = newStatus ? 'Aktifkan Giveaway' : 'Hentikan Giveaway';
+  document.getElementById('modal-body').textContent  = konfirmMsg;
+  document.getElementById('modal-confirm-btn').style.background = newStatus ? '#5DBA00' : 'var(--red)';
+  document.getElementById('modal-confirm-btn').onclick = async () => {
+    try {
+      const updateData = {
+        giveawayActive: newStatus,
+        stopMode: stopMode,
+        stopReason: newStatus ? '' : stopReason, // hapus alasan saat diaktifkan lagi
+      };
+      // Kalau mode countdown & dihentikan, giveawayActive tetap true — biarkan countdown yang mengunci
+      if (!newStatus && stopMode === 'countdown') {
+        updateData.giveawayActive = true; // tetap aktif, countdown yang akan kunci
+        updateData.stopByCountdown = true;
+      } else {
+        updateData.stopByCountdown = false;
+      }
+      await setDoc(doc(db,'settings','main'), updateData, {merge:true});
+      giveawayActiveStatus = newStatus || stopMode === 'countdown';
+      updateStopBtn();
+      closeModal();
+      showToast(newStatus ? '▶️ Giveaway diaktifkan kembali!' : stopMode === 'countdown' ? '⏰ Giveaway akan berhenti saat countdown habis!' : '⛔ Giveaway dihentikan!');
+    } catch(e) { showToast('❌ Gagal mengubah status'); closeModal(); }
+  };
+  document.getElementById('confirm-modal').classList.add('show');
+}
+
+// ── CHART ──
+function buildChart() {
+  const now = new Date();
+  const labels=[], data=[];
+  const dayNames=['Min','Sen','Sel','Rab','Kam','Jum','Sab'];
+  for(let i=6;i>=0;i--) {
+    const d=new Date(now); d.setDate(d.getDate()-i);
+    labels.push(dayNames[d.getDay()]+' '+d.getDate());
+    const count = allPeserta.filter(p => {
+      if(!p.createdAt?.toDate) return false;
+      const pd=p.createdAt.toDate();
+      return pd.getDate()===d.getDate()&&pd.getMonth()===d.getMonth()&&pd.getFullYear()===d.getFullYear();
+    }).length;
+    data.push(count);
+  }
+  const ctx=document.getElementById('chart-daily').getContext('2d');
+  if(dailyChart) dailyChart.destroy();
+  dailyChart=new Chart(ctx,{type:'bar',data:{
+    labels,
+    datasets:[{label:'Peserta Baru',data,backgroundColor:'rgba(93,186,0,.25)',borderColor:'#5DBA00',borderWidth:2,borderRadius:8}]
+  },options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1,color:'#6B8F3A'},grid:{color:'#D4F0A0'}},x:{ticks:{color:'#6B8F3A'},grid:{display:false}}}}});
+}
+
+// ── UTILS ──
+function formatDate(d) {
+  const pad=n=>String(n).padStart(2,'0');
+  return `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+function showToast(msg) {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+// ── EVENT LISTENERS — dipasang di sini setelah semua fungsi didefinisikan ──
+document.getElementById('l-btn').addEventListener('click', doLogin);
+document.getElementById('l-user').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+document.getElementById('l-pass').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+document.getElementById('btn-logout').addEventListener('click', doLogout);
+document.getElementById('hamburger').addEventListener('click', () => document.getElementById('sidebar').classList.toggle('open'));
+document.getElementById('modal-cancel-btn').addEventListener('click', closeModal);
+document.getElementById('btn-undian-start').addEventListener('click', startUndian);
+document.getElementById('btn-undian-ulang').addEventListener('click', ulangUndian);
+document.getElementById('btn-undian-save').addEventListener('click', saveWinner);
+document.getElementById('tab-slot').addEventListener('click', () => switchUndianMode('slot'));
+document.getElementById('tab-wheel').addEventListener('click', () => switchUndianMode('wheel'));
+document.getElementById('btn-wheel-spin').addEventListener('click', spinWheel);
+document.getElementById('btn-wheel-save').addEventListener('click', saveWheelWinner);
+document.getElementById('btn-open-live').addEventListener('click', () => {
+  window.open('live.html', '_blank');
+});
+document.getElementById('btn-save-settings').addEventListener('click', saveSettings);
+document.getElementById('btn-toggle-giveaway').addEventListener('click', toggleGiveaway);
+document.getElementById('btn-reset-semua').addEventListener('click', resetSemua);
+document.getElementById('btn-reset-peserta').addEventListener('click', resetPesertaSaja);
+document.getElementById('stop-mode').addEventListener('change', () => {
+  const mode = document.getElementById('stop-mode').value;
+  const label = document.getElementById('stop-reason-label');
+  const hint  = document.getElementById('stop-reason-hint');
+  const input = document.getElementById('stop-reason-input');
+  const modeHint = document.getElementById('stop-mode-hint');
+  if (mode === 'manual') {
+    label.textContent       = 'Target / Pencapaian';
+    input.placeholder       = 'Contoh: 250 Follower Baru Diumumkan';
+    hint.textContent        = 'Ditampilkan ke peserta sebagai syarat berakhirnya giveaway';
+    modeHint.textContent    = 'Manual: tidak ada timer, admin yang tentukan kapan berhenti berdasarkan pencapaian';
+  } else {
+    label.textContent       = 'Alasan Penghentian (opsional)';
+    input.placeholder       = 'Contoh: Kuota peserta sudah penuh';
+    hint.textContent        = 'Ditampilkan ke peserta saat form dikunci (opsional)';
+    modeHint.textContent    = 'Countdown: form otomatis terkunci saat timer habis';
+  }
+});
+document.getElementById('search-input').addEventListener('input', filterTable);
+document.getElementById('filter-status').addEventListener('change', filterTable);
+document.getElementById('btn-prev').addEventListener('click', () => changePage(-1));
+document.getElementById('btn-next').addEventListener('click', () => changePage(1));
+
+// Sidebar nav
+document.querySelectorAll('.sb-item[data-page]').forEach(el => {
+  el.addEventListener('click', () => goPage(el.dataset.page));
+});
+
+// Event delegation untuk tombol di dalam tabel & pemenang list (dibuat dinamis)
+document.addEventListener('click', e => {
+  const btn = e.target.closest('[data-action]');
+  if (!btn) return;
+  const action = btn.dataset.action;
+  const id     = btn.dataset.id;
+  const name   = btn.dataset.name;
+  if (action === 'valid')          setStatus(id, 'valid');
+  if (action === 'invalid')        setStatus(id, 'invalid');
+  if (action === 'delete')         confirmDelete(id, name);
+  if (action === 'deletepemenang') deletePemenang(id);
+  if (action === 'approve-izin')   updateIzinStatus(id, 'approved');
+  if (action === 'reject-izin')    updateIzinStatus(id, 'rejected');
+  if (action === 'cert')           generateSertifikat(btn.dataset.tiktok, btn.dataset.prize, parseInt(btn.dataset.rank));
+});
 </script>
 </body>
 </html>
