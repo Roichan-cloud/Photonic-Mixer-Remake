@@ -29,10 +29,14 @@ const CACHEABLE_HOSTS = ['cdnjs.cloudflare.com', 'cdn.jsdelivr.net', 'www.gstati
 self.addEventListener('install', (event) => {
   event.waitUntil((async () => {
     const cache = await caches.open(CACHE);
+    // Hanya unduh yang BELUM ada di cache. Jadi saat sw.js diperbarui (tanpa mengganti VERSION),
+    // pengguna tidak mengunduh ulang library/gambar yang sudah tersimpan. File web sendiri
+    // (index.html dst.) tetap selalu diperbarui otomatis lewat strategi network-first / stale-while-revalidate.
+    const addIfMissing = async (u) => { if (!(await cache.match(u))) await cache.add(u); };
     // Wajib berhasil semua
-    await Promise.all(CDN_REQUIRED.map((u) => cache.add(u)));
+    await Promise.all(CDN_REQUIRED.map(addIfMissing));
     // Sisanya: simpan sebisanya
-    await Promise.allSettled(LOCAL_ASSETS.concat(CDN_OPTIONAL).map((u) => cache.add(u)));
+    await Promise.allSettled(LOCAL_ASSETS.concat(CDN_OPTIONAL).map(addIfMissing));
     await self.skipWaiting();
   })());
 });
@@ -95,6 +99,8 @@ self.addEventListener('fetch', (event) => {
   if (url.origin !== self.location.origin && !CACHEABLE_HOSTS.includes(url.hostname)) return;
 
   if (url.origin === self.location.origin) {
+    // Pengecekan versi baru dari halaman (?__chk=...): langsung ke server, jangan disimpan di cache
+    if (url.searchParams.has('__chk')) return;
     if (req.mode === 'navigate' || url.pathname.endsWith('.html') || url.pathname.endsWith('/')) {
       event.respondWith(networkFirst(req, 4000));
     } else {
