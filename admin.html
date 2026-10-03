@@ -47,7 +47,10 @@ body{background:#f0fdf4;font-family:'Segoe UI',sans-serif;color:#111;min-height:
 /* CARDS */
 .card{background:#fff;border-radius:14px;padding:16px;margin-bottom:14px;box-shadow:0 2px 10px rgba(0,0,0,0.06);border:1px solid #e8f5e9;}
 .card-title{font-size:13px;font-weight:700;color:#00aa33;margin-bottom:12px;display:flex;align-items:center;gap:6px;}
-.card-title .icon{font-size:16px;}
+.card-title .icon{font-size:16px;display:inline-flex;}
+.ic{width:1.15em;height:1.15em;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vertical-align:-0.2em;margin-right:5px;flex-shrink:0;}
+.card-title .icon .ic{width:16px;height:16px;margin-right:0;}
+.badge-success .ic,.badge-fail .ic,.badge-info .ic{width:1.1em;height:1.1em;margin-right:3px;}
 
 /* STATS GRID */
 .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
@@ -111,6 +114,7 @@ input:checked+.slider-sw:before{transform:translateX(20px);}
 </style>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><symbol id="i-chart" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></symbol><symbol id="i-megaphone" viewBox="0 0 24 24"><path d="M3 11v2a1 1 0 0 0 1 1h2l5 4V6L6 10H4a1 1 0 0 0-1 1z"/><path d="M15 9a4 4 0 0 1 0 6"/><path d="M18 6a8 8 0 0 1 0 12"/></symbol><symbol id="i-wrench" viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/></symbol><symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33 1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82 1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></symbol><symbol id="i-log" viewBox="0 0 24 24"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="15" y2="16"/></symbol><symbol id="i-bug" viewBox="0 0 24 24"><path d="M8 2l1.88 1.88"/><path d="M14.12 3.88L16 2"/><path d="M9 7.13v-1a3 3 0 1 1 6 0v1"/><path d="M12 20c-3.3 0-6-2.7-6-6v-3a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v3c0 3.3-2.7 6-6 6z"/><path d="M12 20v-9"/><path d="M6.53 9C4.6 8.8 3 7.1 3 5"/><path d="M6 13H2"/><path d="M3 21c0-2.1 1.7-3.9 3.8-4"/><path d="M20.97 5c0 2.1-1.6 3.8-3.5 4"/><path d="M22 13h-4"/><path d="M17.2 17c2.1.1 3.8 1.9 3.8 4"/></symbol><symbol id="i-bulb" viewBox="0 0 24 24"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.2 1 2V17h6v-.3c0-.8.4-1.5 1-2A7 7 0 0 0 12 2z"/></symbol><symbol id="i-phone" viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></symbol><symbol id="i-message" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></symbol><symbol id="i-refresh" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></symbol><symbol id="i-send" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></symbol><symbol id="i-trash" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></symbol><symbol id="i-save" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></symbol><symbol id="i-key" viewBox="0 0 24 24"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.78 7.78 5.5 5.5 0 0 1 7.78-7.78zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></symbol><symbol id="i-lock" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol><symbol id="i-pin" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></symbol><symbol id="i-check" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></symbol><symbol id="i-x" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></symbol><symbol id="i-warn" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol><symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></symbol><symbol id="i-user" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol><symbol id="i-hash" viewBox="0 0 24 24"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></symbol></defs></svg>
 
 <!-- LOGIN SCREEN -->
 <div id="login-screen">
@@ -120,9 +124,9 @@ input:checked+.slider-sw:before{transform:translateX(20px);}
     <div class="login-sub">Pothonic Mixer Pro</div>
     <input class="login-input" id="login-email" type="email" placeholder="Email" autocomplete="off">
     <input class="login-input" id="login-pass" type="password" placeholder="Password">
-    <button class="login-btn" onclick="doLogin()">🔐 Masuk</button>
+    <button class="login-btn" onclick="doLogin()"><svg class="ic" aria-hidden="true"><use href="#i-lock"/></svg>Masuk</button>
     <div class="login-err" id="login-err"></div>
-    <div class="login-info">⚠️ Izin lokasi diperlukan untuk login</div>
+    <div class="login-info"><svg class="ic" aria-hidden="true"><use href="#i-warn"/></svg>Izin lokasi diperlukan untuk login</div>
   </div>
 </div>
 
@@ -143,12 +147,12 @@ input:checked+.slider-sw:before{transform:translateX(20px);}
 
   <!-- TAB BAR -->
   <div id="tab-bar">
-    <button class="tab-btn active" onclick="switchTab('dashboard')">📊 Dashboard</button>
-    <button class="tab-btn" onclick="switchTab('announcement')">📢 Announcement</button>
-    <button class="tab-btn" onclick="switchTab('maintenance')">🚧 Maintenance</button>
-    <button class="tab-btn" onclick="switchTab('settings')">⚙️ Settings</button>
-    <button class="tab-btn" onclick="switchTab('loginlog')">📝 Riwayat Login</button>
-    <button class="tab-btn" onclick="switchTab('feedback')">🐞 Feedback <span id="feedback-badge" class="badge-fail" style="display:none;margin-left:4px;">0</span></button>
+    <button class="tab-btn active" onclick="switchTab('dashboard')"><svg class="ic" aria-hidden="true"><use href="#i-chart"/></svg>Dashboard</button>
+    <button class="tab-btn" onclick="switchTab('announcement')"><svg class="ic" aria-hidden="true"><use href="#i-megaphone"/></svg>Announcement</button>
+    <button class="tab-btn" onclick="switchTab('maintenance')"><svg class="ic" aria-hidden="true"><use href="#i-wrench"/></svg>Maintenance</button>
+    <button class="tab-btn" onclick="switchTab('settings')"><svg class="ic" aria-hidden="true"><use href="#i-settings"/></svg>Settings</button>
+    <button class="tab-btn" onclick="switchTab('loginlog')"><svg class="ic" aria-hidden="true"><use href="#i-log"/></svg>Riwayat Login</button>
+    <button class="tab-btn" onclick="switchTab('feedback')"><svg class="ic" aria-hidden="true"><use href="#i-bug"/></svg>Feedback <span id="feedback-badge" class="badge-fail" style="display:none;margin-left:4px;">0</span></button>
   </div>
 
   <div id="content">
@@ -160,14 +164,10 @@ input:checked+.slider-sw:before{transform:translateX(20px);}
         <div class="stat-card"><div class="stat-num" id="stat-total">-</div><div class="stat-label">Total Kunjungan</div></div>
       </div>
       <div class="card">
-        <div class="card-title"><span class="icon">📱</span> Status App</div>
+        <div class="card-title"><span class="icon"><svg class="ic" aria-hidden="true"><use href="#i-phone"/></svg></span> Status App</div>
         <div class="toggle-row">
           <div><div class="toggle-label">Maintenance Mode</div><div class="toggle-sub" id="maint-status-dash">Tidak aktif</div></div>
           <span id="dash-maint-badge" class="badge-info">OFF</span>
-        </div>
-        <div class="toggle-row">
-          <div><div class="toggle-label">Versi App</div><div class="toggle-sub" id="dash-version">v6.9</div></div>
-          <span class="badge-success">LIVE</span>
         </div>
         <div class="toggle-row">
           <div><div class="toggle-label">Force Update</div><div class="toggle-sub" id="dash-force">Tidak aktif</div></div>
@@ -179,38 +179,38 @@ input:checked+.slider-sw:before{transform:translateX(20px);}
     <!-- ANNOUNCEMENT -->
     <div class="tab-panel" id="tab-announcement">
       <div class="card">
-        <div class="card-title"><span class="icon">📢</span> Kirim Pengumuman</div>
+        <div class="card-title"><span class="icon"><svg class="ic" aria-hidden="true"><use href="#i-megaphone"/></svg></span> Kirim Pengumuman</div>
         <label class="admin-label">Judul</label>
         <input class="admin-input" id="ann-title" placeholder="Judul pengumuman...">
         <label class="admin-label">Pesan</label>
         <textarea class="admin-textarea" id="ann-msg" placeholder="Isi pengumuman..."></textarea>
         <label class="admin-label">Tipe</label>
         <select class="admin-select" id="ann-type">
-          <option value="info">ℹ️ Info</option>
-          <option value="warning">⚠️ Peringatan</option>
-          <option value="success">✅ Sukses</option>
-          <option value="error">❌ Error</option>
+          <option value="info">Info</option>
+          <option value="warning">Peringatan</option>
+          <option value="success">Sukses</option>
+          <option value="error">Error</option>
         </select>
         <label class="admin-label">Custom Icon (URL gambar, opsional)</label>
-        <input class="admin-input" id="ann-icon" placeholder="https://... (kosongkan untuk pakai emoji default)">
+        <input class="admin-input" id="ann-icon" placeholder="https://... (kosongkan untuk pakai ikon default)">
         <label class="admin-label">Durasi tampil (detik, 0 = permanen)</label>
         <input class="admin-input" id="ann-duration" type="number" placeholder="0" value="10" min="0" max="300">
-        <button class="btn-green" onclick="sendAnnouncement()">📢 Kirim Pengumuman</button>
-        <button class="btn-gray" onclick="clearAnnouncement()">🗑️ Hapus Pengumuman Aktif</button>
+        <button class="btn-green" onclick="sendAnnouncement()"><svg class="ic" aria-hidden="true"><use href="#i-megaphone"/></svg>Kirim Pengumuman</button>
+        <button class="btn-gray" onclick="clearAnnouncement()"><svg class="ic" aria-hidden="true"><use href="#i-trash"/></svg>Hapus Pengumuman Aktif</button>
       </div>
       <div class="card">
-        <div class="card-title"><span class="icon">💬</span> Banner/MOTD</div>
+        <div class="card-title"><span class="icon"><svg class="ic" aria-hidden="true"><use href="#i-message"/></svg></span> Banner/MOTD</div>
         <label class="admin-label">Pesan selamat datang (muncul saat app dibuka)</label>
         <textarea class="admin-textarea" id="motd-msg" placeholder="Selamat datang di Pothonic Mixer Pro!"></textarea>
-        <button class="btn-green" onclick="saveMOTD()">💾 Simpan MOTD</button>
-        <button class="btn-gray" onclick="clearMOTD()">🗑️ Hapus MOTD</button>
+        <button class="btn-green" onclick="saveMOTD()"><svg class="ic" aria-hidden="true"><use href="#i-save"/></svg>Simpan MOTD</button>
+        <button class="btn-gray" onclick="clearMOTD()"><svg class="ic" aria-hidden="true"><use href="#i-trash"/></svg>Hapus MOTD</button>
       </div>
     </div>
 
     <!-- MAINTENANCE -->
     <div class="tab-panel" id="tab-maintenance">
       <div class="card">
-        <div class="card-title"><span class="icon">🚧</span> Maintenance Mode</div>
+        <div class="card-title"><span class="icon"><svg class="ic" aria-hidden="true"><use href="#i-wrench"/></svg></span> Maintenance Mode</div>
         <div class="toggle-row">
           <div><div class="toggle-label">Aktifkan Maintenance</div><div class="toggle-sub">App akan tampil halaman maintenance</div></div>
           <label class="switch"><input type="checkbox" id="maint-toggle" onchange="toggleMaintenance()"><span class="slider-sw"></span></label>
@@ -220,33 +220,24 @@ input:checked+.slider-sw:before{transform:translateX(20px);}
         <textarea class="admin-textarea" id="maint-msg" placeholder="Sedang dalam pemeliharaan. Mohon tunggu..."></textarea>
         <label class="admin-label">Estimasi Selesai</label>
         <input class="admin-input" id="maint-eta" type="datetime-local">
-        <button class="btn-green" onclick="saveMaintenance()">💾 Simpan Pengaturan</button>
+        <button class="btn-green" onclick="saveMaintenance()"><svg class="ic" aria-hidden="true"><use href="#i-save"/></svg>Simpan Pengaturan</button>
       </div>
       <div class="card">
-        <div class="card-title"><span class="icon">🔄</span> Force Update</div>
+        <div class="card-title"><span class="icon"><svg class="ic" aria-hidden="true"><use href="#i-refresh"/></svg></span> Force Update</div>
         <label class="admin-label">Pesan Update</label>
-        <textarea class="admin-textarea" id="update-msg" placeholder="Versi baru tersedia! Silakan reload."></textarea>
-        <button class="btn-green" onclick="sendForceUpdate()">🚀 Kirim Force Update ke Semua User</button>
-        <button class="btn-gray" onclick="clearForceUpdate()">🗑️ Hapus Force Update</button>
+        <textarea class="admin-textarea" id="update-msg" placeholder="Versi baru tersedia! Halaman akan diperbarui."></textarea>
+        <label class="admin-label">Custom Refresh (detik, 0 = langsung refresh)</label>
+        <input class="admin-input" id="update-delay" type="number" placeholder="3" value="3" min="0" max="600">
+        <div style="font-size:11px;color:#888;margin:-4px 0 10px;">Pesan tampil di atas layar user, lalu halaman refresh otomatis setelah hitung mundur ini. Tidak ada tombol untuk membatalkan.</div>
+        <button class="btn-green" onclick="sendForceUpdate()"><svg class="ic" aria-hidden="true"><use href="#i-send"/></svg>Kirim Force Update ke Semua User</button>
+        <button class="btn-gray" onclick="clearForceUpdate()"><svg class="ic" aria-hidden="true"><use href="#i-trash"/></svg>Hapus Force Update</button>
       </div>
     </div>
 
     <!-- SETTINGS -->
     <div class="tab-panel" id="tab-settings">
       <div class="card">
-        <div class="card-title"><span class="icon">🎨</span> Tampilan App</div>
-        <label class="admin-label">Nama App</label>
-        <input class="admin-input" id="set-appname" placeholder="Pothonic Mixer Pro">
-        <label class="admin-label">Versi App</label>
-        <input class="admin-input" id="set-version" placeholder="v6.9">
-        <label class="admin-label">Warna Tema (hex)</label>
-        <input class="admin-input" id="set-color" type="color" value="#00cc44" style="height:44px;cursor:pointer;">
-        <label class="admin-label">Custom Watermark</label>
-        <input class="admin-input" id="set-watermark" placeholder="BY IAN STUDIO LOCALIZE">
-        <button class="btn-green" onclick="saveAppSettings()">💾 Simpan & Terapkan</button>
-      </div>
-      <div class="card">
-        <div class="card-title"><span class="icon">🔑</span> Ubah Password Admin</div>
+        <div class="card-title"><span class="icon"><svg class="ic" aria-hidden="true"><use href="#i-key"/></svg></span> Ubah Password Admin</div>
         <div style="font-size:11px;color:#888;margin-bottom:10px;">Login: <strong id="cur-admin-email">-</strong>. Untuk ganti email, hubungi developer (lewat Firebase Console).</div>
         <label class="admin-label">Password Saat Ini</label>
         <input class="admin-input" id="cur-pass" type="password" placeholder="Password saat ini (untuk verifikasi)">
@@ -254,15 +245,15 @@ input:checked+.slider-sw:before{transform:translateX(20px);}
         <input class="admin-input" id="new-pass" type="password" placeholder="Password baru (min. 6 karakter)">
         <label class="admin-label">Konfirmasi Password Baru</label>
         <input class="admin-input" id="new-pass2" type="password" placeholder="Ulangi password baru">
-        <button class="btn-green" onclick="changeCredentials()">🔐 Ubah Password</button>
+        <button class="btn-green" onclick="changeCredentials()"><svg class="ic" aria-hidden="true"><use href="#i-lock"/></svg>Ubah Password</button>
       </div>
     </div>
 
     <!-- LOGIN LOG -->
     <div class="tab-panel" id="tab-loginlog">
       <div class="card">
-        <div class="card-title"><span class="icon">📝</span> Riwayat Login Admin</div>
-        <button class="btn-gray" onclick="loadLoginLog()">🔄 Refresh</button>
+        <div class="card-title"><span class="icon"><svg class="ic" aria-hidden="true"><use href="#i-log"/></svg></span> Riwayat Login Admin</div>
+        <button class="btn-gray" onclick="loadLoginLog()"><svg class="ic" aria-hidden="true"><use href="#i-refresh"/></svg>Refresh</button>
         <div style="overflow-x:auto;margin-top:8px;">
           <table class="admin-table">
             <thead><tr><th>Waktu</th><th>Status</th><th>Lokasi</th><th>Device</th><th>IP</th></tr></thead>
@@ -279,12 +270,12 @@ input:checked+.slider-sw:before{transform:translateX(20px);}
         <div class="stat-card"><div class="stat-num" id="fb-stat-total">-</div><div class="stat-label">Total Laporan</div></div>
       </div>
       <div class="card">
-        <div class="card-title"><span class="icon">🐞</span> Laporan Bug &amp; Saran dari User</div>
+        <div class="card-title"><span class="icon"><svg class="ic" aria-hidden="true"><use href="#i-bug"/></svg></span> Laporan Bug &amp; Saran dari User</div>
         <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
           <select class="admin-select" id="fb-filter-type" style="flex:1;min-width:120px;margin-bottom:0;" onchange="loadFeedback()">
             <option value="all">Semua Tipe</option>
-            <option value="bug">🐞 Bug</option>
-            <option value="saran">💡 Saran</option>
+            <option value="bug">Bug</option>
+            <option value="saran">Saran</option>
           </select>
           <select class="admin-select" id="fb-filter-status" style="flex:1;min-width:120px;margin-bottom:0;" onchange="loadFeedback()">
             <option value="all">Semua Status</option>
@@ -292,7 +283,7 @@ input:checked+.slider-sw:before{transform:translateX(20px);}
             <option value="dilihat">Dilihat</option>
             <option value="selesai">Selesai</option>
           </select>
-          <button class="btn-gray" style="width:auto;margin-bottom:0;padding:10px 16px;" onclick="loadFeedback()">🔄 Refresh</button>
+          <button class="btn-gray" style="width:auto;margin-bottom:0;padding:10px 16px;" onclick="loadFeedback()"><svg class="ic" aria-hidden="true"><use href="#i-refresh"/></svg>Refresh</button>
         </div>
         <div id="feedback-list" style="display:flex;flex-direction:column;gap:10px;">
           <div style="color:#aaa;font-size:12px;">Memuat...</div>
@@ -321,7 +312,6 @@ function switchTab(name) {
   event.target.classList.add('active');
   if(name==='dashboard') loadDashboard();
   if(name==='loginlog') loadLoginLog();
-  if(name==='settings') loadSettings();
   if(name==='maintenance') loadMaintenance();
   if(name==='feedback') loadFeedback();
 }
@@ -329,12 +319,35 @@ function switchTab(name) {
 // ═══════════════════════════════════════════
 // TOAST
 // ═══════════════════════════════════════════
+function I(name, cls) {
+  return '<svg class="ic' + (cls ? ' ' + cls : '') + '" aria-hidden="true"><use href="#i-' + name + '"/></svg>';
+}
+function escHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
 function toast(msg, isErr=false) {
   const t = document.getElementById('admin-toast');
-  t.textContent = msg;
+  t.innerHTML = I(isErr ? 'x' : 'check') + escHtml(msg);
   t.style.background = isErr ? '#e53e3e' : '#00aa33';
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// Semua penulisan ke Firestore lewat sini: cek offline dulu, beri batas waktu, dan selalu tampilkan hasilnya.
+// (Tanpa ini, saat offline tombol menggantung selamanya tanpa pesan apa pun.)
+async function runWrite(fn, okMsg) {
+  if (navigator.onLine === false) { toast('Tidak ada koneksi internet. Perubahan tidak dikirim.', true); return false; }
+  try {
+    await Promise.race([
+      fn(),
+      new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 12000))
+    ]);
+    if (okMsg) toast(okMsg);
+    return true;
+  } catch (e) {
+    toast(e && e.message === 'timeout' ? 'Server tidak merespons. Periksa koneksi lalu coba lagi.' : 'Gagal: ' + ((e && e.message) || e), true);
+    return false;
+  }
 }
 
 // ═══════════════════════════════════════════
@@ -392,7 +405,7 @@ async function doLogin() {
   if(!email||!pass) { errEl.textContent='Email/password kosong'; errEl.style.color='#e53e3e'; errEl.style.display='block'; return; }
 
   // Cek geo dulu
-  errEl.textContent = '📍 Memeriksa lokasi...'; errEl.style.display='block'; errEl.style.color='#888';
+  errEl.innerHTML = I('pin') + 'Memeriksa lokasi...'; errEl.style.display='block'; errEl.style.color='#888';
   let locationData = null;
   try {
     locationData = await new Promise((res, rej) => {
@@ -403,13 +416,13 @@ async function doLogin() {
       );
     });
   } catch(e) {
-    errEl.textContent = '❌ Izin lokasi ditolak. Login tidak dapat dilanjutkan.';
+    errEl.innerHTML = I('x') + 'Izin lokasi ditolak. Login tidak dapat dilanjutkan.';
     errEl.style.color = '#e53e3e'; errEl.style.display = 'block';
     await logLoginAttempt(email, false, null, 'Lokasi ditolak');
     return;
   }
 
-  errEl.textContent = '🔐 Memeriksa kredensial...'; errEl.style.color='#888';
+  errEl.innerHTML = I('lock') + 'Memeriksa kredensial...'; errEl.style.color='#888';
 
   try {
     await auth.signInWithEmailAndPassword(email, pass);
@@ -417,7 +430,7 @@ async function doLogin() {
     auth._lastLoginLocation = locationData; // dipakai onAuthStateChanged untuk catat lokasi
   } catch(e) {
     const msg = translateAuthError(e.code);
-    errEl.textContent = '❌ ' + msg;
+    errEl.innerHTML = I('x') + escHtml(msg);
     errEl.style.color = '#e53e3e'; errEl.style.display = 'block';
     await logLoginAttempt(email, false, locationData, msg);
   }
@@ -480,13 +493,6 @@ auth.onAuthStateChanged(async (user) => {
 // ═══════════════════════════════════════════
 async function loadDashboard() {
   try {
-    const snap = await db.collection('app_config').doc('settings').get();
-    const data = snap.exists ? snap.data() : {};
-    document.getElementById('dash-version').textContent = data.version||'v6.9';
-    document.getElementById('set-appname').value = data.appName||'Pothonic Mixer Pro';
-    document.getElementById('set-version').value = data.version||'v6.9';
-    document.getElementById('set-watermark').value = data.watermark||'BY IAN STUDIO LOCALIZE';
-
     const maintSnap = await db.collection('app_config').doc('maintenance').get();
     const maint = maintSnap.exists ? maintSnap.data() : {};
     const maintOn = maint.active||false;
@@ -526,25 +532,19 @@ async function sendAnnouncement() {
   const duration = parseInt(document.getElementById('ann-duration').value) || 0;
   const iconUrl = document.getElementById('ann-icon').value.trim();
   if(!title||!msg) { toast('Judul dan pesan harus diisi',true); return; }
-  try {
-    await db.collection('app_config').doc('announcement').set({
-      title, msg, type, duration, iconUrl: iconUrl||'', timestamp: Date.now(), active:true
-    });
-    toast('✅ Pengumuman berhasil dikirim!');
-  } catch(e) { toast('Error: '+e.message, true); }
+  await runWrite(() => db.collection('app_config').doc('announcement').set({
+    title, msg, type, duration, iconUrl: iconUrl||'', timestamp: Date.now(), active:true
+  }), 'Pengumuman berhasil dikirim!');
 }
 async function clearAnnouncement() {
-  await db.collection('app_config').doc('announcement').set({ active:false });
-  toast('🗑️ Pengumuman dihapus');
+  await runWrite(() => db.collection('app_config').doc('announcement').set({ active:false }), 'Pengumuman dihapus');
 }
 async function saveMOTD() {
   const msg = document.getElementById('motd-msg').value.trim();
-  await db.collection('app_config').doc('motd').set({ msg, active:!!msg, timestamp:Date.now() });
-  toast('✅ MOTD disimpan!');
+  await runWrite(() => db.collection('app_config').doc('motd').set({ msg, active:!!msg, timestamp:Date.now() }), 'MOTD disimpan!');
 }
 async function clearMOTD() {
-  await db.collection('app_config').doc('motd').set({ active:false });
-  toast('🗑️ MOTD dihapus');
+  await runWrite(() => db.collection('app_config').doc('motd').set({ active:false }), 'MOTD dihapus');
 }
 
 // ═══════════════════════════════════════════
@@ -559,54 +559,43 @@ async function loadMaintenance() {
     if(d.eta) document.getElementById('maint-eta').value = new Date(d.eta).toISOString().slice(0,16);
     const fuSnap = await db.collection('app_config').doc('force_update').get();
     const fu = fuSnap.exists ? fuSnap.data() : {};
-    document.getElementById('force-update-toggle').checked = fu.active||false;
-    document.getElementById('latest-version').value = fu.version||'';
     document.getElementById('update-msg').value = fu.msg||'';
+    document.getElementById('update-delay').value = (typeof fu.refreshDelay === 'number') ? fu.refreshDelay : 3;
   } catch(e){}
 }
 async function toggleMaintenance() {
-  const active = document.getElementById('maint-toggle').checked;
-  await db.collection('app_config').doc('maintenance').set({ active }, { merge:true });
-  toast(active ? '🚧 Maintenance aktif' : '✅ Maintenance dinonaktifkan');
+  const box = document.getElementById('maint-toggle');
+  const active = box.checked;
+  const ok = await runWrite(() => db.collection('app_config').doc('maintenance').set({ active }, { merge:true }),
+    active ? 'Maintenance aktif' : 'Maintenance dinonaktifkan');
+  if (!ok) box.checked = !active;   // gagal: kembalikan toggle supaya tampilan tidak bohong
 }
 async function saveMaintenance() {
   const msg = document.getElementById('maint-msg').value;
   const etaVal = document.getElementById('maint-eta').value;
   const active = document.getElementById('maint-toggle').checked;
-  await db.collection('app_config').doc('maintenance').set({ active, msg, eta: etaVal?new Date(etaVal).getTime():null, updatedAt:Date.now() });
-  toast('💾 Pengaturan maintenance disimpan!');
+  await runWrite(() => db.collection('app_config').doc('maintenance').set({ active, msg, eta: etaVal?new Date(etaVal).getTime():null, updatedAt:Date.now() }),
+    'Pengaturan maintenance disimpan!');
 }
 async function sendForceUpdate() {
-  const msg = document.getElementById('update-msg').value || 'Versi baru tersedia! Silakan reload.';
-  await db.collection('app_config').doc('force_update').set({
-    active: true, msg, timestamp: Date.now(), updatedAt: Date.now()
-  });
-  toast('🚀 Force update dikirim ke semua user!');
+  const msg = document.getElementById('update-msg').value.trim() || 'Versi baru tersedia! Halaman akan diperbarui.';
+  let delay = parseInt(document.getElementById('update-delay').value, 10);
+  if (isNaN(delay)) delay = 3;
+  delay = Math.max(0, Math.min(600, delay));
+  document.getElementById('update-delay').value = delay;
+  const when = delay === 0 ? 'langsung saat itu juga' : 'dalam ' + delay + ' detik';
+  if (!confirm('Kirim Force Update?\n\nSemua user yang sedang membuka app akan di-refresh otomatis ' + when + ' dan tidak bisa membatalkannya.')) return;
+  await runWrite(() => db.collection('app_config').doc('force_update').set({
+    active: true, msg, refreshDelay: delay, timestamp: Date.now(), updatedAt: Date.now()
+  }), 'Force update dikirim ke semua user!');
 }
 async function clearForceUpdate() {
-  await db.collection('app_config').doc('force_update').set({ active: false, updatedAt: Date.now() });
-  toast('🗑️ Force update dihapus!');
+  await runWrite(() => db.collection('app_config').doc('force_update').set({ active: false, updatedAt: Date.now() }), 'Force update dihapus!');
 }
 
 // ═══════════════════════════════════════════
 // SETTINGS
 // ═══════════════════════════════════════════
-async function loadSettings() {
-  const snap = await db.collection('app_config').doc('settings').get();
-  const d = snap.exists ? snap.data() : {};
-  document.getElementById('set-appname').value = d.appName||'Pothonic Mixer Pro';
-  document.getElementById('set-version').value = d.version||'v6.9';
-  document.getElementById('set-color').value = d.themeColor||'#00cc44';
-  document.getElementById('set-watermark').value = d.watermark||'BY IAN STUDIO LOCALIZE';
-}
-async function saveAppSettings() {
-  const appName = document.getElementById('set-appname').value;
-  const version = document.getElementById('set-version').value;
-  const themeColor = document.getElementById('set-color').value;
-  const watermark = document.getElementById('set-watermark').value;
-  await db.collection('app_config').doc('settings').set({ appName, version, themeColor, watermark, updatedAt:Date.now() });
-  toast('✅ Pengaturan diterapkan ke semua user!');
-}
 async function changeCredentials() {
   const curPass = document.getElementById('cur-pass').value;
   const pass = document.getElementById('new-pass').value;
@@ -623,7 +612,7 @@ async function changeCredentials() {
     const cred = firebase.auth.EmailAuthProvider.credential(user.email, curPass);
     await user.reauthenticateWithCredential(cred);
     await user.updatePassword(pass);
-    toast('🔐 Password berhasil diubah!');
+    toast('Password berhasil diubah!');
     document.getElementById('cur-pass').value='';
     document.getElementById('new-pass').value='';
     document.getElementById('new-pass2').value='';
@@ -644,10 +633,10 @@ async function loadLoginLog() {
     snap.forEach(doc => {
       const d = doc.data();
       const time = new Date(d.timestamp).toLocaleString('id-ID');
-      const loc = d.location ? `<a href="https://maps.google.com/?q=${d.location.lat},${d.location.lng}" target="_blank" style="color:#00aa33;font-size:10px;">📍 ${d.city||'Lihat'}</a>` : `<span style="color:#aaa;">${d.city||'-'}</span>`;
+      const loc = d.location ? `<a href="https://maps.google.com/?q=${d.location.lat},${d.location.lng}" target="_blank" style="color:#00aa33;font-size:10px;">${I('pin')}${d.city||'Lihat'}</a>` : `<span style="color:#aaa;">${d.city||'-'}</span>`;
       rows += `<tr>
         <td style="white-space:nowrap;font-size:10px;">${time}</td>
-        <td>${d.success?'<span class="badge-success">✅ Berhasil</span>':'<span class="badge-fail">❌ Gagal</span>'}</td>
+        <td>${d.success?'<span class="badge-success">'+I('check')+'Berhasil</span>':'<span class="badge-fail">'+I('x')+'Gagal</span>'}</td>
         <td>${loc}</td>
         <td style="font-size:10px;">${d.device||'-'}<br><span style="color:#aaa;">${d.browser||''}</span></td>
         <td style="font-size:10px;">${d.ip||'-'}</td>
@@ -696,8 +685,8 @@ async function loadFeedback() {
 function renderFeedbackCard(d) {
   const time = new Date(d.timestamp).toLocaleString('id-ID');
   const typeBadge = d.type === 'bug'
-    ? '<span class="badge-fail">🐞 BUG</span>'
-    : '<span class="badge-info">💡 SARAN</span>';
+    ? '<span class="badge-fail">'+I('bug')+'BUG</span>'
+    : '<span class="badge-info">'+I('bulb')+'SARAN</span>';
   const status = d.status || 'baru';
   const statusBadge = status === 'baru' ? '<span class="badge-fail">BELUM DILIHAT</span>'
     : status === 'dilihat' ? '<span class="badge-info">DILIHAT</span>'
@@ -711,11 +700,11 @@ function renderFeedbackCard(d) {
       <div>${typeBadge} ${statusBadge}</div>
       <div style="font-size:10px;color:#aaa;white-space:nowrap;">${time}</div>
     </div>
-    <div style="font-size:12px;color:#555;font-weight:600;margin-bottom:4px;">👤 ${nameSafe}</div>
+    <div style="font-size:12px;color:#555;font-weight:600;margin-bottom:4px;">${I('user')}${nameSafe}</div>
     <div style="font-size:13px;color:#222;line-height:1.5;white-space:pre-wrap;margin-bottom:10px;">${msgSafe}</div>
     <div style="font-size:10px;color:#888;margin-bottom:10px;">
-      📱 ${d.device||'-'} · ${d.browser||'-'} · ${d.screen||'-'}<br>
-      🆔 ${d.deviceId||'-'} · App ${d.appVersion||'-'}
+      ${I('phone')}${d.device||'-'} · ${d.browser||'-'} · ${d.screen||'-'}<br>
+      ${I('hash')}${d.deviceId||'-'} · App ${d.appVersion||'-'}
     </div>
     <div style="border-top:1px solid #eee;padding-top:10px;">
       <label style="font-size:11px;color:#555;font-weight:600;display:block;margin-bottom:4px;">Ubah Status</label>
@@ -728,8 +717,8 @@ function renderFeedbackCard(d) {
       <textarea id="fb-adminmsg-${d.id}" rows="3" placeholder="Tulis balasan/penjelasan untuk user di sini..."
         style="width:100%;border:1px solid #ccc;border-radius:6px;padding:8px;font-size:12px;font-family:inherit;resize:vertical;box-sizing:border-box;margin-bottom:8px;">${adminMsgSafe}</textarea>
       <div style="display:flex;gap:6px;">
-        <button class="btn-green" style="width:auto;flex:1;margin-bottom:0;font-size:11px;padding:8px;" onclick="saveFeedbackResponse('${d.id}')">💾 Simpan</button>
-        <button class="btn-red" style="width:auto;flex:1;margin-bottom:0;font-size:11px;padding:8px;" onclick="deleteFeedback('${d.id}')">🗑️ Hapus</button>
+        <button class="btn-green" style="width:auto;flex:1;margin-bottom:0;font-size:11px;padding:8px;" onclick="saveFeedbackResponse('${d.id}')">${I('save')}Simpan</button>
+        <button class="btn-red" style="width:auto;flex:1;margin-bottom:0;font-size:11px;padding:8px;" onclick="deleteFeedback('${d.id}')">${I('trash')}Hapus</button>
       </div>
     </div>
   </div>`;
@@ -751,7 +740,7 @@ async function saveFeedbackResponse(id) {
       adminMessage,
       adminMessageAt: Date.now()
     }, { merge:true });
-    toast('✅ Status & pesan admin disimpan');
+    toast('Status & pesan admin disimpan');
     loadFeedback();
   } catch(e) { toast('Error: '+e.message, true); }
 }
@@ -760,7 +749,7 @@ async function deleteFeedback(id) {
   if(!confirm('Hapus laporan ini secara permanen?')) return;
   try {
     await db.collection('feedback_reports').doc(id).delete();
-    toast('🗑️ Laporan dihapus');
+    toast('Laporan dihapus');
     loadFeedback();
   } catch(e) { toast('Error: '+e.message, true); }
 }
