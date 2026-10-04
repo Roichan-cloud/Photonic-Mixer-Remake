@@ -159,10 +159,6 @@ input:checked+.slider-sw:before{transform:translateX(20px);}
 
     <!-- DASHBOARD -->
     <div class="tab-panel active" id="tab-dashboard">
-      <div class="stats-grid">
-        <div class="stat-card"><div class="stat-num" id="stat-today">-</div><div class="stat-label">Kunjungan Hari Ini</div></div>
-        <div class="stat-card"><div class="stat-num" id="stat-total">-</div><div class="stat-label">Total Kunjungan</div></div>
-      </div>
       <div class="card">
         <div class="card-title"><span class="icon"><svg class="ic" aria-hidden="true"><use href="#i-phone"/></svg></span> Status App</div>
         <div class="toggle-row">
@@ -487,6 +483,7 @@ auth.onAuthStateChanged(async (user) => {
     const emailLabel = document.getElementById('cur-admin-email');
     if(emailLabel) emailLabel.textContent = user.email;
     resetIdle();
+    try { if (await ensureConfigDoc()) toast('Konfigurasi digabung ke satu dokumen (app_config/main)'); } catch(e) {}
     loadDashboard();
     updateFeedbackBadge();
     // Catat login sukses (sekali saja per momen login, bukan tiap reload halaman dgn sesi tersimpan)
@@ -502,36 +499,76 @@ auth.onAuthStateChanged(async (user) => {
 });
 
 // ═══════════════════════════════════════════
+// KONFIGURASI GABUNGAN — satu dokumen: app_config/main
+// Isi: maintenance, forceUpdate, announcement, motd, flags. Aplikasi cukup memasang 1 listener (hemat pembacaan Firestore).
+// ═══════════════════════════════════════════
+const CFG_REF = () => db.collection('app_config').doc('main');
+
+// Dokumen lama tetap ikut diisi supaya pengguna yang BELUM update ke versi baru masih menerima perubahan.
+// Kalau sebagian besar pengguna sudah update, ubah jadi false untuk menghentikan tulis ganda.
+const LEGACY_SYNC = true;
+const LEGACY_DOCS = { maintenance:'maintenance', forceUpdate:'force_update', announcement:'announcement', motd:'motd', flags:'settings' };
+
+async function readLegacyConfig() {
+  const entries = Object.entries(LEGACY_DOCS);
+  const snaps = await Promise.all(entries.map(([, name]) => db.collection('app_config').doc(name).get()));
+  const out = {};
+  entries.forEach(([section], i) => {
+    if (!snaps[i].exists) return;
+    const d = snaps[i].data();
+    out[section] = section === 'flags'
+      ? { feedbackDisabled: !!d.feedbackDisabled, autoUpdateUiEnabled: d.autoUpdateUiEnabled !== false }
+      : d;
+  });
+  return out;
+}
+// Baca konfigurasi untuk ditampilkan. Kalau dokumen gabungan belum ada, pakai dokumen lama (hanya baca).
+async function getConfig() {
+  const snap = await CFG_REF().get();
+  return snap.exists ? snap.data() : await readLegacyConfig();
+}
+// Buat dokumen gabungan dari dokumen lama kalau belum ada (migrasi sekali jalan, otomatis saat admin login).
+let _cfgReady = false;
+async function ensureConfigDoc() {
+  if (_cfgReady) return false;
+  // Sudah pernah dipastikan ada di perangkat ini: tidak perlu membaca lagi. Jadi menyimpan perubahan tetap bisa
+  // walau kuota BACA Firestore sedang habis (kuota tulis terpisah) dan setiap sesi admin hemat 1 pembacaan.
+  try { if (localStorage.getItem('_cfg_main_ok') === '1') { _cfgReady = true; return false; } } catch(e) {}
+  const snap = await CFG_REF().get();
+  let created = false;
+  if (!snap.exists) {
+    await CFG_REF().set(await readLegacyConfig(), { merge: true });
+    created = true;
+  }
+  _cfgReady = true;
+  try { localStorage.setItem('_cfg_main_ok', '1'); } catch(e) {}
+  return created;
+}
+// Simpan satu bagian: ke dokumen gabungan + (opsional) dokumen lama, dalam satu batch.
+async function saveSection(section, data) {
+  await ensureConfigDoc();
+  const batch = db.batch();
+  batch.set(CFG_REF(), { [section]: data }, { merge: true });
+  if (LEGACY_SYNC) batch.set(db.collection('app_config').doc(LEGACY_DOCS[section]), data, { merge: true });
+  await batch.commit();
+}
+
+// ═══════════════════════════════════════════
 // DASHBOARD
 // ═══════════════════════════════════════════
 async function loadDashboard() {
   try {
-    const maintSnap = await db.collection('app_config').doc('maintenance').get();
-    const maint = maintSnap.exists ? maintSnap.data() : {};
+    const cfg = await getConfig();
+    const maint = cfg.maintenance || {};
     const maintOn = maint.active||false;
     document.getElementById('maint-status-dash').textContent = maintOn?'Aktif':'Tidak aktif';
     document.getElementById('dash-maint-badge').textContent = maintOn?'ON':'OFF';
     document.getElementById('dash-maint-badge').className = maintOn?'badge-fail':'badge-info';
 
-    const fuSnap = await db.collection('app_config').doc('force_update').get();
-    const fu = fuSnap.exists ? fuSnap.data() : {};
+    const fu = cfg.forceUpdate || {};
     document.getElementById('dash-force').textContent = fu.active?'Aktif':'Tidak aktif';
     document.getElementById('dash-force-badge').textContent = fu.active?'ON':'OFF';
     document.getElementById('dash-force-badge').className = fu.active?'badge-fail':'badge-info';
-
-    loadVisitStats();
-  } catch(e){}
-}
-
-async function loadVisitStats() {
-  try {
-    const today = new Date().toISOString().split('T')[0];
-    // Pakai count() aggregation — cuma 1 read di server, BUKAN baca semua dokumen satu-satu.
-    // Jauh lebih hemat dibanding allSnap.get() yang sebelumnya menarik seluruh koleksi 'visits'.
-    const todayCount = await db.collection('visits').where('date','==',today).count().get();
-    document.getElementById('stat-today').textContent = todayCount.data().count;
-    const totalCount = await db.collection('visits').count().get();
-    document.getElementById('stat-total').textContent = totalCount.data().count;
   } catch(e){}
 }
 
@@ -545,19 +582,19 @@ async function sendAnnouncement() {
   const duration = parseInt(document.getElementById('ann-duration').value) || 0;
   const iconUrl = document.getElementById('ann-icon').value.trim();
   if(!title||!msg) { toast('Judul dan pesan harus diisi',true); return; }
-  await runWrite(() => db.collection('app_config').doc('announcement').set({
+  await runWrite(() => saveSection('announcement', {
     title, msg, type, duration, iconUrl: iconUrl||'', timestamp: Date.now(), active:true
   }), 'Pengumuman berhasil dikirim!');
 }
 async function clearAnnouncement() {
-  await runWrite(() => db.collection('app_config').doc('announcement').set({ active:false }), 'Pengumuman dihapus');
+  await runWrite(() => saveSection('announcement', { active:false }), 'Pengumuman dihapus');
 }
 async function saveMOTD() {
   const msg = document.getElementById('motd-msg').value.trim();
-  await runWrite(() => db.collection('app_config').doc('motd').set({ msg, active:!!msg, timestamp:Date.now() }), 'MOTD disimpan!');
+  await runWrite(() => saveSection('motd', { msg, active:!!msg, timestamp:Date.now() }), 'MOTD disimpan!');
 }
 async function clearMOTD() {
-  await runWrite(() => db.collection('app_config').doc('motd').set({ active:false }), 'MOTD dihapus');
+  await runWrite(() => saveSection('motd', { active:false }), 'MOTD dihapus');
 }
 
 // ═══════════════════════════════════════════
@@ -565,13 +602,12 @@ async function clearMOTD() {
 // ═══════════════════════════════════════════
 async function loadMaintenance() {
   try {
-    const snap = await db.collection('app_config').doc('maintenance').get();
-    const d = snap.exists ? snap.data() : {};
+    const cfg = await getConfig();
+    const d = cfg.maintenance || {};
     document.getElementById('maint-toggle').checked = d.active||false;
     document.getElementById('maint-msg').value = d.msg||'';
     if(d.eta) document.getElementById('maint-eta').value = new Date(d.eta).toISOString().slice(0,16);
-    const fuSnap = await db.collection('app_config').doc('force_update').get();
-    const fu = fuSnap.exists ? fuSnap.data() : {};
+    const fu = cfg.forceUpdate || {};
     document.getElementById('update-msg').value = fu.msg||'';
     document.getElementById('update-delay').value = (typeof fu.refreshDelay === 'number') ? fu.refreshDelay : 3;
   } catch(e){}
@@ -579,7 +615,7 @@ async function loadMaintenance() {
 async function toggleMaintenance() {
   const box = document.getElementById('maint-toggle');
   const active = box.checked;
-  const ok = await runWrite(() => db.collection('app_config').doc('maintenance').set({ active }, { merge:true }),
+  const ok = await runWrite(() => saveSection('maintenance', { active }),
     active ? 'Maintenance aktif' : 'Maintenance dinonaktifkan');
   if (!ok) box.checked = !active;   // gagal: kembalikan toggle supaya tampilan tidak bohong
 }
@@ -587,7 +623,7 @@ async function saveMaintenance() {
   const msg = document.getElementById('maint-msg').value;
   const etaVal = document.getElementById('maint-eta').value;
   const active = document.getElementById('maint-toggle').checked;
-  await runWrite(() => db.collection('app_config').doc('maintenance').set({ active, msg, eta: etaVal?new Date(etaVal).getTime():null, updatedAt:Date.now() }),
+  await runWrite(() => saveSection('maintenance', { active, msg, eta: etaVal?new Date(etaVal).getTime():null, updatedAt:Date.now() }),
     'Pengaturan maintenance disimpan!');
 }
 async function sendForceUpdate() {
@@ -598,12 +634,12 @@ async function sendForceUpdate() {
   document.getElementById('update-delay').value = delay;
   const when = delay === 0 ? 'langsung saat itu juga' : 'dalam ' + delay + ' detik';
   if (!confirm('Kirim Force Update?\n\nSemua user yang sedang membuka app akan di-refresh otomatis ' + when + ' dan tidak bisa membatalkannya.')) return;
-  await runWrite(() => db.collection('app_config').doc('force_update').set({
+  await runWrite(() => saveSection('forceUpdate', {
     active: true, msg, refreshDelay: delay, timestamp: Date.now(), updatedAt: Date.now()
   }), 'Force update dikirim ke semua user!');
 }
 async function clearForceUpdate() {
-  await runWrite(() => db.collection('app_config').doc('force_update').set({ active: false, updatedAt: Date.now() }), 'Force update dihapus!');
+  await runWrite(() => saveSection('forceUpdate', { active: false, updatedAt: Date.now() }), 'Force update dihapus!');
 }
 
 // ═══════════════════════════════════════════
@@ -611,8 +647,8 @@ async function clearForceUpdate() {
 // ═══════════════════════════════════════════
 async function loadSettings() {
   try {
-    const snap = await db.collection('app_config').doc('settings').get();
-    const d = snap.exists ? snap.data() : {};
+    const cfg = await getConfig();
+    const d = cfg.flags || {};
     document.getElementById('flag-feedback-off').checked = !!d.feedbackDisabled;
     document.getElementById('flag-update-ui').checked = d.autoUpdateUiEnabled !== false;   // bawaan: aktif
   } catch(e){}
@@ -620,7 +656,7 @@ async function loadSettings() {
 // Simpan satu flag ke dokumen settings (merge: field lain tidak ikut tertimpa). Gagal -> toggle dikembalikan.
 async function setFlag(boxId, field, value, msg) {
   const box = document.getElementById(boxId);
-  const ok = await runWrite(() => db.collection('app_config').doc('settings').set({ [field]: value, updatedAt: Date.now() }, { merge:true }), msg);
+  const ok = await runWrite(() => saveSection('flags', { [field]: value }), msg);
   if (!ok) box.checked = !box.checked;
 }
 function toggleFeedbackOff() {
