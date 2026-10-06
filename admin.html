@@ -684,11 +684,36 @@ let _visitsDeleting = false, _visitsStop = false;
 function setVisitsStatus(html) { document.getElementById('visits-status').innerHTML = html; }
 function fmtNum(n) { return Number(n).toLocaleString('id-ID'); }
 
+// SDK compat tidak punya count(), jadi dipanggil lewat REST (runAggregationQuery) memakai token login admin.
+// Aturan Firestore tetap berlaku (admin harus boleh membaca visits).
+async function countVisitsRaw() {
+  const user = firebase.auth().currentUser;
+  if (!user) throw new Error('Belum login');
+  const token = await user.getIdToken();
+  const pid = firebase.app().options.projectId;
+  const res = await fetch('https://firestore.googleapis.com/v1/projects/' + pid + '/databases/(default)/documents:runAggregationQuery', {
+    method: 'POST',
+    headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ structuredAggregationQuery: {
+      structuredQuery: { from: [{ collectionId: 'visits' }] },
+      aggregations: [{ alias: 'n', count: {} }]
+    }})
+  });
+  const json = await res.json();
+  const first = Array.isArray(json) ? json[0] : json;
+  if (!res.ok || (first && first.error)) {
+    const er = (first && first.error) || {};
+    const e = new Error(er.message || ('HTTP ' + res.status));
+    e.code = String(er.status || res.status);
+    throw e;
+  }
+  return parseInt(first.result.aggregateFields.n.integerValue, 10) || 0;
+}
+
 async function countVisits(showToast) {
   if (navigator.onLine === false) { toast('Tidak ada koneksi internet.', true); return null; }
   try {
-    const snap = await db.collection('visits').count().get();
-    const n = snap.data().count;
+    const n = await countVisitsRaw();
     setVisitsStatus('Jumlah dokumen kunjungan saat ini: <b>' + fmtNum(n) + '</b>');
     if (showToast) toast('Jumlah dokumen: ' + fmtNum(n));
     return n;
@@ -698,9 +723,9 @@ async function countVisits(showToast) {
   }
 }
 function visitsErrorHtml(e) {
-  const code = (e && (e.code || e.message)) || '';
-  if (String(code).includes('permission')) return I('x') + 'Rules Firestore belum mengizinkan admin membaca/menghapus <b>visits</b>. Tambahkan blok rules untuk <b>visits</b> (read, delete: isAdmin) lalu Publish.';
-  if (String(code).includes('exhausted') || String(code).includes('quota')) return I('x') + 'Kuota harian Firestore habis. Coba lagi setelah kuota reset (sekitar pukul 14.00 WIB).';
+  const code = String((e && (e.code || e.message)) || '').toLowerCase();
+  if (code.includes('permission') || code === '403') return I('x') + 'Rules Firestore belum mengizinkan admin membaca/menghapus <b>visits</b>. Tambahkan blok rules untuk <b>visits</b> (read, delete: isAdmin) lalu Publish.';
+  if (code.includes('exhausted') || code.includes('quota') || code === '429') return I('x') + 'Kuota harian Firestore habis. Coba lagi setelah kuota reset (sekitar pukul 14.00 WIB).';
   return I('x') + 'Gagal: ' + escHtml((e && e.message) || e);
 }
 function stopVisitsDelete() { _visitsStop = true; setVisitsStatus('Menghentikan setelah batch ini selesai...'); }
@@ -747,7 +772,7 @@ async function deleteVisits() {
   if (failed) return;
 
   let remaining = null;
-  try { remaining = (await db.collection('visits').count().get()).data().count; } catch(e) {}
+  try { remaining = await countVisitsRaw(); } catch(e) {}
   const sisa = remaining === null ? '' : ' Sisa: <b>' + fmtNum(remaining) + '</b>.';
   if (emptied || remaining === 0) {
     setVisitsStatus(I('check') + 'Selesai. Terhapus <b>' + fmtNum(deleted) + '</b> dokumen. Semua data kunjungan sudah bersih.');
