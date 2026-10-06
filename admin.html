@@ -245,6 +245,16 @@ input:checked+.slider-sw:before{transform:translateX(20px);}
         </div>
       </div>
       <div class="card">
+        <div class="card-title"><span class="icon"><svg class="ic" aria-hidden="true"><use href="#i-trash"/></svg></span> Hapus Data Kunjungan</div>
+        <div style="font-size:12px;color:#777;line-height:1.5;margin-bottom:12px;">Data kunjungan lama (koleksi <b>visits</b>) sudah tidak dipakai. Dihapus bertahap supaya tidak melewati batas hapus harian Firebase (20.000). Tiap 500 dokumen langsung final, jadi kalau berhenti di tengah, yang sudah terhapus tetap terhapus dan bisa dilanjutkan besok.</div>
+        <label class="admin-label">Maksimum dokumen per proses</label>
+        <input class="admin-input" id="visits-cap" type="number" value="15000" min="500" max="19000">
+        <div id="visits-status" style="font-size:12px;color:#555;background:#f6f8f6;border-radius:8px;padding:10px;margin-bottom:10px;line-height:1.5;">Belum dicek. Tekan "Cek Jumlah".</div>
+        <button class="btn-gray" id="visits-count-btn" onclick="countVisits(true)"><svg class="ic" aria-hidden="true"><use href="#i-refresh"/></svg>Cek Jumlah</button>
+        <button class="btn-red" id="visits-start-btn" onclick="deleteVisits()"><svg class="ic" aria-hidden="true"><use href="#i-trash"/></svg>Mulai Hapus</button>
+        <button class="btn-gray" id="visits-stop-btn" onclick="stopVisitsDelete()" style="display:none;"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg>Hentikan</button>
+      </div>
+      <div class="card">
         <div class="card-title"><span class="icon"><svg class="ic" aria-hidden="true"><use href="#i-key"/></svg></span> Ubah Password Admin</div>
         <div style="font-size:11px;color:#888;margin-bottom:10px;">Login: <strong id="cur-admin-email">-</strong>. Untuk ganti email, hubungi developer (lewat Firebase Console).</div>
         <label class="admin-label">Password Saat Ini</label>
@@ -667,6 +677,90 @@ function toggleUpdateUi() {
   const on = document.getElementById('flag-update-ui').checked;
   return setFlag('flag-update-ui', 'autoUpdateUiEnabled', on, on ? 'UI Update Tersedia diaktifkan' : 'UI Update Tersedia dimatikan');
 }
+// ═══════════════════════════════════════════
+// HAPUS DATA KUNJUNGAN (koleksi visits) — bertahap
+// ═══════════════════════════════════════════
+let _visitsDeleting = false, _visitsStop = false;
+function setVisitsStatus(html) { document.getElementById('visits-status').innerHTML = html; }
+function fmtNum(n) { return Number(n).toLocaleString('id-ID'); }
+
+async function countVisits(showToast) {
+  if (navigator.onLine === false) { toast('Tidak ada koneksi internet.', true); return null; }
+  try {
+    const snap = await db.collection('visits').count().get();
+    const n = snap.data().count;
+    setVisitsStatus('Jumlah dokumen kunjungan saat ini: <b>' + fmtNum(n) + '</b>');
+    if (showToast) toast('Jumlah dokumen: ' + fmtNum(n));
+    return n;
+  } catch(e) {
+    setVisitsStatus(visitsErrorHtml(e));
+    return null;
+  }
+}
+function visitsErrorHtml(e) {
+  const code = (e && (e.code || e.message)) || '';
+  if (String(code).includes('permission')) return I('x') + 'Rules Firestore belum mengizinkan admin membaca/menghapus <b>visits</b>. Tambahkan blok rules untuk <b>visits</b> (read, delete: isAdmin) lalu Publish.';
+  if (String(code).includes('exhausted') || String(code).includes('quota')) return I('x') + 'Kuota harian Firestore habis. Coba lagi setelah kuota reset (sekitar pukul 14.00 WIB).';
+  return I('x') + 'Gagal: ' + escHtml((e && e.message) || e);
+}
+function stopVisitsDelete() { _visitsStop = true; setVisitsStatus('Menghentikan setelah batch ini selesai...'); }
+
+async function deleteVisits() {
+  if (_visitsDeleting) return;
+  if (navigator.onLine === false) { toast('Tidak ada koneksi internet.', true); return; }
+  let cap = parseInt(document.getElementById('visits-cap').value, 10);
+  if (isNaN(cap)) cap = 15000;
+  cap = Math.max(500, Math.min(19000, cap));
+  document.getElementById('visits-cap').value = cap;
+  if (!confirm('Hapus hingga ' + fmtNum(cap) + ' dokumen kunjungan sekarang?\n\nData yang dihapus tidak bisa dikembalikan.')) return;
+
+  _visitsDeleting = true; _visitsStop = false;
+  document.getElementById('visits-start-btn').style.display = 'none';
+  document.getElementById('visits-stop-btn').style.display = 'block';
+  document.getElementById('visits-count-btn').disabled = true;
+
+  let deleted = 0, emptied = false, failed = false;
+  try {
+    while (!_visitsStop && deleted < cap) {
+      if (navigator.onLine === false) throw new Error('Koneksi terputus. Yang sudah terhapus tetap terhapus.');
+      const n = Math.min(500, cap - deleted);
+      const snap = await db.collection('visits').limit(n).get();
+      if (snap.empty) { emptied = true; break; }
+      const batch = db.batch();
+      snap.forEach(d => batch.delete(d.ref));
+      await Promise.race([
+        batch.commit(),
+        new Promise((_, rej) => setTimeout(() => rej(new Error('Server tidak merespons. Yang sudah terhapus tetap terhapus.')), 30000))
+      ]);
+      deleted += snap.size;
+      setVisitsStatus('Menghapus... terhapus <b>' + fmtNum(deleted) + '</b> dari maksimum ' + fmtNum(cap));
+    }
+  } catch(e) {
+    failed = true;
+    setVisitsStatus(visitsErrorHtml(e) + '<br>Terhapus sebelum berhenti: <b>' + fmtNum(deleted) + '</b>');
+    toast('Penghapusan berhenti. Lihat keterangan di kartu.', true);
+  }
+  _visitsDeleting = false;
+  document.getElementById('visits-start-btn').style.display = 'block';
+  document.getElementById('visits-stop-btn').style.display = 'none';
+  document.getElementById('visits-count-btn').disabled = false;
+  if (failed) return;
+
+  let remaining = null;
+  try { remaining = (await db.collection('visits').count().get()).data().count; } catch(e) {}
+  const sisa = remaining === null ? '' : ' Sisa: <b>' + fmtNum(remaining) + '</b>.';
+  if (emptied || remaining === 0) {
+    setVisitsStatus(I('check') + 'Selesai. Terhapus <b>' + fmtNum(deleted) + '</b> dokumen. Semua data kunjungan sudah bersih.');
+    toast('Semua data kunjungan sudah terhapus');
+  } else if (_visitsStop) {
+    setVisitsStatus('Dihentikan. Terhapus <b>' + fmtNum(deleted) + '</b> dokumen.' + sisa);
+    toast('Dihentikan: ' + fmtNum(deleted) + ' dokumen terhapus');
+  } else {
+    setVisitsStatus('Batas per proses tercapai. Terhapus <b>' + fmtNum(deleted) + '</b> dokumen.' + sisa + ' Lanjutkan besok setelah kuota reset.');
+    toast(fmtNum(deleted) + ' dokumen terhapus');
+  }
+}
+
 async function changeCredentials() {
   const curPass = document.getElementById('cur-pass').value;
   const pass = document.getElementById('new-pass').value;
