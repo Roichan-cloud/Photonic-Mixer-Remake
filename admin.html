@@ -50,6 +50,22 @@ body{background:#f0fdf4;font-family:'Segoe UI',sans-serif;color:#111;min-height:
 .card-title .icon{font-size:16px;display:inline-flex;}
 .ic{width:1.15em;height:1.15em;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vertical-align:-0.2em;margin-right:5px;flex-shrink:0;}
 .card-title .icon .ic{width:16px;height:16px;margin-right:0;}
+/* Panel proses hapus data kunjungan */
+@keyframes vrSpin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+@keyframes vrStripes{from{background-position:0 0;}to{background-position:22px 0;}}
+.vr-box{border:2px solid #00aa33;border-radius:12px;padding:12px;margin-bottom:12px;background:#f1fbf4;transition:background .25s,border-color .25s;}
+.vr-head{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.vr-head .ic{width:20px;height:20px;margin-right:0;}
+.vr-spin{animation:vrSpin 1s linear infinite;transform-origin:center;}
+.vr-title{font-weight:800;font-size:14px;flex:1;}
+.vr-time{font-size:12px;color:#777;font-variant-numeric:tabular-nums;}
+.vr-bar{height:14px;border-radius:8px;background:#e3e8e3;overflow:hidden;margin-bottom:8px;}
+.vr-fill{height:100%;width:0%;border-radius:8px;background-color:#00aa33;transition:width .35s ease;background-image:repeating-linear-gradient(45deg,rgba(255,255,255,.35) 0 8px,transparent 8px 16px);background-size:22px 22px;animation:vrStripes .8s linear infinite;}
+.vr-fill.still{animation:none;background-image:none;}
+.vr-stats{display:flex;justify-content:space-between;font-size:12px;color:#555;margin-bottom:8px;font-variant-numeric:tabular-nums;}
+.vr-phase{font-size:12px;line-height:1.5;color:#333;margin-bottom:8px;}
+.vr-log{font-size:11px;color:#667;line-height:1.55;max-height:96px;overflow-y:auto;border-top:1px dashed #cdd;padding-top:6px;font-variant-numeric:tabular-nums;}
+.vr-log div.err{color:#e53e3e;}
 .badge-success .ic,.badge-fail .ic,.badge-info .ic{width:1.1em;height:1.1em;margin-right:3px;}
 
 /* STATS GRID */
@@ -250,6 +266,14 @@ input:checked+.slider-sw:before{transform:translateX(20px);}
         <label class="admin-label">Maksimum dokumen per proses</label>
         <input class="admin-input" id="visits-cap" type="number" value="15000" min="500" max="19000">
         <div id="visits-status" style="font-size:12px;color:#555;background:#f6f8f6;border-radius:8px;padding:10px;margin-bottom:10px;line-height:1.5;">Belum dicek. Tekan "Cek Jumlah".</div>
+        <div id="visits-run" class="vr-box" style="display:none;" role="status" aria-live="polite">
+          <div class="vr-head"><span id="vr-icon"></span><span class="vr-title" id="vr-title">Menghapus...</span><span class="vr-time" id="vr-time">00:00</span></div>
+          <div class="vr-bar"><div class="vr-fill" id="vr-fill"></div></div>
+          <div class="vr-stats"><span>Terhapus: <b id="vr-deleted">0</b> / <span id="vr-cap">0</span></span><span id="vr-speed">0 dok/dtk</span></div>
+          <div class="vr-phase" id="vr-phase"></div>
+          <div class="vr-log" id="vr-log"></div>
+          <button class="btn-gray" id="vr-reload" style="display:none;margin-top:10px;" onclick="location.reload()"><svg class="ic" aria-hidden="true"><use href="#i-refresh"/></svg>Muat Ulang Halaman</button>
+        </div>
         <button class="btn-gray" id="visits-count-btn" onclick="countVisits(true)"><svg class="ic" aria-hidden="true"><use href="#i-refresh"/></svg>Cek Jumlah</button>
         <button class="btn-red" id="visits-start-btn" onclick="deleteVisits()"><svg class="ic" aria-hidden="true"><use href="#i-trash"/></svg>Mulai Hapus</button>
         <button class="btn-gray" id="visits-stop-btn" onclick="stopVisitsDelete()" style="display:none;"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg>Hentikan</button>
@@ -678,11 +702,24 @@ function toggleUpdateUi() {
   return setFlag('flag-update-ui', 'autoUpdateUiEnabled', on, on ? 'UI Update Tersedia diaktifkan' : 'UI Update Tersedia dimatikan');
 }
 // ═══════════════════════════════════════════
-// HAPUS DATA KUNJUNGAN (koleksi visits) — bertahap
+// HAPUS DATA KUNJUNGAN (koleksi visits) — bertahap, dengan tampilan proses
 // ═══════════════════════════════════════════
-let _visitsDeleting = false, _visitsStop = false;
-function setVisitsStatus(html) { document.getElementById('visits-status').innerHTML = html; }
+let _visitsDeleting = false, _visitsStop = false, _visitsStopSignal = null;
+let _visitsLastCount = null, _visitsHung = false;
+// Batas waktu menunggu jawaban server untuk satu batch (500 dokumen). Penghapusan normal selesai dalam beberapa detik;
+// kalau kuota hapus harian habis, Firestore tidak menolak — ia terus mencoba ulang dan menggantung.
+window.VISITS_COMMIT_TIMEOUT_MS = 20000;
+window.VISITS_WARN_MS = 8000;
+const $el = id => document.getElementById(id);
+function setVisitsStatus(html) {
+  $el('visits-run').style.display = 'none';
+  const st = $el('visits-status'); st.style.display = 'block'; st.innerHTML = html;
+}
 function fmtNum(n) { return Number(n).toLocaleString('id-ID'); }
+function fmtClock(ms) { const t = Math.floor(ms/1000); return String(Math.floor(t/60)).padStart(2,'0') + ':' + String(t%60).padStart(2,'0'); }
+function withTimeout(promise, ms, code) {
+  return Promise.race([promise, new Promise((_, rej) => setTimeout(() => { const e = new Error('Waktu tunggu habis'); e.code = code || 'timeout'; rej(e); }, ms))]);
+}
 
 // SDK compat tidak punya count(), jadi dipanggil lewat REST (runAggregationQuery) memakai token login admin.
 // Aturan Firestore tetap berlaku (admin harus boleh membaca visits).
@@ -714,6 +751,7 @@ async function countVisits(showToast) {
   if (navigator.onLine === false) { toast('Tidak ada koneksi internet.', true); return null; }
   try {
     const n = await countVisitsRaw();
+    _visitsLastCount = n;
     setVisitsStatus('Jumlah dokumen kunjungan saat ini: <b>' + fmtNum(n) + '</b>');
     if (showToast) toast('Jumlah dokumen: ' + fmtNum(n));
     return n;
@@ -724,64 +762,161 @@ async function countVisits(showToast) {
 }
 function visitsErrorHtml(e) {
   const code = String((e && (e.code || e.message)) || '').toLowerCase();
+  if (code === 'timeout') return I('x') + 'Server tidak menjawab dalam ' + Math.round(window.VISITS_COMMIT_TIMEOUT_MS/1000) + ' detik. Penyebab paling umum: <b>kuota hapus harian (20.000) sudah habis</b>, atau koneksi bermasalah. Coba lagi setelah kuota reset (sekitar pukul 14.00 WIB).';
   if (code.includes('permission') || code === '403') return I('x') + 'Rules Firestore belum mengizinkan admin membaca/menghapus <b>visits</b>. Tambahkan blok rules untuk <b>visits</b> (read, delete: isAdmin) lalu Publish.';
   if (code.includes('exhausted') || code.includes('quota') || code === '429') return I('x') + 'Kuota harian Firestore habis. Coba lagi setelah kuota reset (sekitar pukul 14.00 WIB).';
   return I('x') + 'Gagal: ' + escHtml((e && e.message) || e);
 }
-function stopVisitsDelete() { _visitsStop = true; setVisitsStatus('Menghentikan setelah batch ini selesai...'); }
+
+// ── Tampilan proses ──
+const VR = { t0: 0, phase: '', phaseStart: 0, phaseText: '', state: 'run', deleted: 0, cap: 0, batches: 0, timer: null };
+const VR_STYLE = {
+  run:  { c:'#00aa33', bg:'#f1fbf4', icon:'refresh', spin:true  },
+  wait: { c:'#e69500', bg:'#fff8e8', icon:'refresh', spin:true  },
+  err:  { c:'#e53e3e', bg:'#fff3f3', icon:'x',       spin:false },
+  ok:   { c:'#00aa33', bg:'#f1fbf4', icon:'check',   spin:false },
+  stop: { c:'#777777', bg:'#f6f6f6', icon:'warn',    spin:false }
+};
+function vrState(st, title) {
+  const o = VR_STYLE[st]; VR.state = st;
+  const box = $el('visits-run'); box.style.borderColor = o.c; box.style.background = o.bg;
+  $el('vr-icon').innerHTML = '<span style="color:' + o.c + ';display:flex;">' + I(o.icon, o.spin ? 'vr-spin' : '') + '</span>';
+  const t = $el('vr-title'); t.textContent = title; t.style.color = o.c;
+  const f = $el('vr-fill'); f.style.backgroundColor = o.c; f.classList.toggle('still', !o.spin);
+}
+function vrPhase(phase, text) { VR.phase = phase; VR.phaseText = text; VR.phaseStart = Date.now(); vrRenderPhase(); }
+function vrRenderPhase() {
+  const sec = Math.floor((Date.now() - VR.phaseStart) / 1000);
+  $el('vr-phase').innerHTML = escHtml(VR.phaseText) + (VR.phase ? ' <b>(' + sec + ' dtk)</b>' : '');
+}
+function vrLog(text, isErr) {
+  const log = $el('vr-log');
+  const d = document.createElement('div'); if (isErr) d.className = 'err';
+  d.textContent = fmtClock(Date.now() - VR.t0) + '  ' + text;
+  log.appendChild(d);
+  while (log.children.length > 40) log.removeChild(log.firstChild);
+  log.scrollTop = log.scrollHeight;
+}
+function vrProgress(deleted) {
+  VR.deleted = deleted;
+  $el('vr-deleted').textContent = fmtNum(deleted);
+  $el('vr-fill').style.width = Math.min(100, VR.cap ? (deleted / VR.cap * 100) : 0) + '%';
+}
+function vrTick() {
+  const ms = Date.now() - VR.t0;
+  $el('vr-time').textContent = fmtClock(ms);
+  $el('vr-speed').textContent = (VR.deleted / Math.max(1, ms/1000)).toFixed(1).replace('.', ',') + ' dok/dtk';
+  if (VR.phase) vrRenderPhase();
+  // Menunggu jawaban server terlalu lama: kasih tahu (kemungkinan kuota hapus habis) tanpa menghentikan proses
+  if (VR.phase === 'commit' && VR.state === 'run' && Date.now() - VR.phaseStart > window.VISITS_WARN_MS) {
+    vrState('wait', 'Server lambat menjawab');
+    vrLog('Server belum menjawab > ' + Math.round(window.VISITS_WARN_MS/1000) + ' dtk. Kemungkinan kuota hapus harian habis, atau koneksi lambat.', true);
+  }
+}
+function vrStart(cap) {
+  VR.t0 = Date.now(); VR.cap = cap; VR.batches = 0; VR.deleted = 0; VR.phase = ''; VR.phaseText = '';
+  $el('visits-status').style.display = 'none';
+  $el('visits-run').style.display = 'block';
+  $el('vr-log').innerHTML = ''; $el('vr-cap').textContent = fmtNum(cap);
+  $el('vr-reload').style.display = 'none';
+  vrProgress(0); vrState('run', 'Menghapus data kunjungan...');
+  vrLog('Mulai. Maksimum ' + fmtNum(cap) + ' dokumen pada proses ini.');
+  clearInterval(VR.timer); VR.timer = setInterval(vrTick, 500);
+}
+function vrEnd(st, title, html, showReload) {
+  clearInterval(VR.timer); VR.timer = null; VR.phase = '';
+  vrState(st, title);
+  $el('vr-phase').innerHTML = html;
+  $el('vr-reload').style.display = showReload ? 'block' : 'none';
+  $el('vr-time').textContent = fmtClock(Date.now() - VR.t0);
+}
+
+function stopVisitsDelete() {
+  _visitsStop = true;
+  vrLog('Tombol Hentikan ditekan...');
+  if (_visitsStopSignal) _visitsStopSignal();   // kalau sedang menunggu server, berhenti menunggu
+}
 
 async function deleteVisits() {
   if (_visitsDeleting) return;
   if (navigator.onLine === false) { toast('Tidak ada koneksi internet.', true); return; }
-  let cap = parseInt(document.getElementById('visits-cap').value, 10);
+  if (_visitsHung && confirm('Sebelumnya ada penghapusan yang menggantung (kemungkinan kuota hapus habis) dan masih bisa tersisa di antrean browser.\\n\\nMuat ulang halaman dulu supaya antrean dibersihkan?')) { location.reload(); return; }
+  let cap = parseInt($el('visits-cap').value, 10);
   if (isNaN(cap)) cap = 15000;
   cap = Math.max(500, Math.min(19000, cap));
-  document.getElementById('visits-cap').value = cap;
-  if (!confirm('Hapus hingga ' + fmtNum(cap) + ' dokumen kunjungan sekarang?\n\nData yang dihapus tidak bisa dikembalikan.')) return;
+  $el('visits-cap').value = cap;
+  if (!confirm('Hapus hingga ' + fmtNum(cap) + ' dokumen kunjungan sekarang?\\n\\nData yang dihapus tidak bisa dikembalikan.')) return;
 
   _visitsDeleting = true; _visitsStop = false;
-  document.getElementById('visits-start-btn').style.display = 'none';
-  document.getElementById('visits-stop-btn').style.display = 'block';
-  document.getElementById('visits-count-btn').disabled = true;
+  const stopPromise = new Promise(res => { _visitsStopSignal = () => res('stop'); });
+  $el('visits-start-btn').style.display = 'none';
+  $el('visits-stop-btn').style.display = 'block';
+  $el('visits-count-btn').disabled = true;
+  vrStart(cap);
 
-  let deleted = 0, emptied = false, failed = false;
+  let deleted = 0, emptied = false, failed = null, abandoned = false;
   try {
     while (!_visitsStop && deleted < cap) {
-      if (navigator.onLine === false) throw new Error('Koneksi terputus. Yang sudah terhapus tetap terhapus.');
+      if (navigator.onLine === false) { const e = new Error('Koneksi terputus. Yang sudah terhapus tetap terhapus.'); e.code = 'offline'; throw e; }
       const n = Math.min(500, cap - deleted);
-      const snap = await db.collection('visits').limit(n).get();
+      vrPhase('read', 'Membaca ' + n + ' dokumen dari Firestore...');
+      const snap = await withTimeout(db.collection('visits').limit(n).get(), 30000, 'timeout');
       if (snap.empty) { emptied = true; break; }
       const batch = db.batch();
       snap.forEach(d => batch.delete(d.ref));
-      await Promise.race([
-        batch.commit(),
-        new Promise((_, rej) => setTimeout(() => rej(new Error('Server tidak merespons. Yang sudah terhapus tetap terhapus.')), 30000))
+      vrPhase('commit', 'Menghapus ' + snap.size + ' dokumen... menunggu jawaban server');
+      const t1 = Date.now();
+      const r = await Promise.race([
+        batch.commit().then(() => 'ok'),
+        new Promise((_, rej) => setTimeout(() => { const e = new Error('Waktu tunggu habis'); e.code = 'timeout'; rej(e); }, window.VISITS_COMMIT_TIMEOUT_MS)),
+        stopPromise
       ]);
-      deleted += snap.size;
-      setVisitsStatus('Menghapus... terhapus <b>' + fmtNum(deleted) + '</b> dari maksimum ' + fmtNum(cap));
+      if (r === 'stop') { abandoned = true; break; }
+      deleted += snap.size; VR.batches++;
+      if (VR.state === 'wait') vrState('run', 'Menghapus data kunjungan...');   // server menjawab lagi
+      vrProgress(deleted);
+      vrLog('Batch #' + VR.batches + ': ' + snap.size + ' dokumen terhapus (' + ((Date.now() - t1) / 1000).toFixed(1).replace('.', ',') + ' dtk). Total ' + fmtNum(deleted) + '.');
     }
-  } catch(e) {
-    failed = true;
-    setVisitsStatus(visitsErrorHtml(e) + '<br>Terhapus sebelum berhenti: <b>' + fmtNum(deleted) + '</b>');
+  } catch(e) { failed = e; }
+
+  _visitsDeleting = false; _visitsStopSignal = null;
+  $el('visits-start-btn').style.display = 'block';
+  $el('visits-stop-btn').style.display = 'none';
+  $el('visits-count-btn').disabled = false;
+
+  if (failed) {
+    const hung = (failed.code === 'timeout');
+    if (hung) _visitsHung = true;
+    vrLog('Berhenti: ' + (failed.message || failed), true);
+    vrEnd('err', hung ? 'Server tidak merespons' : 'Berhenti karena error',
+      visitsErrorHtml(failed) + '<br>Terhapus pada proses ini: <b>' + fmtNum(deleted) + '</b>.' + (hung ? '<br>Muat ulang halaman sebelum mencoba lagi agar antrean yang menggantung dibersihkan.' : ''), hung);
     toast('Penghapusan berhenti. Lihat keterangan di kartu.', true);
+    return;
   }
-  _visitsDeleting = false;
-  document.getElementById('visits-start-btn').style.display = 'block';
-  document.getElementById('visits-stop-btn').style.display = 'none';
-  document.getElementById('visits-count-btn').disabled = false;
-  if (failed) return;
+  if (abandoned) {
+    _visitsHung = true;
+    vrLog('Dihentikan saat menunggu server.', true);
+    vrEnd('stop', 'Dihentikan', 'Dihentikan saat menunggu server. Terhapus pada proses ini: <b>' + fmtNum(deleted) + '</b>. Batch terakhir mungkin masih diproses di latar belakang; muat ulang halaman untuk membatalkannya.', true);
+    toast('Dihentikan', true);
+    return;
+  }
 
   let remaining = null;
-  try { remaining = await countVisitsRaw(); } catch(e) {}
+  try { remaining = await countVisitsRaw(); _visitsLastCount = remaining; } catch(e) {}
   const sisa = remaining === null ? '' : ' Sisa: <b>' + fmtNum(remaining) + '</b>.';
   if (emptied || remaining === 0) {
-    setVisitsStatus(I('check') + 'Selesai. Terhapus <b>' + fmtNum(deleted) + '</b> dokumen. Semua data kunjungan sudah bersih.');
+    vrLog('Selesai. Koleksi visits sudah kosong.');
+    vrProgress(Math.max(deleted, 0));
+    vrEnd('ok', 'Selesai', 'Terhapus <b>' + fmtNum(deleted) + '</b> dokumen. Semua data kunjungan sudah bersih.', false);
     toast('Semua data kunjungan sudah terhapus');
   } else if (_visitsStop) {
-    setVisitsStatus('Dihentikan. Terhapus <b>' + fmtNum(deleted) + '</b> dokumen.' + sisa);
+    vrLog('Dihentikan oleh admin.');
+    vrEnd('stop', 'Dihentikan', 'Terhapus <b>' + fmtNum(deleted) + '</b> dokumen pada proses ini.' + sisa, false);
     toast('Dihentikan: ' + fmtNum(deleted) + ' dokumen terhapus');
   } else {
-    setVisitsStatus('Batas per proses tercapai. Terhapus <b>' + fmtNum(deleted) + '</b> dokumen.' + sisa + ' Lanjutkan besok setelah kuota reset.');
+    const hari = remaining ? Math.ceil(remaining / cap) : null;
+    vrLog('Batas per proses tercapai.');
+    vrEnd('ok', 'Proses selesai', 'Terhapus <b>' + fmtNum(deleted) + '</b> dokumen.' + sisa + (hari ? ' Dengan batas ini perlu sekitar <b>' + hari + '</b> proses lagi (satu proses per hari setelah kuota reset, sekitar 14.00 WIB).' : ''), false);
     toast(fmtNum(deleted) + ' dokumen terhapus');
   }
 }
