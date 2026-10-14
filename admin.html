@@ -168,6 +168,7 @@ input:checked+.slider-sw:before{transform:translateX(20px);}
     <button class="tab-btn" onclick="switchTab('maintenance')"><svg class="ic" aria-hidden="true"><use href="#i-wrench"/></svg>Maintenance</button>
     <button class="tab-btn" onclick="switchTab('settings')"><svg class="ic" aria-hidden="true"><use href="#i-settings"/></svg>Settings</button>
     <button class="tab-btn" onclick="switchTab('loginlog')"><svg class="ic" aria-hidden="true"><use href="#i-log"/></svg>Riwayat Login</button>
+    <button class="tab-btn" onclick="switchTab('chat')"><svg class="ic" aria-hidden="true"><use href="#i-message"/></svg>Chat</button>
     <button class="tab-btn" onclick="switchTab('feedback')"><svg class="ic" aria-hidden="true"><use href="#i-bug"/></svg>Feedback <span id="feedback-badge" class="badge-fail" style="display:none;margin-left:4px;">0</span></button>
   </div>
 
@@ -259,6 +260,11 @@ input:checked+.slider-sw:before{transform:translateX(20px);}
           <div><div class="toggle-label">UI "Update Tersedia" Otomatis</div><div class="toggle-sub">Jika dimatikan, banner tidak muncul saat terdeteksi file baru. Force Update tidak terpengaruh.</div></div>
           <label class="switch"><input type="checkbox" id="flag-update-ui" checked onchange="toggleUpdateUi()"><span class="slider-sw"></span></label>
         </div>
+        <div class="divider"></div>
+        <div class="toggle-row">
+          <div><div class="toggle-label">Disable Chat</div><div class="toggle-sub">Jika aktif, tab Chat disembunyikan dan user tidak bisa membaca atau mengirim pesan.</div></div>
+          <label class="switch"><input type="checkbox" id="flag-chat-off" onchange="toggleChatOff()"><span class="slider-sw"></span></label>
+        </div>
       </div>
       <div class="card">
         <div class="card-title"><span class="icon"><svg class="ic" aria-hidden="true"><use href="#i-trash"/></svg></span> Hapus Data Kunjungan</div>
@@ -302,6 +308,58 @@ input:checked+.slider-sw:before{transform:translateX(20px);}
             <tbody id="login-log-tbody"><tr><td colspan="5" style="color:#aaa;">Memuat...</td></tr></tbody>
           </table>
         </div>
+      </div>
+    </div>
+
+    <!-- CHAT -->
+    <div class="tab-panel" id="tab-chat">
+      <div class="card">
+        <div class="card-title"><span class="icon"><svg class="ic" aria-hidden="true"><use href="#i-message"/></svg></span> Live Chat <span id="chat-live-state" class="badge-info" style="margin-left:6px;">Memuat</span></div>
+        <div style="font-size:11px;color:#888;line-height:1.5;margin-bottom:8px;">Pesan dari admin tampil dengan centang biru. Hanya bisa dikirim dari halaman ini (butuh login admin). Menampilkan 50 pesan terbaru dan hanya terhubung saat tab ini dibuka.</div>
+        <div id="chat-admin-list" style="display:flex;flex-direction:column;gap:6px;max-height:440px;overflow-y:auto;border:1px solid #eee;border-radius:8px;padding:8px;background:#fafafa;"><div style="color:#aaa;font-size:12px;">Memuat...</div></div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0;">
+          <button class="btn-red" style="width:auto;flex:1;min-width:130px;margin:0;padding:8px;font-size:11px;" onclick="deleteSelectedChat()"><svg class="ic" aria-hidden="true"><use href="#i-trash"/></svg>Hapus Terpilih (<span id="chat-sel-n">0</span>)</button>
+          <button class="btn-gray" style="width:auto;flex:1;min-width:130px;margin:0;padding:8px;font-size:11px;" onclick="clearChatSelection()"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg>Batal Pilih</button>
+        </div>
+        <div id="chat-adm-reply" style="display:none;align-items:center;gap:6px;background:#eef6ff;border-left:3px solid #1d9bf0;border-radius:4px;padding:6px 8px;font-size:11px;color:#456;margin-bottom:6px;"><span id="chat-adm-reply-txt" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span><button onclick="cancelAdminReply()" style="background:none;border:none;cursor:pointer;color:#888;" aria-label="Batal balas"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg></button></div>
+        <textarea id="chat-adm-input" rows="2" maxlength="500" placeholder="Tulis pesan sebagai admin..." style="width:100%;border:1px solid #ccc;border-radius:6px;padding:8px;font-size:13px;font-family:inherit;resize:vertical;box-sizing:border-box;margin-bottom:6px;"></textarea>
+        <div style="display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:#555;margin-bottom:8px;">
+          <label style="display:flex;align-items:center;gap:5px;"><input type="checkbox" id="chat-adm-hl"> Sorot sebagai pengumuman</label>
+          <label style="display:flex;align-items:center;gap:5px;"><input type="checkbox" id="chat-adm-pin"> Sematkan juga</label>
+        </div>
+        <button class="btn-green" onclick="sendAdminChat()"><svg class="ic" aria-hidden="true"><use href="#i-send"/></svg>Kirim sebagai Admin</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span class="icon"><svg class="ic" aria-hidden="true"><use href="#i-sliders"/></svg></span> Pengaturan Chat</div>
+        <label class="admin-label">Nama admin di chat (tampil dengan centang biru)</label>
+        <div style="display:flex;gap:8px;margin-bottom:10px;"><input class="admin-input" id="chat-adm-name" maxlength="24" placeholder="Admin" style="margin-bottom:0;flex:1;"><button class="btn-green" style="width:auto;margin:0;padding:8px 14px;" onclick="saveChatAdminName()">Simpan</button></div>
+        <label class="admin-label">Mode lambat (jeda antar pesan user)</label>
+        <div style="display:flex;gap:8px;margin-bottom:10px;">
+          <select class="admin-select" id="chat-slow-sel" style="margin-bottom:0;flex:1;">
+            <option value="0">Mati</option><option value="5">5 detik</option><option value="10">10 detik</option><option value="30">30 detik</option><option value="60">1 menit</option><option value="300">5 menit</option>
+          </select>
+          <button class="btn-green" style="width:auto;margin:0;padding:8px 14px;" onclick="saveChatSlow()">Terapkan</button>
+        </div>
+        <label class="admin-label">Pesan yang sedang disematkan</label>
+        <div id="chat-pin-cur" style="font-size:12px;color:#555;background:#f6f8f6;border-radius:8px;padding:10px;margin-bottom:8px;white-space:pre-wrap;word-break:break-word;">Tidak ada.</div>
+        <button class="btn-gray" onclick="clearChatPin()"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg>Lepas Sematan</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span class="icon"><svg class="ic" aria-hidden="true"><use href="#i-lock"/></svg></span> Mute &amp; Blokir</div>
+        <label class="admin-label">Durasi mute (dipakai tombol Mute di tiap pesan)</label>
+        <select class="admin-select" id="chat-mute-dur"><option value="300000">5 menit</option><option value="3600000">1 jam</option><option value="86400000">1 hari</option></select>
+        <div style="font-size:12px;font-weight:700;color:#444;margin:6px 0;">Sedang dimute <span id="chat-muted-n" class="badge-info">0</span></div>
+        <div id="chat-muted-list" style="display:flex;flex-direction:column;gap:8px;font-size:12px;color:#888;margin-bottom:12px;">Belum ada.</div>
+        <div style="font-size:12px;font-weight:700;color:#444;margin:6px 0;">Diblokir permanen <span id="chat-blocked-n" class="badge-info">0</span></div>
+        <div id="chat-blocked-list" style="display:flex;flex-direction:column;gap:8px;font-size:12px;color:#888;">Belum ada.</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span class="icon"><svg class="ic" aria-hidden="true"><use href="#i-trash"/></svg></span> Bersihkan</div>
+        <div style="font-size:11px;color:#888;margin-bottom:8px;">Pesan lebih dari 3 hari dibersihkan otomatis oleh aplikasi user. Mute dan blokir bekerja per perangkat (ID perangkat) dan dicek di sisi aplikasi.</div>
+        <button class="btn-red" onclick="deleteAllChat()"><svg class="ic" aria-hidden="true"><use href="#i-trash"/></svg>Hapus Semua Pesan</button>
       </div>
     </div>
 
@@ -357,6 +415,8 @@ function switchTab(name) {
   if(name==='maintenance') loadMaintenance();
   if(name==='settings') loadSettings();
   if(name==='feedback') loadFeedback();
+  if(name!=='chat') adminChatStop();
+  if(name==='chat') loadChatAdmin();
 }
 
 // ═══════════════════════════════════════════
@@ -685,6 +745,7 @@ async function loadSettings() {
     const d = cfg.flags || {};
     document.getElementById('flag-feedback-off').checked = !!d.feedbackDisabled;
     document.getElementById('flag-update-ui').checked = d.autoUpdateUiEnabled !== false;   // bawaan: aktif
+    document.getElementById('flag-chat-off').checked = !!d.chatDisabled;
   } catch(e){}
 }
 // Simpan satu flag ke dokumen settings (merge: field lain tidak ikut tertimpa). Gagal -> toggle dikembalikan.
@@ -697,10 +758,197 @@ function toggleFeedbackOff() {
   const on = document.getElementById('flag-feedback-off').checked;
   return setFlag('flag-feedback-off', 'feedbackDisabled', on, on ? 'Laporan Bug / Saran dinonaktifkan' : 'Laporan Bug / Saran diaktifkan');
 }
+function toggleChatOff() {
+  const on = document.getElementById('flag-chat-off').checked;
+  return setFlag('flag-chat-off', 'chatDisabled', on, on ? 'Chat dinonaktifkan' : 'Chat diaktifkan');
+}
 function toggleUpdateUi() {
   const on = document.getElementById('flag-update-ui').checked;
   return setFlag('flag-update-ui', 'autoUpdateUiEnabled', on, on ? 'UI Update Tersedia diaktifkan' : 'UI Update Tersedia dimatikan');
 }
+// ═══════════════════════════════════════════
+// CHAT — live chat admin + moderasi
+// Pesan admin: dokumen chat_messages dengan admin:true (hanya bisa dibuat oleh admin yang login, dijaga Firestore rules).
+// Pengaturan (nama admin, sematan, mode lambat, mute, blokir) disimpan di app_config/main — dibaca user lewat 1 listener yang sama.
+// ═══════════════════════════════════════════
+let _chatBlocked = [], _chatMuted = [], _chatPin = null, _chatAdminName = 'Admin', _chatUnsub = null;
+let _chatItems = [], _chatSel = new Set(), _chatReplyTo = null;
+const CHAT_CHECK = '<svg width="13" height="13" viewBox="0 0 24 24" style="vertical-align:-2px;margin-left:3px;" aria-label="Admin terverifikasi"><circle cx="12" cy="12" r="11" fill="#1d9bf0"/><path d="M7 12.5l3.2 3.2L17 9" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+function chatTime(ts) {
+  const ms = ts && ts.toMillis ? ts.toMillis() : (ts || 0);
+  return ms ? new Date(ms).toLocaleString('id-ID') : '-';
+}
+async function saveChatCfg(obj) {
+  return runWrite(async () => { await ensureConfigDoc(); await CFG_REF().set(obj, { merge: true }); });
+}
+async function saveChatBlocked(list) {
+  const ok = await saveChatCfg({ chatBlocked: { list } });
+  if (ok) _chatBlocked = list;
+  return ok;
+}
+async function saveChatMuted(list) {
+  const ok = await saveChatCfg({ chatMuted: { list } });
+  if (ok) _chatMuted = list;
+  return ok;
+}
+function renderChatSide() {
+  document.getElementById('chat-blocked-n').textContent = _chatBlocked.length;
+  const bl = document.getElementById('chat-blocked-list');
+  bl.innerHTML = !_chatBlocked.length ? 'Belum ada.' : _chatBlocked.map(b => `
+    <div style="display:flex;align-items:center;gap:8px;border:1px solid #eee;border-radius:8px;padding:8px;">
+      <div style="flex:1;min-width:0;"><div style="color:#222;font-weight:600;">${escHtml(b.name||'-')}</div><div style="font-size:10px;color:#999;word-break:break-all;">${I('hash')}${escHtml(b.id)}</div></div>
+      <button class="btn-gray" style="width:auto;margin:0;padding:6px 10px;font-size:11px;" data-unblock="${escHtml(b.id)}">Buka Blokir</button>
+    </div>`).join('');
+  bl.querySelectorAll('[data-unblock]').forEach(btn => btn.onclick = async () => {
+    if (await saveChatBlocked(_chatBlocked.filter(x => x.id !== btn.dataset.unblock))) { toast('Blokir dibuka'); renderChatSide(); renderChatLive(); }
+  });
+  const now = Date.now();
+  const active = _chatMuted.filter(m => m.until > now);
+  document.getElementById('chat-muted-n').textContent = active.length;
+  const ml = document.getElementById('chat-muted-list');
+  ml.innerHTML = !active.length ? 'Belum ada.' : active.map(m => `
+    <div style="display:flex;align-items:center;gap:8px;border:1px solid #eee;border-radius:8px;padding:8px;">
+      <div style="flex:1;min-width:0;"><div style="color:#222;font-weight:600;">${escHtml(m.name||'-')}</div><div style="font-size:10px;color:#999;">Sampai ${new Date(m.until).toLocaleString('id-ID')}</div></div>
+      <button class="btn-gray" style="width:auto;margin:0;padding:6px 10px;font-size:11px;" data-unmute="${escHtml(m.id)}">Buka Mute</button>
+    </div>`).join('');
+  ml.querySelectorAll('[data-unmute]').forEach(btn => btn.onclick = async () => {
+    if (await saveChatMuted(_chatMuted.filter(x => x.id !== btn.dataset.unmute))) { toast('Mute dibuka'); renderChatSide(); renderChatLive(); }
+  });
+  const pc = document.getElementById('chat-pin-cur');
+  pc.textContent = (_chatPin && _chatPin.active && _chatPin.text) ? _chatPin.text : 'Tidak ada.';
+}
+function renderChatLive() {
+  const el = document.getElementById('chat-admin-list');
+  if (!_chatItems.length) { el.innerHTML = '<div style="color:#aaa;font-size:12px;">Belum ada pesan.</div>'; return; }
+  const near = el.scrollHeight - el.scrollTop - el.clientHeight < 90;
+  el.innerHTML = _chatItems.map(m => {
+    const adm = m.admin === true;
+    const blocked = !adm && _chatBlocked.some(b => b.id === m.uid);
+    const muted = !adm && _chatMuted.some(x => x.id === m.uid && x.until > Date.now());
+    const reply = m.replyTo && m.replyTo.text !== undefined ? `<div style="border-left:3px solid #1d9bf0;background:#eef6ff;padding:3px 6px;font-size:11px;color:#678;margin-bottom:4px;border-radius:3px;"><b>${escHtml(m.replyTo.name||'?')}:</b> ${escHtml(m.replyTo.text||'')}</div>` : '';
+    return `
+    <div style="border:1px solid ${adm?(m.hl?'#e6b800':'#9cc9f0'):'#e5e5e5'};background:${adm?(m.hl?'#fff8dc':'#f0f7ff'):'#fff'};border-radius:8px;padding:8px;">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;">
+        <input type="checkbox" data-sel="${m.id}" ${_chatSel.has(m.id)?'checked':''}>
+        <div style="flex:1;min-width:0;font-size:12px;font-weight:700;color:${adm?'#1d6fb8':'#333'};">${escHtml(m.name||'?')}${adm?CHAT_CHECK:''}${adm&&m.hl?' <span style="font-size:9px;color:#b38600;letter-spacing:1px;">PENGUMUMAN</span>':''}</div>
+        <div style="font-size:10px;color:#aaa;white-space:nowrap;">${chatTime(m.ts)}</div>
+      </div>
+      ${reply}
+      <div style="font-size:13px;color:${m.deleted?'#aaa':'#222'};line-height:1.45;white-space:pre-wrap;word-break:break-word;${m.deleted?'font-style:italic;':''}">${m.deleted ? 'Pesan dihapus oleh pengirim' : escHtml(m.text||'')}</div>
+      ${adm ? '' : `<div style="font-size:10px;color:#aaa;word-break:break-all;margin-top:3px;">${I('hash')}${escHtml(m.uid||'-')}</div>`}
+      <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px;">
+        ${m.deleted ? '' : `<button class="btn-gray" style="width:auto;margin:0;padding:5px 9px;font-size:11px;" data-act="reply" data-id="${m.id}">Balas</button>
+        <button class="btn-gray" style="width:auto;margin:0;padding:5px 9px;font-size:11px;" data-act="pin" data-id="${m.id}">Sematkan</button>`}
+        <button class="btn-red" style="width:auto;margin:0;padding:5px 9px;font-size:11px;" data-act="del" data-id="${m.id}">Hapus</button>
+        ${adm ? '' : `<button class="btn-gray" style="width:auto;margin:0;padding:5px 9px;font-size:11px;" data-act="mute" data-id="${m.id}" ${muted?'disabled':''}>${muted?'Dimute':'Mute'}</button>
+        <button class="btn-gray" style="width:auto;margin:0;padding:5px 9px;font-size:11px;" data-act="block" data-id="${m.id}" ${blocked?'disabled':''}>${blocked?'Diblokir':'Blokir'}</button>`}
+      </div>
+    </div>`;
+  }).join('');
+  if (near) el.scrollTop = el.scrollHeight;
+  document.getElementById('chat-sel-n').textContent = _chatSel.size;
+}
+async function onChatListClick(e) {
+  const cb = e.target.closest('[data-sel]');
+  if (cb) { if (cb.checked) _chatSel.add(cb.dataset.sel); else _chatSel.delete(cb.dataset.sel); document.getElementById('chat-sel-n').textContent = _chatSel.size; return; }
+  const btn = e.target.closest('[data-act]'); if (!btn || btn.disabled) return;
+  const m = _chatItems.find(x => x.id === btn.dataset.id); if (!m) return;
+  const act = btn.dataset.act;
+  if (act === 'reply') {
+    _chatReplyTo = { id: m.id, name: m.name || '?', text: (m.text || '').slice(0, 80) };
+    document.getElementById('chat-adm-reply-txt').textContent = 'Membalas ' + _chatReplyTo.name + ': ' + _chatReplyTo.text;
+    document.getElementById('chat-adm-reply').style.display = 'flex'; document.getElementById('chat-adm-input').focus();
+  } else if (act === 'pin') {
+    await setChatPin(m.text || '');
+  } else if (act === 'del') {
+    if (await runWrite(() => db.collection('chat_messages').doc(m.id).delete(), 'Pesan dihapus')) _chatSel.delete(m.id);
+  } else if (act === 'mute') {
+    const dur = parseInt(document.getElementById('chat-mute-dur').value, 10) || 300000;
+    const list = _chatMuted.filter(x => x.id !== m.uid && x.until > Date.now()).concat([{ id: m.uid, name: m.name || '', until: Date.now() + dur }]);
+    if (await saveChatMuted(list)) { toast('Perangkat dimute'); renderChatSide(); renderChatLive(); }
+  } else if (act === 'block') {
+    if (!confirm('Blokir perangkat ini dari chat?')) return;
+    if (await saveChatBlocked(_chatBlocked.concat([{ id: m.uid, name: m.name || '', at: Date.now() }]))) { toast('Perangkat diblokir'); renderChatSide(); renderChatLive(); }
+  }
+}
+function cancelAdminReply() { _chatReplyTo = null; document.getElementById('chat-adm-reply').style.display = 'none'; }
+function clearChatSelection() { _chatSel.clear(); renderChatLive(); }
+async function deleteSelectedChat() {
+  const ids = Array.from(_chatSel); if (!ids.length) { toast('Belum ada pesan yang dipilih', true); return; }
+  if (!confirm('Hapus ' + ids.length + ' pesan terpilih?')) return;
+  const ok = await runWrite(async () => { const b = db.batch(); ids.forEach(id => b.delete(db.collection('chat_messages').doc(id))); await b.commit(); }, ids.length + ' pesan dihapus');
+  if (ok) _chatSel.clear();
+}
+async function setChatPin(text) {
+  text = (text || '').trim().slice(0, 500);
+  if (!text) { toast('Teks sematan kosong', true); return false; }
+  const ok = await saveChatCfg({ chatPin: { text, active: true, at: Date.now() } });
+  if (ok) { _chatPin = { text, active: true }; toast('Pesan disematkan'); renderChatSide(); }
+  return ok;
+}
+async function clearChatPin() {
+  const ok = await saveChatCfg({ chatPin: { active: false, text: '', at: Date.now() } });
+  if (ok) { _chatPin = null; toast('Sematan dilepas'); renderChatSide(); }
+}
+async function saveChatAdminName() {
+  const v = document.getElementById('chat-adm-name').value.replace(/\s+/g, ' ').trim() || 'Admin';
+  if (await saveChatCfg({ chatAdmin: { name: v } })) { _chatAdminName = v; toast('Nama admin disimpan'); }
+}
+async function saveChatSlow() {
+  const v = parseInt(document.getElementById('chat-slow-sel').value, 10) || 0;
+  if (await saveChatCfg({ chatCtl: { slow: v } })) toast(v ? 'Mode lambat ' + v + ' detik aktif' : 'Mode lambat dimatikan');
+}
+async function sendAdminChat() {
+  const inp = document.getElementById('chat-adm-input');
+  const text = inp.value.trim().slice(0, 500);
+  if (!text) { toast('Pesan kosong', true); return; }
+  const hl = document.getElementById('chat-adm-hl').checked, pin = document.getElementById('chat-adm-pin').checked;
+  const payload = { uid: 'ADMIN', name: _chatAdminName, text, ts: firebase.firestore.FieldValue.serverTimestamp(), replyTo: _chatReplyTo ? { id: _chatReplyTo.id, name: _chatReplyTo.name, text: _chatReplyTo.text } : null, admin: true, hl };
+  const ok = await runWrite(() => db.collection('chat_messages').add(payload));
+  if (!ok) return;
+  inp.value = ''; document.getElementById('chat-adm-hl').checked = false; document.getElementById('chat-adm-pin').checked = false; cancelAdminReply();
+  if (pin) await setChatPin(text);
+}
+function adminChatStop() {
+  if (_chatUnsub) { try { _chatUnsub(); } catch (e) {} _chatUnsub = null; }
+}
+async function loadChatAdmin() {
+  const st = document.getElementById('chat-live-state');
+  try {
+    const cfg = await getConfig();
+    _chatBlocked = ((cfg.chatBlocked || {}).list) || [];
+    _chatMuted = ((cfg.chatMuted || {}).list) || [];
+    _chatPin = cfg.chatPin || null;
+    _chatAdminName = ((cfg.chatAdmin || {}).name) || 'Admin';
+    document.getElementById('chat-adm-name').value = _chatAdminName;
+    document.getElementById('chat-slow-sel').value = String(((cfg.chatCtl || {}).slow) || 0);
+    renderChatSide();
+  } catch (e) {}
+  adminChatStop();
+  const list = document.getElementById('chat-admin-list');
+  list.onclick = onChatListClick;
+  _chatUnsub = db.collection('chat_messages').orderBy('ts', 'desc').limit(50).onSnapshot(snap => {
+    const arr = []; snap.forEach(d => arr.push({ id: d.id, ...d.data({ serverTimestamps: 'estimate' }) }));
+    _chatItems = arr.reverse();
+    const ids = new Set(_chatItems.map(x => x.id)); Array.from(_chatSel).forEach(id => { if (!ids.has(id)) _chatSel.delete(id); });
+    st.textContent = 'Live'; st.className = 'badge-success';
+    renderChatLive();
+  }, err => { st.textContent = 'Gagal'; st.className = 'badge-fail'; list.innerHTML = '<div style="color:#e53e3e;font-size:12px;">Gagal memuat: ' + escHtml(err.message || err) + '</div>'; });
+}
+async function deleteAllChat() {
+  if (!confirm('Hapus SEMUA pesan chat? Tidak bisa dibatalkan.')) return;
+  let total = 0;
+  const ok = await runWrite(async () => {
+    for (let round = 0; round < 10; round++) {
+      const snap = await db.collection('chat_messages').limit(400).get();
+      if (snap.empty) break;
+      const b = db.batch(); snap.forEach(d => b.delete(d.ref)); await b.commit(); total += snap.size;
+      if (snap.size < 400) break;
+    }
+  });
+  if (ok) toast('Terhapus ' + total + ' pesan');
+}
+
 // ═══════════════════════════════════════════
 // HAPUS DATA KUNJUNGAN (koleksi visits) — bertahap, dengan tampilan proses
 // ═══════════════════════════════════════════
