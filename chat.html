@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#000000">
+<title>Chat - Uji Coba</title>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<style>
+    :root { --tp:#0ff; --td:#001a1a; --ts:#044; --ta:#066; }
+    * { box-sizing:border-box; }
+    html, body { height:100%; margin:0; }
+    body { background:#000; color:var(--tp); font-family:'Segoe UI',sans-serif; display:flex; flex-direction:column; overflow:hidden;
+        -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; }
+    #app-bar { display:flex; align-items:center; gap:8px; padding:8px 12px; background:#151515; border-bottom:2px solid #333; flex-shrink:0; }
+    #app-bar .t { font-size:11px; font-weight:bold; letter-spacing:1px; }
+    #app-bar .tag { font-size:8px; color:#ffb74d; border:1px solid #6b4a1a; border-radius:8px; padding:2px 6px; }
+    #net-pill { margin-left:auto; font-size:9px; display:flex; align-items:center; gap:4px; color:#0f0; }
+    #net-pill.off { color:#f84; }
+    #net-pill i { width:7px; height:7px; border-radius:50%; background:currentColor; display:inline-block; }
+    #mixer { flex:1; min-height:0; display:flex; flex-direction:column; width:100%; max-width:640px; margin:0 auto; }
+    .tab-content { display:none; flex-direction:column; }
+    .tab-content.active { display:flex; }
+    .toggle-pill { background:#1a1a1a; color:var(--tp); border:1px solid #333; border-radius:12px; padding:6px 12px; font-size:9px; font-weight:bold; cursor:pointer; }
+    .toggle-pill.on { background:var(--td); border-color:var(--tp); }
+    #status-msg { position:fixed; left:0; right:0; bottom:70px; text-align:center; font-size:11px; font-weight:bold; pointer-events:none; text-shadow:0 0 6px #000; z-index:50; }
+        /* ── TAB CHAT ── */
+        #tab-chat.active { flex: 1 1 0; min-height: 320px; }
+        #chat-wrap { display:flex; flex-direction:column; flex:1; min-height:0; background:#0c0c0c; border:1px solid #222; border-radius:6px; overflow:hidden; }
+        #chat-head { display:flex; align-items:center; gap:8px; padding:7px 10px; background:#151515; border-bottom:1px solid #222; flex-shrink:0; }
+        #chat-head .chat-title { font-size:10px; font-weight:bold; color:var(--tp); letter-spacing:1px; display:flex; align-items:center; gap:5px; }
+        #chat-online { font-size:9px; color:#888; display:flex; align-items:center; gap:4px; margin-left:auto; }
+        #chat-online .dot { width:7px; height:7px; border-radius:50%; background:#0f0; box-shadow:0 0 4px #0f0; }
+        #chat-me { font-size:9px; color:#aaa; display:flex; align-items:center; gap:4px; background:#0a0a0a; border:1px solid #2a2a2a; border-radius:10px; padding:3px 8px; cursor:pointer; max-width:110px; }
+        #chat-me span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        #chat-list { flex:1; min-height:0; overflow-y:auto; padding:8px; display:flex; flex-direction:column; gap:6px; touch-action:pan-y; -webkit-overflow-scrolling:touch; }
+        .chat-empty { margin:auto; font-size:9px; color:#555; text-align:center; padding:20px; line-height:1.6; }
+        .chat-msg { max-width:86%; display:flex; flex-direction:column; gap:2px; }
+        .chat-msg.me { align-self:flex-end; align-items:flex-end; }
+        .chat-msg .chat-name { font-size:8px; font-weight:bold; padding:0 4px; }
+        .chat-bubble { background:#1b1b1b; border:1px solid #2a2a2a; border-radius:10px 10px 10px 2px; padding:6px 9px; font-size:11px; color:#ddd; line-height:1.4; word-break:break-word; white-space:pre-wrap; -webkit-user-select:text; user-select:text; }
+        .chat-msg.me .chat-bubble { background:var(--td); border-color:var(--ts); border-radius:10px 10px 2px 10px; color:#fff; }
+        .chat-bubble.deleted { color:#666; font-style:italic; background:transparent; border-style:dashed; }
+        .chat-quote { border-left:2px solid var(--tp); background:rgba(255,255,255,.05); border-radius:3px; padding:3px 6px; margin-bottom:4px; font-size:9px; color:#999; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .chat-quote b { color:#bbb; }
+        .chat-meta { display:flex; align-items:center; gap:6px; font-size:8px; color:#555; padding:0 4px; }
+        .chat-meta button { background:none; border:none; color:#666; padding:2px; cursor:pointer; display:inline-flex; align-items:center; }
+        .chat-meta button:hover { color:var(--tp); }
+        #chat-typing { font-size:8px; color:#888; height:12px; padding:0 10px; flex-shrink:0; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+        #chat-reply-bar { display:none; align-items:center; gap:6px; padding:5px 10px; background:#121212; border-top:1px solid #222; font-size:9px; color:#999; flex-shrink:0; }
+        #chat-reply-bar .txt { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; border-left:2px solid var(--tp); padding-left:6px; }
+        #chat-reply-bar button { background:none; border:none; color:#888; cursor:pointer; display:inline-flex; padding:2px; }
+        #chat-form { display:flex; align-items:flex-end; gap:6px; padding:7px; background:#151515; border-top:1px solid #222; flex-shrink:0; }
+        #chat-input { flex:1; min-width:0; background:#0a0a0a; border:1px solid #2a2a2a; border-radius:14px; color:#eee; font-size:12px; font-family:inherit; padding:8px 12px; resize:none; max-height:84px; outline:none; -webkit-user-select:text; user-select:text; }
+        #chat-input:focus { border-color:var(--tp); }
+        #chat-send { width:36px; height:36px; border-radius:50%; border:1px solid var(--tp); background:var(--td); color:var(--tp); display:inline-flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; }
+        #chat-send:disabled { opacity:.35; cursor:not-allowed; }
+        #chat-count { font-size:8px; color:#555; padding:0 12px 4px; text-align:right; background:#151515; flex-shrink:0; }
+        #chat-notice { display:none; margin:auto; text-align:center; font-size:10px; color:#aaa; padding:24px; line-height:1.6; }
+        #chat-setup { display:none; margin:auto; width:min(260px,90%); text-align:center; }
+        .chat-check { display:inline-flex; vertical-align:-2px; margin-left:3px; }
+        .chat-msg.adm .chat-bubble { border-color:#1d6fb8; background:#0b1a2a; color:#e6f1ff; }
+        .chat-msg.adm .chat-name { color:#4aa8ff !important; display:flex; align-items:center; }
+        .chat-msg.hl .chat-bubble { border:1.5px solid #ffc933; background:linear-gradient(135deg,#2a2100,#1a1400); color:#fff2c4; box-shadow:0 0 10px rgba(255,201,51,.25); }
+        .chat-hl-tag { display:flex; align-items:center; gap:3px; font-size:8px; font-weight:bold; color:#ffc933; letter-spacing:1px; margin-bottom:3px; }
+        #chat-pin { display:none; align-items:flex-start; gap:7px; padding:6px 10px; background:#0b1a2a; border-bottom:1px solid #1d3a5a; flex-shrink:0; }
+        #chat-pin .pin-body { flex:1; min-width:0; font-size:10px; color:#cfe4ff; line-height:1.4; max-height:54px; overflow:auto; word-break:break-word; white-space:pre-wrap; }
+        #chat-pin .pin-lbl { font-size:8px; font-weight:bold; color:#4aa8ff; letter-spacing:1px; display:flex; align-items:center; gap:3px; }
+        #chat-slow { display:none; font-size:8px; color:#ffb74d; border:1px solid #6b4a1a; border-radius:8px; padding:2px 6px; }
+        #chat-setup input { width:100%; box-sizing:border-box; background:#0a0a0a; border:1px solid #333; border-radius:6px; color:#fff; padding:9px; font-size:12px; text-align:center; margin:8px 0; -webkit-user-select:text; user-select:text; }
+</style>
+</head>
+<body>
+<div id="app-bar"><span class="t">IAN LIGHTING</span><span class="tag">HALAMAN UJI CHAT</span><span id="net-pill"><i></i>Online</span></div>
+<div id="mixer">
+    <!-- ===== TAB CHAT ===== -->
+    <div id="tab-chat" class="tab-content active" style="flex-direction:column; gap:0; padding:10px; background:#111;">
+        <div id="chat-wrap">
+            <div id="chat-head">
+                <div class="chat-title"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span data-i18n="chat_title">CHAT UMUM</span></div>
+                <div id="chat-slow"></div>
+                <div id="chat-online"><span class="dot"></span><span id="chat-online-n">0</span> <span data-i18n="chat_online">online</span></div>
+                <div id="chat-me" onclick="chatChangeName()" title="Ubah nama"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg><span id="chat-me-name">-</span></div>
+            </div>
+            <div id="chat-pin"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#4aa8ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px;"><path d="M12 17v5"/><path d="M9 3h6l-1 6 3 3v2H7v-2l3-3z"/></svg><div style="flex:1;min-width:0;"><div class="pin-lbl"><span data-i18n="chat_pin_lbl">DISEMATKAN ADMIN</span><span id="chat-pin-check"></span></div><div class="pin-body" id="chat-pin-body"></div></div></div>
+            <div id="chat-list"></div>
+            <div id="chat-notice"></div>
+            <div id="chat-setup">
+                <div style="font-size:11px;color:var(--tp);font-weight:bold;" data-i18n="chat_setup_title">PILIH NAMA PANGGILAN</div>
+                <div style="font-size:9px;color:#888;margin-top:4px;" data-i18n="chat_setup_desc">Nama ini tampil di chat. 2-16 karakter, bisa diubah kapan saja.</div>
+                <input id="chat-name-input" type="text" maxlength="16" autocomplete="off" onkeydown="if(event.key==='Enter')chatSaveName()">
+                <button class="toggle-pill on" onclick="chatSaveName()" style="width:100%;" data-i18n="chat_setup_btn">MULAI CHAT</button>
+            </div>
+            <div id="chat-typing"></div>
+            <div id="chat-reply-bar"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></svg><div class="txt" id="chat-reply-txt"></div><button onclick="chatCancelReply()" aria-label="Batal"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+            <div id="chat-count"><span id="chat-count-n">0</span>/300</div>
+            <div id="chat-form">
+                <textarea id="chat-input" rows="1" maxlength="300" placeholder="Tulis pesan..." oninput="chatOnInput()" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();chatSend();}"></textarea>
+                <button id="chat-send" onclick="chatSend()" aria-label="Kirim"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
+            </div>
+        </div>
+    </div><!-- end tab-chat -->
+
+</div>
+<div id="status-msg"></div>
+<script>
+// ── Halaman uji chat mandiri: perlengkapan yang di aplikasi utama disediakan index.html ──
+const settingsState = { language: 'id' };
+function switchTab(name) { /* hanya satu tab */ }
+function showStatus(msg, isError) {
+    const el = document.getElementById('status-msg'); if (!el) return;
+    el.textContent = msg; el.style.color = isError ? '#f55' : '#0f0';
+    setTimeout(function () { if (el.textContent === msg) el.textContent = ''; }, 4000);
+}
+// ID perangkat memakai kunci yang sama dengan aplikasi utama (kalau dibuka di domain yang sama, identitasnya sama)
+const _deviceId = (function () { let id = null; try { id = localStorage.getItem('_poth_did'); } catch (e) {}
+    if (!id) { id = 'D' + Math.random().toString(36).substr(2, 12).toUpperCase(); try { localStorage.setItem('_poth_did', id); } catch (e) {} }
+    return id; })();
+let _db = null;
+// Status koneksi (menggantikan deteksi offline aplikasi utama)
+function _syncNet() {
+    const off = navigator.onLine === false;
+    document.body.classList.toggle('is-offline', off);
+    const p = document.getElementById('net-pill'); if (p) { p.classList.toggle('off', off); p.lastChild.textContent = off ? 'Offline' : 'Online'; }
+}
+window.addEventListener('online', function () { _syncNet(); if (document.getElementById('tab-chat').classList.contains('active')) { chatClose(); chatOpen(); } });
+window.addEventListener('offline', _syncNet);
+function applyAdminFlags(d) { window.ianChatOff = !!(d && d.chatDisabled); }
+function startFirebase() {
+    try {
+        if (typeof firebase === 'undefined' || typeof firebaseConfig === 'undefined') throw new Error('Firebase / firebase-config.js tidak termuat');
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        _db = firebase.firestore();
+        let first = true, prev = {};
+        _db.collection('app_config').doc('main').onSnapshot(function (snap) {
+            const cfg = snap.exists ? snap.data() : {};
+            const changed = function (k) { return JSON.stringify(cfg[k]) !== JSON.stringify(prev[k]); };
+            if (first || changed('flags')) applyAdminFlags(cfg.flags || {});
+            if (first || changed('chatPin') || changed('chatCtl') || changed('chatMuted')) {
+                window.ianChatPin = cfg.chatPin || null;
+                window.ianChatSlow = ((cfg.chatCtl || {}).slow) || 0;
+                window.ianChatMuted = ((cfg.chatMuted || {}).list) || [];
+                if (typeof chatRefreshUi === 'function') chatRefreshUi();
+            }
+            if (first || changed('chatBlocked') || changed('flags')) {
+                window.ianChatBlocked = ((cfg.chatBlocked || {}).list || []).map(function (x) { return x && x.id; }).filter(Boolean);
+                if (typeof chatOnAdminChange === 'function') chatOnAdminChange();
+            }
+            first = false; prev = cfg;
+        }, function (err) { console.log('Config listener error:', err); });
+    } catch (e) {
+        console.log(e);
+        document.getElementById('chat-notice').style.display = 'block';
+        document.getElementById('chat-notice').textContent = 'Gagal memulai Firebase: ' + e.message;
+        document.getElementById('chat-list').style.display = 'none';
+    }
+}
+window.addEventListener('load', function () { _syncNet(); startFirebase(); setTimeout(function () { chatOpen(); }, 0); });
+</script>
+<script>
+// ══════════════════════════════════════════════════════════════
+// TAB CHAT — satu ruang publik, real-time lewat Firestore.
+// Hemat kuota: listener HANYA aktif saat tab Chat terbuka & layar terlihat, memuat 50 pesan terakhir.
+// Koleksi: chat_messages (pesan), chat_presence (online + sedang mengetik).
+// ══════════════════════════════════════════════════════════════
+(function () {
+    const LIMIT = 50, MAXLEN = 300, COOLDOWN = 1500, HEARTBEAT = 60000, ONLINE_WINDOW = 150000;
+    const TXT = {
+        offline:  { id:'Butuh koneksi internet untuk memakai chat.', en:'Chat needs an internet connection.' },
+        off:      { id:'Chat sedang dinonaktifkan oleh admin.', en:'Chat is currently disabled by the admin.' },
+        blocked:  { id:'Kamu diblokir dari chat oleh admin.', en:'You have been blocked from chat by the admin.' },
+        empty:    { id:'Belum ada pesan. Jadi yang pertama menyapa!', en:'No messages yet. Be the first to say hi!' },
+        ph:       { id:'Tulis pesan...', en:'Type a message...' },
+        deleted:  { id:'Pesan dihapus', en:'Message deleted' },
+        reply:    { id:'Balas', en:'Reply' }, del: { id:'Hapus', en:'Delete' },
+        typing1:  { id:' sedang mengetik...', en:' is typing...' },
+        typingN:  { id:'Beberapa orang sedang mengetik...', en:'Several people are typing...' },
+        fast:     { id:'Terlalu cepat, tunggu sebentar.', en:'Too fast, wait a moment.' },
+        fail:     { id:'Pesan gagal terkirim.', en:'Message failed to send.' },
+        nameBad:  { id:'Nama harus 2-16 karakter.', en:'Name must be 2-16 characters.' },
+        you:      { id:'Kamu', en:'You' },
+        err:      { id:'Chat tidak bisa dimuat. Periksa koneksi.', en:'Chat could not load. Check your connection.' },
+        muted:    { id:'Kamu dibungkam admin sampai ', en:'You are muted by the admin until ' },
+        slow:     { id:'MODE LAMBAT ', en:'SLOW MODE ' },
+        slowWait: { id:'Mode lambat aktif. Tunggu beberapa detik lagi.', en:'Slow mode is on. Wait a few more seconds.' },
+        hl:       { id:'PENGUMUMAN', en:'ANNOUNCEMENT' }
+    };
+    function T(k) { let l = 'id'; try { l = settingsState.language || 'id'; } catch (e) {} return (TXT[k] && (TXT[k][l] || TXT[k].id)) || k; }
+    const $ = id => document.getElementById(id);
+    const NS = '_poth_chat_name';
+
+    let unsubMsg = null, unsubPres = null, hbTimer = null, tickTimer = null, active = false, started = false;
+    let myName = '', replyTo = null, lastSend = 0, lastTypingWrite = 0, lastMsgs = [], presence = [], cleaned = false, loadedOnce = false;
+
+    function db() { return (typeof _db !== 'undefined') ? _db : null; }
+    function me() { return typeof _deviceId !== 'undefined' ? _deviceId : 'anon'; }
+    function isOffline() { return document.body.classList.contains('is-offline') || navigator.onLine === false; }
+    function isBlocked() { return Array.isArray(window.ianChatBlocked) && window.ianChatBlocked.indexOf(me()) !== -1; }
+    function getName() { try { return (localStorage.getItem(NS) || '').trim(); } catch (e) { return ''; } }
+    function colorFor(uid) { let h = 0; for (let i = 0; i < uid.length; i++) h = (h * 31 + uid.charCodeAt(i)) % 360; return 'hsl(' + h + ',70%,65%)'; }
+    function two(n) { return n < 10 ? '0' + n : '' + n; }
+    const CHECK_SVG = '<svg width="12" height="12" viewBox="0 0 24 24" aria-label="Admin terverifikasi"><circle cx="12" cy="12" r="11" fill="#1d9bf0"/><path d="M7 12.5l3.2 3.2L17 9" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    function cooldownMs() { const sl = parseInt(window.ianChatSlow, 10) || 0; return Math.max(COOLDOWN, sl * 1000); }
+    function myMute() {
+        const l = Array.isArray(window.ianChatMuted) ? window.ianChatMuted : [];
+        const x = l.find(e => e && e.id === me() && e.until > Date.now());
+        return x || null;
+    }
+
+    function show(mode, msg) { // mode: list | notice | setup
+        $('chat-list').style.display = mode === 'list' ? 'flex' : 'none';
+        $('chat-notice').style.display = mode === 'notice' ? 'block' : 'none';
+        $('chat-setup').style.display = mode === 'setup' ? 'block' : 'none';
+        if (mode === 'notice') $('chat-notice').textContent = msg || '';
+        const form = mode === 'list';
+        ['chat-form', 'chat-count', 'chat-typing'].forEach(id => { const e = $(id); if (e) e.style.display = form ? '' : 'none'; });
+        if (!form) $('chat-reply-bar').style.display = 'none';
+    }
+
+    function stopListeners() {
+        if (unsubMsg) { try { unsubMsg(); } catch (e) {} unsubMsg = null; }
+        if (unsubPres) { try { unsubPres(); } catch (e) {} unsubPres = null; }
+        clearInterval(hbTimer); clearInterval(tickTimer); hbTimer = tickTimer = null;
+    }
+
+    function writePresence(typing) {
+        const d = db(); if (!d || !myName || isBlocked()) return;
+        const now = Date.now();
+        d.collection('chat_presence').doc(me()).set({ uid: me(), name: myName, seen: now, typingUntil: typing ? now + 4000 : 0 }).catch(() => {});
+    }
+
+    function render() {
+        const list = $('chat-list'); if (!list) return;
+        const nearBottom = list.scrollHeight - list.scrollTop - list.clientHeight < 80;
+        list.textContent = '';
+        if (!lastMsgs.length) { const e = document.createElement('div'); e.className = 'chat-empty'; e.textContent = T('empty'); list.appendChild(e); return; }
+        lastMsgs.forEach(m => {
+            const adm = m.admin === true;
+            const mine = !adm && m.uid === me();
+            const row = document.createElement('div'); row.className = 'chat-msg' + (mine ? ' me' : '') + (adm ? ' adm' : '') + (adm && m.hl ? ' hl' : '');
+            if (!mine) {
+                const n = document.createElement('div'); n.className = 'chat-name'; if (!adm) n.style.color = colorFor(m.uid || '');
+                const nt = document.createElement('span'); nt.textContent = m.name || '?'; n.appendChild(nt);
+                if (adm) { const c = document.createElement('span'); c.className = 'chat-check'; c.innerHTML = CHECK_SVG; n.appendChild(c); }
+                row.appendChild(n);
+            }
+            const b = document.createElement('div'); b.className = 'chat-bubble' + (m.deleted ? ' deleted' : '');
+            if (adm && m.hl && !m.deleted) { const tg = document.createElement('div'); tg.className = 'chat-hl-tag'; tg.textContent = T('hl'); b.appendChild(tg); }
+            if (m.deleted) b.textContent = T('deleted');
+            else {
+                if (m.replyTo && m.replyTo.text !== undefined) {
+                    const q = document.createElement('div'); q.className = 'chat-quote';
+                    const qn = document.createElement('b'); qn.textContent = (m.replyTo.name || '?') + ': ';
+                    q.appendChild(qn); q.appendChild(document.createTextNode(m.replyTo.text || '')); b.appendChild(q);
+                }
+                b.appendChild(document.createTextNode(m.text || ''));
+            }
+            row.appendChild(b);
+            const meta = document.createElement('div'); meta.className = 'chat-meta';
+            const t = m.ts ? new Date(m.ts) : new Date(); const tt = document.createElement('span'); tt.textContent = two(t.getHours()) + ':' + two(t.getMinutes()); meta.appendChild(tt);
+            if (!m.deleted) {
+                const rb = document.createElement('button'); rb.title = T('reply'); rb.setAttribute('aria-label', T('reply'));
+                rb.innerHTML = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></svg>';
+                rb.onclick = () => startReply(m); meta.appendChild(rb);
+                if (mine) {
+                    const db_ = document.createElement('button'); db_.title = T('del'); db_.setAttribute('aria-label', T('del'));
+                    db_.innerHTML = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>';
+                    db_.onclick = () => delMine(m); meta.appendChild(db_);
+                }
+            }
+            row.appendChild(meta); list.appendChild(row);
+        });
+        if (nearBottom || !loadedOnce) list.scrollTop = list.scrollHeight;
+        loadedOnce = true;
+    }
+
+    function renderPresence() {
+        const now = Date.now();
+        const on = presence.filter(p => p.seen && now - p.seen < ONLINE_WINDOW);
+        const n = $('chat-online-n'); if (n) n.textContent = Math.max(1, on.length);
+        const typers = on.filter(p => p.uid !== me() && p.typingUntil && p.typingUntil > now);
+        const el = $('chat-typing'); if (!el) return;
+        el.textContent = typers.length === 0 ? '' : typers.length === 1 ? (typers[0].name || '?') + T('typing1') : T('typingN');
+    }
+
+    function attach() {
+        const d = db(); if (!d || unsubMsg) return;
+        unsubMsg = d.collection('chat_messages').orderBy('ts', 'desc').limit(LIMIT).onSnapshot(snap => {
+            const arr = [];
+            snap.forEach(doc => { const x = doc.data({ serverTimestamps: 'estimate' }); x.id = doc.id; x.ts = x.ts && x.ts.toMillis ? x.ts.toMillis() : (x.ts || Date.now()); arr.push(x); });
+            arr.reverse(); lastMsgs = arr; render();
+        }, err => { console.log('chat msg err', err); const l = $('chat-list'); if (l && !lastMsgs.length) { l.textContent = ''; const e = document.createElement('div'); e.className = 'chat-empty'; e.textContent = T('err'); l.appendChild(e); } });
+        unsubPres = d.collection('chat_presence').orderBy('seen', 'desc').limit(60).onSnapshot(snap => {
+            presence = []; snap.forEach(doc => presence.push(doc.data())); renderPresence();
+        }, err => console.log('chat presence err', err));
+        writePresence(false);
+        hbTimer = setInterval(() => writePresence(false), HEARTBEAT);
+        tickTimer = setInterval(renderPresence, 2000);
+        if (!cleaned) { cleaned = true; cleanup(); }
+    }
+
+    // Bersihkan pesan > 3 hari dan presence basi (> 1 hari). Maks 25 dokumen per sesi; dilewati diam-diam bila ditolak rules.
+    async function cleanup() {
+        const d = db(); if (!d) return;
+        try {
+            const old = await d.collection('chat_messages').where('ts', '<', new Date(Date.now() - 3 * 86400000)).limit(25).get();
+            const old2 = await d.collection('chat_presence').where('seen', '<', Date.now() - 86400000).limit(25).get();
+            if (old.empty && old2.empty) return;
+            const b = d.batch(); old.forEach(x => b.delete(x.ref)); old2.forEach(x => b.delete(x.ref)); await b.commit();
+        } catch (e) {}
+    }
+
+    function open() {
+        active = true;
+        const n = $('chat-input'); if (n) n.placeholder = T('ph');
+        if (window.ianChatOff) return show('notice', T('off'));
+        if (isBlocked()) return show('notice', T('blocked'));
+        if (isOffline()) return show('notice', T('offline'));
+        myName = getName();
+        $('chat-me-name').textContent = myName || '-';
+        if (!myName) { show('setup'); const i = $('chat-name-input'); if (i) setTimeout(() => i.focus(), 50); return; }
+        show('list'); loadedOnce = false; render(); renderPresence(); refreshAdminUi();
+        if (!db()) { show('notice', T('err')); return; }
+        attach();
+    }
+    function close() {
+        if (!active) return; active = false;
+        stopListeners();
+        const d = db(); if (d && myName) d.collection('chat_presence').doc(me()).delete().catch(() => {});
+    }
+
+    function startReply(m) {
+        replyTo = { id: m.id, name: m.name || '?', text: (m.text || '').slice(0, 80) };
+        $('chat-reply-txt').textContent = replyTo.name + ': ' + replyTo.text;
+        $('chat-reply-bar').style.display = 'flex'; const i = $('chat-input'); if (i) i.focus();
+    }
+    function cancelReply() { replyTo = null; $('chat-reply-bar').style.display = 'none'; }
+
+    function delMine(m) {
+        const d = db(); if (!d || m.uid !== me()) return;
+        d.collection('chat_messages').doc(m.id).update({ deleted: true, text: '' }).catch(() => { if (typeof showStatus === 'function') showStatus(T('fail'), true); });
+    }
+
+    function onInput() {
+        const i = $('chat-input'); if (!i) return;
+        $('chat-count-n').textContent = i.value.length;
+        i.style.height = 'auto'; i.style.height = Math.min(84, i.scrollHeight) + 'px';
+        const now = Date.now();
+        if (i.value && now - lastTypingWrite > 3000) { lastTypingWrite = now; writePresence(true); }
+    }
+
+    async function send() {
+        const i = $('chat-input'), d = db(); if (!i || !d) return;
+        const text = i.value.trim().slice(0, MAXLEN);
+        if (!text) return;
+        if (window.ianChatOff) return show('notice', T('off'));
+        if (isBlocked()) return show('notice', T('blocked'));
+        if (isOffline()) { if (typeof showStatus === 'function') showStatus(T('offline'), true); return; }
+        const mu = myMute();
+        if (mu) { const t = new Date(mu.until); if (typeof showStatus === 'function') showStatus(T('muted') + two(t.getHours()) + ':' + two(t.getMinutes()), true); return; }
+        const now = Date.now();
+        if (now - lastSend < cooldownMs()) { if (typeof showStatus === 'function') showStatus((parseInt(window.ianChatSlow, 10) || 0) > 0 ? T('slowWait') : T('fast'), true); return; }
+        lastSend = now;
+        const payload = { uid: me(), name: myName, text: text, ts: firebase.firestore.FieldValue.serverTimestamp(), replyTo: replyTo ? { id: replyTo.id, name: replyTo.name, text: replyTo.text } : null };
+        i.value = ''; i.style.height = 'auto'; $('chat-count-n').textContent = '0'; cancelReply(); lastTypingWrite = 0; writePresence(false);
+        try { await d.collection('chat_messages').add(payload); }
+        catch (e) { console.log('chat send err', e); i.value = text; if (typeof showStatus === 'function') showStatus(T('fail'), true); }
+    }
+
+    function saveName() {
+        const v = ($('chat-name-input').value || '').replace(/\s+/g, ' ').trim();
+        if (v.length < 2 || v.length > 16) { if (typeof showStatus === 'function') showStatus(T('nameBad'), true); return; }
+        try { localStorage.setItem(NS, v); } catch (e) {}
+        stopListeners(); open();
+    }
+    function changeName() {
+        stopListeners(); myName = '';
+        const d = db(); if (d) d.collection('chat_presence').doc(me()).delete().catch(() => {});
+        $('chat-name-input').value = getName(); show('setup');
+        setTimeout(() => $('chat-name-input').focus(), 50);
+    }
+
+    // Layar disembunyikan (pindah app/kunci HP): putuskan listener supaya tidak makan kuota; lanjut saat kembali.
+    document.addEventListener('visibilitychange', () => {
+        const tab = $('tab-chat'); if (!tab || !tab.classList.contains('active')) return;
+        if (document.hidden) { stopListeners(); } else { open(); }
+    });
+    window.addEventListener('pagehide', () => { const d = db(); if (d && myName && active) d.collection('chat_presence').doc(me()).delete().catch(() => {}); });
+
+    function refreshAdminUi() {
+        const pin = window.ianChatPin, box = $('chat-pin');
+        if (box) {
+            if (pin && pin.active && pin.text) { $('chat-pin-body').textContent = pin.text; $('chat-pin-check').innerHTML = CHECK_SVG; box.style.display = 'flex'; }
+            else box.style.display = 'none';
+        }
+        const sl = parseInt(window.ianChatSlow, 10) || 0, sb = $('chat-slow');
+        if (sb) { sb.style.display = sl > 0 ? 'inline-block' : 'none'; sb.textContent = T('slow') + sl + 's'; }
+    }
+    window.chatRefreshUi = refreshAdminUi;
+
+    // Dipanggil dari admin config
+    window.chatOnAdminChange = function () {
+        const btn = document.getElementById('tab-btn-chat');
+        if (btn) btn.style.display = window.ianChatOff ? 'none' : '';
+        const tab = $('tab-chat');
+        if (tab && tab.classList.contains('active')) {
+            if (window.ianChatOff && typeof switchTab === 'function') switchTab('main');
+            else { stopListeners(); open(); }
+        }
+    };
+    window.chatOpen = open; window.chatClose = close;
+    window.chatSend = send; window.chatOnInput = onInput; window.chatCancelReply = cancelReply;
+    window.chatSaveName = saveName; window.chatChangeName = changeName;
+})();
+</script>
+
+</body>
+</html>
