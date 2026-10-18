@@ -165,6 +165,7 @@ input:checked+.slider-sw:before{transform:translateX(20px);}
   <div id="tab-bar">
     <button class="tab-btn active" onclick="switchTab('dashboard')"><svg class="ic" aria-hidden="true"><use href="#i-chart"/></svg>Dashboard</button>
     <button class="tab-btn" onclick="switchTab('announcement')"><svg class="ic" aria-hidden="true"><use href="#i-megaphone"/></svg>Announcement</button>
+    <button class="tab-btn" onclick="switchTab('newupdate')"><svg class="ic" aria-hidden="true"><use href="#i-refresh"/></svg>New Update</button>
     <button class="tab-btn" onclick="switchTab('maintenance')"><svg class="ic" aria-hidden="true"><use href="#i-wrench"/></svg>Maintenance</button>
     <button class="tab-btn" onclick="switchTab('settings')"><svg class="ic" aria-hidden="true"><use href="#i-settings"/></svg>Settings</button>
     <button class="tab-btn" onclick="switchTab('loginlog')"><svg class="ic" aria-hidden="true"><use href="#i-log"/></svg>Riwayat Login</button>
@@ -217,6 +218,54 @@ input:checked+.slider-sw:before{transform:translateX(20px);}
         <textarea class="admin-textarea" id="motd-msg" placeholder="Selamat datang di Pothonic Mixer Pro!"></textarea>
         <button class="btn-green" onclick="saveMOTD()"><svg class="ic" aria-hidden="true"><use href="#i-save"/></svg>Simpan MOTD</button>
         <button class="btn-gray" onclick="clearMOTD()"><svg class="ic" aria-hidden="true"><use href="#i-trash"/></svg>Hapus MOTD</button>
+      </div>
+    </div>
+
+    <!-- NEW UPDATE -->
+    <div class="tab-panel" id="tab-newupdate">
+      <div class="card">
+        <div class="card-title"><span class="icon"><svg class="ic" aria-hidden="true"><use href="#i-refresh"/></svg></span> Banner New Update</div>
+        <div class="toggle-row">
+          <div><div class="toggle-label">Tampilkan banner ke user</div><div class="toggle-sub">Mematikan hanya menyembunyikan banner, isinya tetap tersimpan</div></div>
+          <label class="switch"><input type="checkbox" id="nu-active" onchange="nuToggle()"><span class="slider-sw"></span></label>
+        </div>
+        <div class="divider"></div>
+        <label class="admin-label">Nomor versi (opsional)</label>
+        <input class="admin-input" id="nu-version" maxlength="12" placeholder="8.7" oninput="renderNuPreview()">
+        <label class="admin-label">Judul</label>
+        <input class="admin-input" id="nu-title" maxlength="60" placeholder="Fitur baru telah hadir" oninput="renderNuPreview()">
+        <label class="admin-label">Isi teks</label>
+        <textarea class="admin-textarea" id="nu-msg" maxlength="300" placeholder="Ringkasan update (maks. 300 karakter)..." oninput="renderNuPreview()"></textarea>
+        <label class="admin-label">Daftar poin perubahan (satu poin per baris, maks. 10)</label>
+        <textarea class="admin-textarea" id="nu-points" placeholder="Edge RGB untuk Videotron&#10;Equalizer 15 band&#10;Perbaikan bug audio" oninput="renderNuPreview()"></textarea>
+        <label class="admin-label">Jenis / warna</label>
+        <select class="admin-select" id="nu-type" onchange="renderNuPreview()">
+          <option value="update">Update (hijau)</option>
+          <option value="feature">Fitur Baru (ungu)</option>
+          <option value="fix">Perbaikan (biru)</option>
+          <option value="important">Penting (kuning)</option>
+        </select>
+        <label class="admin-label">Gaya tampilan di aplikasi</label>
+        <select class="admin-select" id="nu-style" onchange="renderNuPreview()">
+          <option value="strip">Strip di atas layar</option>
+          <option value="strip-detail">Strip + detail saat diketuk</option>
+          <option value="popup">Pop-up tengah layar</option>
+          <option value="card">Kartu di tab Settings</option>
+          <option value="corner">Kartu kecil di pojok kanan bawah</option>
+        </select>
+        <label class="admin-label">Mulai tampil (opsional)</label>
+        <input class="admin-input" id="nu-start" type="datetime-local" onchange="renderNuPreview()">
+        <label class="admin-label">Berhenti tampil / kedaluwarsa (opsional)</label>
+        <input class="admin-input" id="nu-end" type="datetime-local" onchange="renderNuPreview()">
+        <div style="font-size:11px;color:#888;margin:-4px 0 12px;">Kosongkan jadwal untuk tampil terus sampai dimatikan. Banner yang sudah ditutup user tidak muncul lagi sampai Anda menekan Publikasikan.</div>
+        <button class="btn-green" onclick="nuPublish()"><svg class="ic" aria-hidden="true"><use href="#i-send"/></svg>Publikasikan Banner Baru</button>
+        <button class="btn-gray" onclick="nuSaveEdit()"><svg class="ic" aria-hidden="true"><use href="#i-save"/></svg>Simpan Perubahan (tanpa tampil ulang)</button>
+        <div id="nu-status" style="font-size:11px;color:#888;margin-top:8px;"></div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="icon"><svg class="ic" aria-hidden="true"><use href="#i-phone"/></svg></span> Pratinjau</div>
+        <div id="nu-preview" style="position:relative;height:250px;border-radius:12px;background:#0d0f13;overflow:hidden;border:1px solid #222;"></div>
+        <div id="nu-preview-note" style="font-size:11px;color:#888;margin-top:8px;"></div>
       </div>
     </div>
 
@@ -413,6 +462,7 @@ function switchTab(name) {
   if(name==='dashboard') loadDashboard();
   if(name==='loginlog') loadLoginLog();
   if(name==='maintenance') loadMaintenance();
+  if(name==='newupdate') loadNewUpdate();
   if(name==='settings') loadSettings();
   if(name==='feedback') loadFeedback();
   if(name!=='chat') adminChatStop();
@@ -643,7 +693,7 @@ async function saveSection(section, data) {
   await ensureConfigDoc();
   const batch = db.batch();
   batch.set(CFG_REF(), { [section]: data }, { merge: true });
-  if (LEGACY_SYNC) batch.set(db.collection('app_config').doc(LEGACY_DOCS[section]), data, { merge: true });
+  if (LEGACY_SYNC && LEGACY_DOCS[section]) batch.set(db.collection('app_config').doc(LEGACY_DOCS[section]), data, { merge: true });
   await batch.commit();
 }
 
@@ -766,6 +816,121 @@ function toggleUpdateUi() {
   const on = document.getElementById('flag-update-ui').checked;
   return setFlag('flag-update-ui', 'autoUpdateUiEnabled', on, on ? 'UI Update Tersedia diaktifkan' : 'UI Update Tersedia dimatikan');
 }
+// ═══════════════════════════════════════════
+// NEW UPDATE — banner pengumuman versi baru (app_config/main -> newUpdate)
+// ═══════════════════════════════════════════
+const NU_TYPES = { update:{c:'#00a84f',l:'UPDATE'}, feature:{c:'#7c4dff',l:'FITUR BARU'}, fix:{c:'#1e88ff',l:'PERBAIKAN'}, important:{c:'#e59500',l:'PENTING'} };
+const NU_ICONS = {
+  update:'<circle cx="12" cy="12" r="9"/><polyline points="8 12 12 8 16 12"/><line x1="12" y1="8" x2="12" y2="16"/>',
+  feature:'<polygon points="12 2 15 9 22 9.5 16.5 14.5 18 22 12 18 6 22 7.5 14.5 2 9.5 9 9"/>',
+  fix:'<path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.6 2.6-2.4-.6-.6-2.4z"/>',
+  important:'<path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>'
+};
+let _nuCur = {};
+function _nuLocalInput(ms) {
+  if (!ms) return '';
+  const d = new Date(ms), p = n => String(n).padStart(2, '0');
+  return d.getFullYear() + '-' + p(d.getMonth()+1) + '-' + p(d.getDate()) + 'T' + p(d.getHours()) + ':' + p(d.getMinutes());
+}
+function nuForm() {
+  const v = id => document.getElementById(id).value;
+  const pts = v('nu-points').split('\n').map(x => x.trim()).filter(Boolean).slice(0, 10).map(x => x.slice(0, 120));
+  const st = v('nu-start'), en = v('nu-end');
+  return {
+    version: v('nu-version').trim(), title: v('nu-title').trim(), msg: v('nu-msg').trim(), points: pts,
+    type: v('nu-type'), style: v('nu-style'),
+    startAt: st ? new Date(st).getTime() : null, endAt: en ? new Date(en).getTime() : null
+  };
+}
+function nuValidate(f) {
+  if (!f.title && !f.msg) return 'Isi minimal judul atau teks banner';
+  if (f.startAt && f.endAt && f.endAt <= f.startAt) return 'Waktu berhenti harus setelah waktu mulai';
+  return null;
+}
+async function loadNewUpdate() {
+  try {
+    const cfg = await getConfig();
+    const d = cfg.newUpdate || {};
+    _nuCur = d;
+    document.getElementById('nu-active').checked = !!d.active;
+    document.getElementById('nu-version').value = d.version || '';
+    document.getElementById('nu-title').value = d.title || '';
+    document.getElementById('nu-msg').value = d.msg || '';
+    document.getElementById('nu-points').value = (d.points || []).join('\n');
+    document.getElementById('nu-type').value = d.type || 'update';
+    document.getElementById('nu-style').value = d.style || 'strip';
+    document.getElementById('nu-start').value = _nuLocalInput(d.startAt);
+    document.getElementById('nu-end').value = _nuLocalInput(d.endAt);
+    const stEl = document.getElementById('nu-status');
+    if (stEl) stEl.textContent = d.updatedAt ? 'Terakhir disimpan: ' + new Date(d.updatedAt).toLocaleString('id-ID') + (d.active ? ' (aktif)' : ' (nonaktif)') : 'Belum ada banner yang dipublikasikan';
+  } catch(e) {}
+  renderNuPreview();
+}
+async function nuPublish() {
+  const f = nuForm(), err = nuValidate(f);
+  if (err) { toast(err, true); return; }
+  const now = Date.now();
+  const data = Object.assign({}, f, { active: true, id: now, updatedAt: now });
+  const ok = await runWrite(() => saveSection('newUpdate', data), 'Banner New Update dipublikasikan!');
+  if (ok) { _nuCur = data; document.getElementById('nu-active').checked = true; loadNewUpdateStatus(data); }
+}
+async function nuSaveEdit() {
+  const f = nuForm(), err = nuValidate(f);
+  if (err) { toast(err, true); return; }
+  const now = Date.now();
+  const active = document.getElementById('nu-active').checked;
+  const data = Object.assign({}, f, { active, id: _nuCur.id || now, updatedAt: now });
+  const ok = await runWrite(() => saveSection('newUpdate', data), 'Perubahan banner disimpan');
+  if (ok) { _nuCur = data; loadNewUpdateStatus(data); }
+}
+function loadNewUpdateStatus(d) {
+  const stEl = document.getElementById('nu-status');
+  if (stEl) stEl.textContent = 'Terakhir disimpan: ' + new Date(d.updatedAt).toLocaleString('id-ID') + (d.active ? ' (aktif)' : ' (nonaktif)');
+}
+async function nuToggle() {
+  const box = document.getElementById('nu-active');
+  const active = box.checked;
+  if (active) {
+    const f = nuForm(), err = nuValidate(f);
+    if (err) { toast(err, true); box.checked = false; return; }
+  }
+  const ok = await runWrite(() => saveSection('newUpdate', { active, updatedAt: Date.now() }),
+    active ? 'Banner ditampilkan ke user' : 'Banner disembunyikan');
+  if (!ok) { box.checked = !active; return; }
+  _nuCur = Object.assign({}, _nuCur, { active });
+}
+function renderNuPreview() {
+  const box = document.getElementById('nu-preview'); if (!box) return;
+  const f = nuForm(), t = NU_TYPES[f.type] || NU_TYPES.update;
+  const col = t.c, grad = 'linear-gradient(135deg,' + col + ',' + col + 'dd)';
+  const ver = f.version ? (/^\d/.test(f.version) ? 'v' + f.version : f.version) : '';
+  const title = f.title || 'Judul banner', msg = f.msg || 'Isi teks banner akan tampil di sini.';
+  const ic = s => '<svg width="' + s + '" height="' + s + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0">' + NU_ICONS[f.type || 'update'] + '</svg>';
+  const badge = '<span style="display:inline-flex;gap:5px;align-items:center;font-size:9px;letter-spacing:.6px;"><b style="background:rgba(255,255,255,.25);padding:2px 6px;border-radius:8px;">' + escHtml(t.l) + '</b>' + (ver ? '<i style="font-style:normal;font-weight:700;">' + escHtml(ver) + '</i>' : '') + '</span>';
+  const x = '<span style="width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.22);display:inline-flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;">&times;</span>';
+  const pts = f.points.length ? '<ul style="margin:6px 0 0;padding-left:16px;font-size:11px;line-height:1.5;">' + f.points.map(p => '<li>' + escHtml(p) + '</li>').join('') + '</ul>' : '';
+  const strip = more => '<div style="position:absolute;top:0;left:0;right:0;background:' + grad + ';color:#fff;display:flex;align-items:center;gap:9px;padding:7px 10px;box-shadow:0 3px 12px rgba(0,0,0,.4);">' + ic(20) +
+    '<div style="flex:1;min-width:0;">' + badge + '<div style="font-size:12px;font-weight:800;margin-top:2px;">' + escHtml(title) + '</div><div style="font-size:10.5px;line-height:1.35;overflow:hidden;max-height:28px;">' + escHtml(msg) + '</div>' + (more ? '<div style="font-size:9px;opacity:.85;margin-top:2px;">Ketuk untuk detail</div>' : '') + '</div>' + x + '</div>';
+  const modal = '<div style="position:absolute;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:10px;"><div style="width:100%;max-width:240px;max-height:100%;overflow:hidden;background:#16181d;color:#ddd;border-radius:12px;">' +
+    '<div style="background:' + grad + ';color:#fff;padding:9px 10px;display:flex;align-items:center;gap:8px;">' + ic(18) + '<div style="flex:1;">' + badge + '</div>' + x + '</div>' +
+    '<div style="padding:10px;"><div style="font-size:13px;font-weight:800;color:#fff;margin-bottom:4px;">' + escHtml(title) + '</div><div style="font-size:10.5px;line-height:1.45;color:#cfcfcf;">' + escHtml(msg) + '</div>' + pts.replace('font-size:11px','font-size:10px') + '</div>' +
+    '<div style="padding:0 10px 10px;"><div style="background:' + col + ';color:#fff;text-align:center;padding:7px;border-radius:8px;font-size:11px;font-weight:800;">Mengerti</div></div></div></div>';
+  let html = '', note = '';
+  switch (f.style) {
+    case 'strip-detail': html = strip(true); note = 'Strip di atas layar. Saat diketuk, muncul jendela detail seperti di bawah.'; break;
+    case 'popup': html = modal; note = 'Pop-up di tengah layar, muncul saat aplikasi dibuka.'; break;
+    case 'card':
+      html = '<div style="position:absolute;top:10px;left:10px;right:10px;background:' + grad + ';color:#fff;border-radius:12px;padding:10px 12px;box-shadow:0 2px 12px rgba(0,0,0,.4);"><div style="display:flex;align-items:center;gap:8px;">' + ic(18) + '<div style="flex:1;">' + badge + '</div>' + x + '</div><div style="font-size:13px;font-weight:800;margin-top:7px;">' + escHtml(title) + '</div><div style="font-size:11px;line-height:1.5;margin-top:3px;">' + escHtml(msg) + '</div>' + pts + '</div>';
+      note = 'Kartu di bagian atas tab Settings. Tab Settings diberi titik merah penanda.'; break;
+    case 'corner':
+      html = '<div style="position:absolute;right:10px;bottom:10px;width:210px;background:' + grad + ';color:#fff;border-radius:14px;padding:9px 10px;box-shadow:0 6px 22px rgba(0,0,0,.55);"><div style="display:flex;align-items:center;gap:7px;">' + ic(16) + '<div style="flex:1;">' + badge + '</div>' + x + '</div><div style="font-size:12px;font-weight:800;margin-top:5px;">' + escHtml(title) + '</div><div style="font-size:10.5px;line-height:1.35;margin-top:2px;overflow:hidden;max-height:28px;">' + escHtml(msg) + '</div><div style="font-size:9px;opacity:.85;margin-top:4px;">Ketuk untuk detail</div></div>';
+      note = 'Kartu kecil di pojok kanan bawah. Saat diketuk, muncul jendela detail.'; break;
+    default: html = strip(false); note = 'Strip di atas layar, tanpa detail.';
+  }
+  box.innerHTML = html;
+  const nEl = document.getElementById('nu-preview-note'); if (nEl) nEl.textContent = note;
+}
+
 // ═══════════════════════════════════════════
 // CHAT — live chat admin + moderasi
 // Pesan admin: dokumen chat_messages dengan admin:true (hanya bisa dibuat oleh admin yang login, dijaga Firestore rules).
