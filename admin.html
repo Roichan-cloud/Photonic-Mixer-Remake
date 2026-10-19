@@ -166,6 +166,7 @@ input:checked+.slider-sw:before{transform:translateX(20px);}
     <button class="tab-btn active" onclick="switchTab('dashboard')"><svg class="ic" aria-hidden="true"><use href="#i-chart"/></svg>Dashboard</button>
     <button class="tab-btn" onclick="switchTab('announcement')"><svg class="ic" aria-hidden="true"><use href="#i-megaphone"/></svg>Announcement</button>
     <button class="tab-btn" onclick="switchTab('newupdate')"><svg class="ic" aria-hidden="true"><use href="#i-refresh"/></svg>New Update</button>
+    <button class="tab-btn" onclick="switchTab('aiassist')"><svg class="ic" aria-hidden="true"><use href="#i-message"/></svg>Asisten AI</button>
     <button class="tab-btn" onclick="switchTab('maintenance')"><svg class="ic" aria-hidden="true"><use href="#i-wrench"/></svg>Maintenance</button>
     <button class="tab-btn" onclick="switchTab('settings')"><svg class="ic" aria-hidden="true"><use href="#i-settings"/></svg>Settings</button>
     <button class="tab-btn" onclick="switchTab('loginlog')"><svg class="ic" aria-hidden="true"><use href="#i-log"/></svg>Riwayat Login</button>
@@ -222,6 +223,34 @@ input:checked+.slider-sw:before{transform:translateX(20px);}
     </div>
 
     <!-- NEW UPDATE -->
+    <div class="tab-panel" id="tab-aiassist">
+      <div class="card">
+        <div class="card-title"><span class="icon"><svg class="ic" aria-hidden="true"><use href="#i-message"/></svg></span> Asisten AI (Google Gemini)</div>
+        <div class="toggle-row">
+          <div><div class="toggle-label">Aktifkan asisten AI di aplikasi</div><div class="toggle-sub">Muncul sebagai section "ASISTEN AI" di tab Settings user. Butuh API key yang sudah disimpan</div></div>
+          <label class="switch"><input type="checkbox" id="ai-active" onchange="aiToggle()"><span class="slider-sw"></span></label>
+        </div>
+        <div class="divider"></div>
+        <label class="admin-label">Gemini API Key (dari Google AI Studio)</label>
+        <input class="admin-input" id="ai-key" type="password" autocomplete="off" placeholder="AIza...">
+        <label class="admin-label">Model</label>
+        <select class="admin-input" id="ai-model">
+          <option value="gemini-2.5-flash">gemini-2.5-flash (disarankan)</option>
+          <option value="gemini-2.5-flash-lite">gemini-2.5-flash-lite (paling hemat)</option>
+          <option value="gemini-2.0-flash">gemini-2.0-flash</option>
+        </select>
+        <label class="admin-label">Instruksi tambahan untuk AI (opsional)</label>
+        <textarea class="admin-textarea" id="ai-extra" maxlength="1500" placeholder="Contoh: Jawab dengan ramah dan singkat. Jika ada masalah serius arahkan user ke menu Laporan Bug."></textarea>
+        <button class="btn-green" onclick="aiSave()"><svg class="ic" aria-hidden="true"><use href="#i-save"/></svg>Simpan Pengaturan</button>
+        <button class="btn-gray" onclick="aiTest()"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Tes Koneksi</button>
+        <div id="ai-test-out" style="font-size:12px;color:#666;margin-top:8px;"></div>
+        <div class="divider"></div>
+        <div style="font-size:11.5px;color:#777;line-height:1.6;">
+          <b>Catatan keamanan:</b> karena aplikasi berjalan di browser, API key ikut terkirim ke perangkat user dan bisa dibaca oleh orang yang paham teknis. Di Google AI Studio, batasi key ini ke domain situs kamu (HTTP referrer, misalnya <code>roichan-cloud.github.io/*</code>) dan pasang batas kuota supaya tidak disalahgunakan.
+        </div>
+      </div>
+    </div>
+
     <div class="tab-panel" id="tab-newupdate">
       <div class="card">
         <div class="card-title"><span class="icon"><svg class="ic" aria-hidden="true"><use href="#i-refresh"/></svg></span> Banner New Update</div>
@@ -235,9 +264,24 @@ input:checked+.slider-sw:before{transform:translateX(20px);}
         <label class="admin-label">Judul</label>
         <input class="admin-input" id="nu-title" maxlength="60" placeholder="Fitur baru telah hadir" oninput="renderNuPreview()">
         <label class="admin-label">Isi teks</label>
-        <textarea class="admin-textarea" id="nu-msg" maxlength="300" placeholder="Ringkasan update (maks. 300 karakter)..." oninput="renderNuPreview()"></textarea>
-        <label class="admin-label">Daftar poin perubahan (satu poin per baris, maks. 10)</label>
-        <textarea class="admin-textarea" id="nu-points" placeholder="Edge RGB untuk Videotron&#10;Equalizer 15 band&#10;Perbaikan bug audio" oninput="renderNuPreview()"></textarea>
+        <textarea class="admin-textarea" id="nu-msg" placeholder="Ringkasan update (boleh panjang, di aplikasi akan bisa digulir)..." oninput="renderNuPreview()"></textarea>
+        <label class="admin-label">Daftar poin perubahan (satu poin per baris, tanpa batas jumlah)</label>
+        <div id="nu-groups">
+          <div class="nu-grp" id="nu-grp-feature" style="border:1.5px solid #e3e3e3;border-radius:10px;padding:8px 10px;margin-bottom:8px;">
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;"><span style="width:9px;height:9px;border-radius:50%;background:#2ecc71;display:inline-block;"></span><b style="font-size:12px;flex:1;">Fitur Baru</b><button type="button" onclick="nuGrpRemove('feature')" style="border:none;background:#f3f3f3;color:#b33;border-radius:7px;padding:3px 9px;font-size:11px;font-weight:700;cursor:pointer;">Hapus bagian</button></div>
+            <textarea class="admin-textarea" id="nu-gt-feature" style="margin-bottom:0;" placeholder="Edge RGB untuk Videotron&#10;Equalizer 15 band" oninput="renderNuPreview()"></textarea>
+          </div>
+          <div class="nu-grp" id="nu-grp-fix" style="border:1.5px solid #e3e3e3;border-radius:10px;padding:8px 10px;margin-bottom:8px;">
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;"><span style="width:9px;height:9px;border-radius:50%;background:#4aa3ff;display:inline-block;"></span><b style="font-size:12px;flex:1;">Perbaikan</b><button type="button" onclick="nuGrpRemove('fix')" style="border:none;background:#f3f3f3;color:#b33;border-radius:7px;padding:3px 9px;font-size:11px;font-weight:700;cursor:pointer;">Hapus bagian</button></div>
+            <textarea class="admin-textarea" id="nu-gt-fix" style="margin-bottom:0;" placeholder="Perbaikan bug audio di PWA&#10;Perbaikan multi-touch" oninput="renderNuPreview()"></textarea>
+          </div>
+          <div class="nu-grp" id="nu-grp-rework" style="border:1.5px solid #e3e3e3;border-radius:10px;padding:8px 10px;margin-bottom:8px;">
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;"><span style="width:9px;height:9px;border-radius:50%;background:#ffb020;display:inline-block;"></span><b style="font-size:12px;flex:1;">Rework</b><button type="button" onclick="nuGrpRemove('rework')" style="border:none;background:#f3f3f3;color:#b33;border-radius:7px;padding:3px 9px;font-size:11px;font-weight:700;cursor:pointer;">Hapus bagian</button></div>
+            <textarea class="admin-textarea" id="nu-gt-rework" style="margin-bottom:0;" placeholder="Tab Chat dibuat ulang bergaya WhatsApp" oninput="renderNuPreview()"></textarea>
+          </div>
+        </div>
+        <div id="nu-grp-add" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;"></div>
+        <div style="font-size:11px;color:#888;margin:-4px 0 10px;">Bagian yang kosong atau dihapus tidak ditampilkan di aplikasi. Bagian yang dihapus bisa ditambahkan lagi lewat tombol di atas.</div>
         <label class="admin-label">Jenis / warna</label>
         <select class="admin-select" id="nu-type" onchange="renderNuPreview()">
           <option value="update">Update (hijau)</option>
@@ -264,7 +308,7 @@ input:checked+.slider-sw:before{transform:translateX(20px);}
       </div>
       <div class="card">
         <div class="card-title"><span class="icon"><svg class="ic" aria-hidden="true"><use href="#i-phone"/></svg></span> Pratinjau</div>
-        <div id="nu-preview" style="position:relative;height:250px;border-radius:12px;background:#0d0f13;overflow:hidden;border:1px solid #222;"></div>
+        <div id="nu-preview" style="position:relative;height:300px;border-radius:12px;background:#0d0f13;overflow:hidden;border:1px solid #222;"></div>
         <div id="nu-preview-note" style="font-size:11px;color:#888;margin-top:8px;"></div>
       </div>
     </div>
@@ -463,6 +507,7 @@ function switchTab(name) {
   if(name==='loginlog') loadLoginLog();
   if(name==='maintenance') loadMaintenance();
   if(name==='newupdate') loadNewUpdate();
+  if(name==='aiassist') loadAiAssist();
   if(name==='settings') loadSettings();
   if(name==='feedback') loadFeedback();
   if(name!=='chat') adminChatStop();
@@ -832,12 +877,42 @@ function _nuLocalInput(ms) {
   const d = new Date(ms), p = n => String(n).padStart(2, '0');
   return d.getFullYear() + '-' + p(d.getMonth()+1) + '-' + p(d.getDate()) + 'T' + p(d.getHours()) + ':' + p(d.getMinutes());
 }
+const NU_GROUPS = [
+  { k:'feature', l:'Fitur Baru', c:'#2ecc71' },
+  { k:'fix',     l:'Perbaikan',  c:'#4aa3ff' },
+  { k:'rework',  l:'Rework',     c:'#ffb020' }
+];
+const _nuGrpOn = { feature:true, fix:true, rework:true };
+function nuGroupsData() {
+  const out = [];
+  NU_GROUPS.forEach(g => {
+    if (!_nuGrpOn[g.k]) return;
+    const items = document.getElementById('nu-gt-' + g.k).value.split('\n').map(x => x.trim()).filter(Boolean);
+    if (items.length) out.push({ k: g.k, items });
+  });
+  return out;
+}
+function nuGrpRender() {
+  NU_GROUPS.forEach(g => { document.getElementById('nu-grp-' + g.k).style.display = _nuGrpOn[g.k] ? '' : 'none'; });
+  const add = document.getElementById('nu-grp-add'); add.innerHTML = '';
+  NU_GROUPS.filter(g => !_nuGrpOn[g.k]).forEach(g => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.textContent = '+ ' + g.l;
+    b.style.cssText = 'border:1.5px dashed ' + g.c + ';background:#fff;color:#333;border-radius:14px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer;';
+    b.onclick = () => { _nuGrpOn[g.k] = true; nuGrpRender(); renderNuPreview(); };
+    add.appendChild(b);
+  });
+}
+function nuGrpRemove(k) {
+  const ta = document.getElementById('nu-gt-' + k);
+  if (ta.value.trim() && !confirm('Hapus bagian ini beserta isinya?')) return;
+  ta.value = ''; _nuGrpOn[k] = false; nuGrpRender(); renderNuPreview();
+}
 function nuForm() {
   const v = id => document.getElementById(id).value;
-  const pts = v('nu-points').split('\n').map(x => x.trim()).filter(Boolean).slice(0, 10).map(x => x.slice(0, 120));
   const st = v('nu-start'), en = v('nu-end');
   return {
-    version: v('nu-version').trim(), title: v('nu-title').trim(), msg: v('nu-msg').trim(), points: pts,
+    version: v('nu-version').trim(), title: v('nu-title').trim(), msg: v('nu-msg').trim(), points: [], groups: nuGroupsData(),
     type: v('nu-type'), style: v('nu-style'),
     startAt: st ? new Date(st).getTime() : null, endAt: en ? new Date(en).getTime() : null
   };
@@ -847,6 +922,62 @@ function nuValidate(f) {
   if (f.startAt && f.endAt && f.endAt <= f.startAt) return 'Waktu berhenti harus setelah waktu mulai';
   return null;
 }
+// ═══════════════════════════════════════════
+// ASISTEN AI (Gemini)
+// ═══════════════════════════════════════════
+let _aiCur = {};
+function aiForm() {
+  return {
+    active: document.getElementById('ai-active').checked,
+    key: document.getElementById('ai-key').value.trim(),
+    model: document.getElementById('ai-model').value,
+    extra: document.getElementById('ai-extra').value.trim().slice(0, 1500),
+    updatedAt: Date.now()
+  };
+}
+async function loadAiAssist() {
+  try {
+    const cfg = await getConfig();
+    const d = cfg.aiAssistant || {};
+    _aiCur = d;
+    document.getElementById('ai-active').checked = !!d.active;
+    document.getElementById('ai-key').value = d.key || '';
+    document.getElementById('ai-model').value = d.model || 'gemini-2.5-flash';
+    document.getElementById('ai-extra').value = d.extra || '';
+  } catch (e) {}
+}
+async function aiSave() {
+  const f = aiForm();
+  if (f.active && !f.key) { toast('Isi API key dulu sebelum mengaktifkan', true); return; }
+  const ok = await runWrite(() => saveSection('aiAssistant', f), 'Pengaturan asisten AI tersimpan');
+  if (ok) _aiCur = f;
+}
+async function aiToggle() {
+  const box = document.getElementById('ai-active');
+  const f = aiForm();
+  if (f.active && !f.key) { toast('Isi API key dulu sebelum mengaktifkan', true); box.checked = false; return; }
+  const ok = await runWrite(() => saveSection('aiAssistant', f), f.active ? 'Asisten AI diaktifkan' : 'Asisten AI dimatikan');
+  if (!ok) { box.checked = !f.active; return; }
+  _aiCur = f;
+}
+async function aiTest() {
+  const out = document.getElementById('ai-test-out');
+  const f = aiForm();
+  if (!f.key) { out.textContent = 'Isi API key dulu.'; return; }
+  out.textContent = 'Menguji...';
+  try {
+    const r = await fetch('https://generativelanguage.googleapis.com/v1beta/models/' + encodeURIComponent(f.model) + ':generateContent', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': f.key },
+      body: JSON.stringify({ contents: [{ role: 'user', parts: [{ text: 'Balas dengan satu kata: siap' }] }], generationConfig: { maxOutputTokens: 20 } })
+    });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) { out.textContent = 'Gagal (' + r.status + '): ' + ((j.error && j.error.message) || 'tidak diketahui'); return; }
+    const t = (((j.candidates || [])[0] || {}).content || {}).parts;
+    out.textContent = 'Berhasil. Balasan model: ' + ((t && t[0] && t[0].text) || '(kosong)').trim();
+  } catch (e) { out.textContent = 'Gagal terhubung: ' + (e && e.message || e); }
+}
+
 async function loadNewUpdate() {
   try {
     const cfg = await getConfig();
@@ -856,7 +987,14 @@ async function loadNewUpdate() {
     document.getElementById('nu-version').value = d.version || '';
     document.getElementById('nu-title').value = d.title || '';
     document.getElementById('nu-msg').value = d.msg || '';
-    document.getElementById('nu-points').value = (d.points || []).join('\n');
+    // Data lama (points) dipindahkan ke bagian Fitur Baru
+    const gm = {}; (Array.isArray(d.groups) ? d.groups : []).forEach(g => { if (g && g.k) gm[g.k] = (g.items || []).join('\n'); });
+    if (!Array.isArray(d.groups) && Array.isArray(d.points) && d.points.length) gm.feature = d.points.join('\n');
+    NU_GROUPS.forEach(g => {
+      document.getElementById('nu-gt-' + g.k).value = gm[g.k] || '';
+      _nuGrpOn[g.k] = (g.k in gm) || !d.updatedAt;   // banner baru: semua bagian tampil; banner lama: hanya yang berisi
+    });
+    nuGrpRender();
     document.getElementById('nu-type').value = d.type || 'update';
     document.getElementById('nu-style').value = d.style || 'strip';
     document.getElementById('nu-start').value = _nuLocalInput(d.startAt);
@@ -908,12 +1046,18 @@ function renderNuPreview() {
   const ic = s => '<svg width="' + s + '" height="' + s + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0">' + NU_ICONS[f.type || 'update'] + '</svg>';
   const badge = '<span style="display:inline-flex;gap:5px;align-items:center;font-size:9px;letter-spacing:.6px;"><b style="background:rgba(255,255,255,.25);padding:2px 6px;border-radius:8px;">' + escHtml(t.l) + '</b>' + (ver ? '<i style="font-style:normal;font-weight:700;">' + escHtml(ver) + '</i>' : '') + '</span>';
   const x = '<span style="width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.22);display:inline-flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;">&times;</span>';
-  const pts = f.points.length ? '<ul style="margin:6px 0 0;padding-left:16px;font-size:11px;line-height:1.5;">' + f.points.map(p => '<li>' + escHtml(p) + '</li>').join('') + '</ul>' : '';
+  const pts = f.groups.map(g => {
+    const gg = NU_GROUPS.find(x => x.k === g.k);
+    return '<div style="display:inline-flex;align-items:center;gap:5px;font-size:9px;font-weight:800;letter-spacing:.6px;background:rgba(0,0,0,.32);color:#fff;padding:2px 9px 2px 7px;border-radius:9px;margin-top:8px;"><i style="width:7px;height:7px;border-radius:50%;background:' + gg.c + ';display:inline-block;"></i>' + escHtml(gg.l.toUpperCase()) + '</div>' +
+      '<ul style="margin:4px 0 0;padding-left:16px;font-size:11px;line-height:1.5;">' + g.items.map(p => '<li>' + escHtml(p) + '</li>').join('') + '</ul>';
+  }).join('');
   const strip = more => '<div style="position:absolute;top:0;left:0;right:0;background:' + grad + ';color:#fff;display:flex;align-items:center;gap:9px;padding:7px 10px;box-shadow:0 3px 12px rgba(0,0,0,.4);">' + ic(20) +
-    '<div style="flex:1;min-width:0;">' + badge + '<div style="font-size:12px;font-weight:800;margin-top:2px;">' + escHtml(title) + '</div><div style="font-size:10.5px;line-height:1.35;overflow:hidden;max-height:28px;">' + escHtml(msg) + '</div>' + (more ? '<div style="font-size:9px;opacity:.85;margin-top:2px;">Ketuk untuk detail</div>' : '') + '</div>' + x + '</div>';
+    '<div style="flex:1;min-width:0;">' + badge + '<div style="font-size:12px;font-weight:800;margin-top:2px;">' + escHtml(title) + '</div>' +
+    (more ? '<div style="font-size:10.5px;line-height:1.35;overflow:hidden;max-height:28px;">' + escHtml(msg) + '</div><div style="font-size:9px;opacity:.85;margin-top:2px;">Ketuk untuk detail</div>'
+          : '<div style="max-height:120px;overflow-y:auto;"><div style="font-size:10.5px;line-height:1.35;white-space:pre-wrap;">' + escHtml(msg) + '</div>' + pts + '</div>') + '</div>' + x + '</div>';
   const modal = '<div style="position:absolute;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:10px;"><div style="width:100%;max-width:240px;max-height:100%;overflow:hidden;background:#16181d;color:#ddd;border-radius:12px;">' +
     '<div style="background:' + grad + ';color:#fff;padding:9px 10px;display:flex;align-items:center;gap:8px;">' + ic(18) + '<div style="flex:1;">' + badge + '</div>' + x + '</div>' +
-    '<div style="padding:10px;"><div style="font-size:13px;font-weight:800;color:#fff;margin-bottom:4px;">' + escHtml(title) + '</div><div style="font-size:10.5px;line-height:1.45;color:#cfcfcf;">' + escHtml(msg) + '</div>' + pts.replace('font-size:11px','font-size:10px') + '</div>' +
+    '<div style="padding:10px;max-height:150px;overflow-y:auto;"><div style="font-size:13px;font-weight:800;color:#fff;margin-bottom:4px;">' + escHtml(title) + '</div><div style="font-size:10.5px;line-height:1.45;color:#cfcfcf;">' + escHtml(msg) + '</div>' + pts + '</div>' +
     '<div style="padding:0 10px 10px;"><div style="background:' + col + ';color:#fff;text-align:center;padding:7px;border-radius:8px;font-size:11px;font-weight:800;">Mengerti</div></div></div></div>';
   let html = '', note = '';
   switch (f.style) {
