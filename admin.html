@@ -234,11 +234,9 @@ input:checked+.slider-sw:before{transform:translateX(20px);}
         <label class="admin-label">Gemini API Key (dari Google AI Studio)</label>
         <input class="admin-input" id="ai-key" type="password" autocomplete="off" placeholder="AIza...">
         <label class="admin-label">Model</label>
-        <select class="admin-input" id="ai-model">
-          <option value="gemini-2.5-flash">gemini-2.5-flash (disarankan)</option>
-          <option value="gemini-2.5-flash-lite">gemini-2.5-flash-lite (paling hemat)</option>
-          <option value="gemini-2.0-flash">gemini-2.0-flash</option>
-        </select>
+        <input class="admin-input" id="ai-model" list="ai-model-list" placeholder="gemini-3.8-flash" autocomplete="off" spellcheck="false" style="margin-bottom:4px;">
+        <datalist id="ai-model-list"><option value="gemini-3.8-flash"></option><option value="gemini-3.6-flash"></option><option value="gemini-3.5-flash-lite"></option></datalist>
+        <div style="font-size:11px;color:#888;margin-bottom:10px;">Ketik nama model persis seperti di Google AI Studio. Nama model Google sering berganti; kalau Tes Koneksi menjawab 404, ganti ke model terbaru.</div>
         <label class="admin-label">Instruksi tambahan untuk AI (opsional)</label>
         <textarea class="admin-textarea" id="ai-extra" maxlength="1500" placeholder="Contoh: Jawab dengan ramah dan singkat. Jika ada masalah serius arahkan user ke menu Laporan Bug."></textarea>
         <button class="btn-green" onclick="aiSave()"><svg class="ic" aria-hidden="true"><use href="#i-save"/></svg>Simpan Pengaturan</button>
@@ -930,7 +928,7 @@ function aiForm() {
   return {
     active: document.getElementById('ai-active').checked,
     key: document.getElementById('ai-key').value.trim(),
-    model: document.getElementById('ai-model').value,
+    model: document.getElementById('ai-model').value.trim() || 'gemini-3.8-flash',
     extra: document.getElementById('ai-extra').value.trim().slice(0, 1500),
     updatedAt: Date.now()
   };
@@ -942,7 +940,7 @@ async function loadAiAssist() {
     _aiCur = d;
     document.getElementById('ai-active').checked = !!d.active;
     document.getElementById('ai-key').value = d.key || '';
-    document.getElementById('ai-model').value = d.model || 'gemini-2.5-flash';
+    document.getElementById('ai-model').value = d.model || 'gemini-3.8-flash';
     document.getElementById('ai-extra').value = d.extra || '';
   } catch (e) {}
 }
@@ -969,7 +967,7 @@ async function aiTest() {
     const r = await fetch('https://generativelanguage.googleapis.com/v1beta/models/' + encodeURIComponent(f.model) + ':generateContent', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-goog-api-key': f.key },
-      body: JSON.stringify({ contents: [{ role: 'user', parts: [{ text: 'Balas dengan satu kata: siap' }] }], generationConfig: { maxOutputTokens: 20 } })
+      body: JSON.stringify({ contents: [{ role: 'user', parts: [{ text: 'Balas dengan satu kata: siap' }] }], generationConfig: { maxOutputTokens: 256 } })
     });
     const j = await r.json().catch(() => ({}));
     if (!r.ok) { out.textContent = 'Gagal (' + r.status + '): ' + ((j.error && j.error.message) || 'tidak diketahui'); return; }
