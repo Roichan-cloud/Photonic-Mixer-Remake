@@ -3696,13 +3696,13 @@
         '[Lain-lain] Aplikasi bisa dipasang sebagai PWA dan sebagian bisa dipakai offline. Admin dapat mengirim pengumuman, banner New Update, mode maintenance, dan update paksa.'
     ].join('\n');
 
-    const AI = { enabled: false, key: '', model: 'gemini-2.5-flash', extra: '', history: [], busy: false };
+    const AI = { enabled: false, key: '', model: 'gemini-3.8-flash', extra: '', history: [], busy: false };
 
     function handleAiConfig(d) {
         d = d || {};
         AI.enabled = !!(d.active && d.key);
         AI.key = d.key || '';
-        AI.model = d.model || 'gemini-2.5-flash';
+        AI.model = d.model || 'gemini-3.8-flash';
         AI.extra = d.extra || '';
         const sec = document.getElementById('ai-section');
         if (sec) sec.style.display = AI.enabled ? '' : 'none';
@@ -3753,7 +3753,7 @@
                 body: JSON.stringify({
                     systemInstruction: { parts: [{ text: sys }] },
                     contents: AI.history,
-                    generationConfig: { temperature: 0.4, maxOutputTokens: 900 }
+                    generationConfig: { temperature: 0.4, maxOutputTokens: 4096 }
                 }),
                 signal: ctl.signal
             });
@@ -3763,6 +3763,7 @@
                 const code = r.status;
                 let m = 'Asisten sedang bermasalah (' + code + ').';
                 if (code === 429) m = 'Asisten sedang sibuk (batas permintaan tercapai). Coba lagi sebentar lagi.';
+                else if (code === 404) m = 'Asisten belum bisa dipakai (nama model tidak ditemukan). Hubungi admin.';
                 else if (code === 400 || code === 403) m = 'Asisten belum bisa dipakai (API key tidak valid atau tidak diizinkan). Hubungi admin.';
                 if (wait) { wait.className = 'ai-msg ai-bot ai-err'; wait.textContent = m; }
                 AI.history.pop();
