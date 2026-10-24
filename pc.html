@@ -1049,10 +1049,25 @@
                     <input type="range" class="fx-speed-slider" id="val-chaos-spd" min="10" max="300" value="100" oninput="updateFxSpeed('chaos',this.value)">
                 </div><!-- end chaos card -->
                 <div class="fx-control-card" data-fx-key="flyout" style="width:100%; box-sizing:border-box;">
-                    <button class="mini-fx-btn" id="fx-flyout" onclick="tFX('flyout')">FLYOUT</button>
+                    <button class="mini-fx-btn" id="fx-flyout" onclick="tFX('flyout')">FLYOUT A</button>
                     <span class="fx-speed-label">SPD: <span id="val-flyout-spd-txt">100%</span></span>
                     <input type="range" class="fx-speed-slider" id="val-flyout-spd" min="10" max="300" value="100" oninput="updateFxSpeed('flyout',this.value)">
                 </div><!-- end flyout card -->
+                <div class="fx-control-card" data-fx-key="flyoutB" style="width:100%; box-sizing:border-box;">
+                    <button class="mini-fx-btn" id="fx-flyoutB" onclick="tFX('flyoutB')">FLYOUT B</button>
+                    <span class="fx-speed-label">SPD: <span id="val-flyoutB-spd-txt">100%</span></span>
+                    <input type="range" class="fx-speed-slider" id="val-flyoutB-spd" min="10" max="300" value="100" oninput="updateFxSpeed('flyoutB',this.value)">
+                </div><!-- end flyoutB card -->
+                <div class="fx-control-card" data-fx-key="flyoutL" style="width:100%; box-sizing:border-box;">
+                    <button class="mini-fx-btn" id="fx-flyoutL" onclick="tFX('flyoutL')">FLYOUT L</button>
+                    <span class="fx-speed-label">SPD: <span id="val-flyoutL-spd-txt">100%</span></span>
+                    <input type="range" class="fx-speed-slider" id="val-flyoutL-spd" min="10" max="300" value="100" oninput="updateFxSpeed('flyoutL',this.value)">
+                </div><!-- end flyoutL card -->
+                <div class="fx-control-card" data-fx-key="flyoutR" style="width:100%; box-sizing:border-box;">
+                    <button class="mini-fx-btn" id="fx-flyoutR" onclick="tFX('flyoutR')">FLYOUT R</button>
+                    <span class="fx-speed-label">SPD: <span id="val-flyoutR-spd-txt">100%</span></span>
+                    <input type="range" class="fx-speed-slider" id="val-flyoutR-spd" min="10" max="300" value="100" oninput="updateFxSpeed('flyoutR',this.value)">
+                </div><!-- end flyoutR card -->
                 </div><!-- end fx-gen-container -->
             </div>
         </div>
@@ -2436,7 +2451,7 @@
                     <span style="font-size:9px; color:#ccc; flex:1;" data-i18n="s2_label">LAYAR KEDUA (MONITOR/PROYEKTOR)</span>
                     <button class="quality-btn" id="btn-screen2" onclick="screen2Toggle()" style="min-width:90px;">BUKA</button>
                 </div>
-                <div style="font-size:8px; color:#666;" data-i18n="s2_desc">Buka viewport 3D di jendela terpisah. Seret jendelanya ke monitor atau proyektor kedua, lalu klik dua kali untuk layar penuh. Kontrol tetap di jendela ini.</div>
+                <div style="font-size:8px; color:#666;" data-i18n="s2_desc">Pindahkan viewport 3D ke jendela terpisah. Seret ke monitor atau proyektor kedua, lalu klik dua kali untuk layar penuh. Jendela utama boleh di-minimize: tampilan tetap jalan dan semua hotkey tetap bekerja selama jendela layar kedua yang aktif.</div>
             </div>
             <div style="border-top:1px solid #222; margin-top:10px; padding-top:10px;">
                 <div style="font-size:9px; color:#ccc; margin-bottom:2px;" data-i18n="dev_label">PERANGKAT TERDETEKSI</div>
@@ -3161,9 +3176,9 @@
     let fxSpeeds = {
         circle:1.0, circleS:1.0, circleBounce:1.0, mirrorCircleBounce:1.0, pargoy:1.0, pargoyTipis:1.0,
         pargoyAtasBawah:1.0, pargoySweepUp:1.0, wave:1.0,
-        snake:1.0, bounce:1.0, chaos:1.0, zigzag:1.0, mirrorSweep:1.0, flyout:1.0
+        snake:1.0, bounce:1.0, chaos:1.0, zigzag:1.0, mirrorSweep:1.0, flyout:1.0, flyoutB:1.0, flyoutL:1.0, flyoutR:1.0
     };
-    let fxState = { circle:false, circleS:false, circleBounce:false, mirrorCircleBounce:false, pargoy:false, pargoyTipis:false, pargoyAtasBawah:false, pargoySweepUp:false, wave:false, snake:false, bounce:false, chaos:false, zigzag:false, mirrorSweep:false, flyout:false, sLR:false, sCt:false, sOdd:false, sAll:false, sRnd:false, sSplit:false, sChase13:false, sLoop:false };
+    let fxState = { circle:false, circleS:false, circleBounce:false, mirrorCircleBounce:false, pargoy:false, pargoyTipis:false, pargoyAtasBawah:false, pargoySweepUp:false, wave:false, snake:false, bounce:false, chaos:false, zigzag:false, mirrorSweep:false, flyout:false, flyoutB:false, flyoutL:false, flyoutR:false, sLR:false, sCt:false, sOdd:false, sAll:false, sRnd:false, sSplit:false, sChase13:false, sLoop:false };
     let isFrozen = false;
     let _circleBounceDir = 1;       // 1 = searah jarum jam, -1 = berlawanan
     let _circleBounceAccum = 0;     // akumulasi sudut (bukan waktu absolut) agar mulus saat balik arah
@@ -4892,40 +4907,105 @@
         }, { passive: false });
     }
 
-    // ── Layar kedua: viewport 3D ditampilkan di jendela terpisah (untuk monitor / proyektor kedua) ──
-    let _screen2 = null, _screen2Timer = 0;
-    function screen2Toggle() {
-        if (_screen2 && !_screen2.closed) { try { _screen2.close(); } catch (e) {} _screen2Closed(); return; }
+    // ── Layar kedua: kanvas 3D dipindah ke jendela terpisah (monitor/proyektor kedua) ──
+    // Loop render dijalankan lewat requestAnimationFrame milik jendela kedua, jadi tetap jalan walau jendela utama
+    // di-minimize. Tombol keyboard di jendela kedua diteruskan ke jendela utama sehingga semua hotkey tetap bekerja.
+    let _screen2 = null, _screen2Timer = 0, _animToken = 0;
+    function _s2Active() { return !!(_screen2 && !_screen2.closed && renderer && renderer.domElement.ownerDocument === _screen2.document); }
+    function _viewSize() {
+        if (_s2Active()) return { w: Math.max(1, _screen2.innerWidth), h: Math.max(1, _screen2.innerHeight) };
+        const vp = document.getElementById('viewport');
+        return { w: Math.max(1, vp.clientWidth), h: Math.max(1, vp.clientHeight) };
+    }
+    function _animNext() {
+        const tok = ++_animToken;
+        const w = _s2Active() ? _screen2 : window;
+        w.requestAnimationFrame(() => { if (tok === _animToken) animate(); });
+    }
+    function _s2Resize() {
+        if (!renderer || !camera) return;
+        const d = _viewSize();
+        renderer.setSize(d.w, d.h); camera.aspect = d.w / d.h; camera.updateProjectionMatrix();
+    }
+    function _s2Key(e) {
+        if (e.ctrlKey || e.metaKey) return;                                  // biarkan kombinasi browser (Ctrl+R, dll)
+        if (['F5', 'F11', 'F12'].includes(e.key)) return;
+        const ev = new KeyboardEvent(e.type, { key: e.key, code: e.code, shiftKey: e.shiftKey, altKey: e.altKey, repeat: e.repeat, bubbles: true, cancelable: true });
+        document.dispatchEvent(ev);
+        if (ev.defaultPrevented) e.preventDefault();
+    }
+    function _s2Placeholder(on) {
+        let ph = document.getElementById('s2-placeholder');
+        if (!on) { if (ph) ph.remove(); return; }
+        if (ph) return;
+        const vp = document.getElementById('viewport'); if (!vp) return;
+        ph = document.createElement('div'); ph.id = 's2-placeholder';
+        ph.style.cssText = 'position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:#0a0a0a;color:#888;font-size:11px;text-align:center;padding:12px;z-index:1;';
+        ph.innerHTML = '<div>' + _envT('s2_placeholder') + '</div>';
+        const b = document.createElement('button'); b.className = 'quality-btn'; b.textContent = _envT('s2_restore'); b.onclick = screen2Toggle; b.style.cssText = 'min-width:140px;';
+        ph.appendChild(b); vp.appendChild(ph);
+    }
+    function _s2Restore() {
+        clearInterval(_screen2Timer);
+        const old = _screen2; _screen2 = null;
         try {
-            if (!renderer || !renderer.domElement.captureStream) throw new Error('captureStream');
+            const cv = renderer.domElement, vp = document.getElementById('viewport');
+            if (cv.parentNode !== vp || cv.ownerDocument !== document) vp.appendChild(cv);
+        } catch (e) { console.warn('Gagal mengembalikan kanvas:', e); }
+        _s2Placeholder(false);
+        _s2Resize();
+        _screen2Ui(false);
+        _animNext();                                                          // lanjutkan loop render di jendela utama
+        try { if (old && !old.closed) old.close(); } catch (e) {}
+    }
+    function screen2Toggle() {
+        if (_screen2 && !_screen2.closed) { _s2Restore(); return; }
+        try {
+            if (!renderer) throw new Error('renderer');
             const w = window.open('', 'ianLightingScreen2', 'popup=yes,width=1280,height=720');
             if (!w) { showStatus(_envT('s2_blocked'), true); return; }
             const d = w.document;
             d.title = 'Ian Lighting - Layar 2';
-            d.body.style.cssText = 'margin:0;background:#000;overflow:hidden;height:100vh;cursor:none;';
-            const v = d.createElement('video');
-            v.muted = true; v.autoplay = true; v.playsInline = true;
-            v.style.cssText = 'width:100vw;height:100vh;object-fit:contain;background:#000;display:block;';
+            d.body.style.cssText = 'margin:0;background:#000;overflow:hidden;height:100vh;cursor:default;';
             const hint = d.createElement('div');
             hint.textContent = _envT('s2_hint');
-            hint.style.cssText = 'position:fixed;left:0;right:0;bottom:14px;text-align:center;color:#888;font:12px sans-serif;transition:opacity 1s;pointer-events:none;';
-            d.body.appendChild(v); d.body.appendChild(hint);
-            setTimeout(() => { hint.style.opacity = '0'; }, 4000);
-            v.srcObject = renderer.domElement.captureStream(60);
-            const pl = v.play(); if (pl && pl.catch) pl.catch(() => {});
-            d.addEventListener('dblclick', () => { try { if (!w.document.fullscreenElement) w.document.documentElement.requestFullscreen(); else w.document.exitFullscreen(); } catch (e) {} });
-            d.addEventListener('mousemove', () => { d.body.style.cursor = 'default'; clearTimeout(w._cur); w._cur = setTimeout(() => { try { d.body.style.cursor = 'none'; } catch (e) {} }, 2000); });
+            hint.style.cssText = 'position:fixed;left:0;right:0;bottom:14px;text-align:center;color:#999;font:12px sans-serif;transition:opacity 1s;pointer-events:none;z-index:5;text-shadow:0 0 4px #000;';
+            const cv = renderer.domElement;
+            d.body.appendChild(cv);                                           // pindahkan kanvas WebGL ke jendela kedua
+            d.body.appendChild(hint);
+            setTimeout(() => { try { hint.style.opacity = '0'; } catch (e) {} }, 4000);
             _screen2 = w;
+            _s2Placeholder(true);
+            _s2Resize();
+            // kontrol kamera mouse/sentuh di jendela kedua
+            d.body.addEventListener('mousedown', onViewportMouseDown);
+            d.body.addEventListener('mousemove', onViewportMouseMove);
+            d.body.addEventListener('mouseup', onViewportMouseUp);
+            d.body.addEventListener('wheel', onViewportWheel, { passive: false });
+            d.body.addEventListener('contextmenu', e => e.preventDefault());
+            d.body.addEventListener('touchstart', onViewportTouchStart, { passive: false });
+            d.body.addEventListener('touchmove', onViewportTouchMove, { passive: false });
+            d.body.addEventListener('touchend', onViewportTouchEnd, { passive: true });
+            // hotkey: teruskan ke jendela utama
+            d.addEventListener('keydown', _s2Key); d.addEventListener('keyup', _s2Key);
+            w.addEventListener('focus', () => { try { const a = document.activeElement; if (!document.hasFocus() && a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA')) a.blur(); } catch (e) {} });
+            w.addEventListener('resize', _s2Resize);
+            d.addEventListener('dblclick', () => { try { if (!d.fullscreenElement) d.documentElement.requestFullscreen(); else d.exitFullscreen(); } catch (e) {} });
+            const back = () => { if (_screen2 === w) _s2Restore(); };
+            w.addEventListener('pagehide', back); w.addEventListener('beforeunload', back);
             clearInterval(_screen2Timer);
-            _screen2Timer = setInterval(() => { if (!_screen2 || _screen2.closed) _screen2Closed(); }, 1000);
+            _screen2Timer = setInterval(() => { if (!_screen2 || _screen2.closed) _s2Restore(); }, 1000);
+            _animNext();                                                       // loop render pindah ke jendela kedua
             _screen2Ui(true);
+            w.focus();
             showStatus(_envT('s2_opened'));
         } catch (e) {
             console.warn('Layar kedua:', e);
+            try { _s2Restore(); } catch (_) {}
             showStatus(_envT('s2_unsupported'), true);
         }
     }
-    function _screen2Closed() { clearInterval(_screen2Timer); _screen2 = null; _screen2Ui(false); }
+    function _screen2Closed() { _s2Restore(); }
     function _screen2Ui(on) {
         const b = document.getElementById('btn-screen2'); if (!b) return;
         b.classList.toggle('active', on); b.textContent = on ? _envT('s2_close') : _envT('s2_open');
@@ -4955,9 +5035,9 @@
         v.appendChild(renderer.domElement);
 
         window.addEventListener('resize', () => {
-            const vp = document.getElementById('viewport');
-            renderer.setSize(vp.clientWidth, vp.clientHeight);
-            camera.aspect = vp.clientWidth / vp.clientHeight;
+            const vd = _viewSize();
+            renderer.setSize(vd.w, vd.h);
+            camera.aspect = vd.w / vd.h;
             camera.updateProjectionMatrix();
         });
 
@@ -10183,7 +10263,7 @@
     function toggleFxSpeedLock() {
         fxSpeedLocked = !fxSpeedLocked;
         const btn = document.getElementById('fx-speed-lock-btn');
-        const keys = ['circle','circleS','circleBounce','mirrorCircleBounce','pargoy','pargoyTipis','pargoyAtasBawah','pargoySweepUp','wave','snake','bounce','chaos','zigzag','mirrorSweep','flyout'];
+        const keys = ['circle','circleS','circleBounce','mirrorCircleBounce','pargoy','pargoyTipis','pargoyAtasBawah','pargoySweepUp','wave','snake','bounce','chaos','zigzag','mirrorSweep','flyout','flyoutB','flyoutL','flyoutR'];
         keys.forEach(k => {
             const sldr = document.getElementById('val-'+k+'-spd');
             if (sldr) sldr.disabled = fxSpeedLocked;
@@ -10277,17 +10357,17 @@
         showFps: true,
         showVersion: true,
         language: 'id',
-        fxOrder: ['circle','circleS','circleBounce','mirrorCircleBounce','mirrorSweep','zigzag','pargoy','pargoyTipis','pargoyAtasBawah','pargoySweepUp','wave','snake','bounce','chaos','flyout'],
+        fxOrder: ['circle','circleS','circleBounce','mirrorCircleBounce','mirrorSweep','zigzag','pargoy','pargoyTipis','pargoyAtasBawah','pargoySweepUp','wave','snake','bounce','chaos','flyout','flyoutB','flyoutL','flyoutR'],
         strobeOrder: ['sLR','sCt','sOdd','sAll','sRnd','sSplit','sChase13','sLoop'],
         delayCustom: {
             circle:false, circleS:false, circleBounce:false, mirrorCircleBounce:false, mirrorSweep:false, zigzag:false,
             pargoy:false, pargoyTipis:false, pargoyAtasBawah:false, pargoySweepUp:false,
-            wave:false, snake:false, bounce:false, chaos:false, flyout:false
+            wave:false, snake:false, bounce:false, chaos:false, flyout:false, flyoutB:false, flyoutL:false, flyoutR:false
         },
         delayCustomValue: {
             circle:30, circleS:30, circleBounce:30, mirrorCircleBounce:30, mirrorSweep:30, zigzag:30,
             pargoy:30, pargoyTipis:30, pargoyAtasBawah:30, pargoySweepUp:30,
-            wave:30, snake:30, bounce:30, chaos:30, flyout:30
+            wave:30, snake:30, bounce:30, chaos:30, flyout:30, flyoutB:30, flyoutL:30, flyoutR:30
         },
         customRotation: { prism:false, fan:false, dots:false, star:false, prism16:false, prism32:false },
         customRotationValue: { prism:20, fan:20, dots:20, star:20, prism16:20, prism32:20 },
@@ -10299,7 +10379,7 @@
         fxHotkeys: {
             circle:null, circleS:null, circleBounce:null, mirrorCircleBounce:null, mirrorSweep:null, zigzag:null,
             pargoy:null, pargoyTipis:null, pargoyAtasBawah:null, pargoySweepUp:null,
-            wave:null, snake:null, bounce:null, chaos:null, flyout:null
+            wave:null, snake:null, bounce:null, chaos:null, flyout:null, flyoutB:null, flyoutL:null, flyoutR:null
         },
         actionHotkeys: {
             minibrute:' ', freeze:'f', blackout:'b', gobo:'g', bounceReverse:'backspace'
@@ -10312,7 +10392,7 @@
         circle:'CIRCLE', circleS:'MIRROR CIR', circleBounce:'CIRCLE BOLAK-BALIK', mirrorCircleBounce:'MIRROR CIR BOLAK-BALIK',
         mirrorSweep:'MIRROR SWEEP', zigzag:'ZIG-ZAG', pargoy:'PARGOY',
         pargoyTipis:'PARGOY TIPIS', pargoyAtasBawah:'PARGOY AB', pargoySweepUp:'SWEEP UP',
-        wave:'WAVE', snake:'SNAKE', bounce:'BOUNCE', chaos:'CHAOS', flyout:'FLYOUT'
+        wave:'WAVE', snake:'SNAKE', bounce:'BOUNCE', chaos:'CHAOS', flyout:'FLYOUT A', flyoutB:'FLYOUT B', flyoutL:'FLYOUT L', flyoutR:'FLYOUT R'
     };
     const STROBE_LABELS = {
         sLR:'L-R SWIPE', sCt:'COUNTER', sOdd:'ODD-EVEN',
@@ -10626,7 +10706,9 @@
         ctx_reset:         { id:'Reset kamera', en:'Reset camera' },
         ctx_reset_done:    { id:'KAMERA DIRESET', en:'CAMERA RESET' },
         s2_label:          { id:'LAYAR KEDUA (MONITOR/PROYEKTOR)', en:'SECOND SCREEN (MONITOR/PROJECTOR)' },
-        s2_desc:           { id:'Buka viewport 3D di jendela terpisah. Seret jendelanya ke monitor atau proyektor kedua, lalu klik dua kali untuk layar penuh. Kontrol tetap di jendela ini.', en:'Open the 3D viewport in a separate window. Drag it to a second monitor or projector, then double-click for full screen. Controls stay in this window.' },
+        s2_desc:           { id:'Pindahkan viewport 3D ke jendela terpisah. Seret ke monitor atau proyektor kedua, lalu klik dua kali untuk layar penuh. Jendela utama boleh di-minimize: tampilan tetap jalan dan semua hotkey tetap bekerja selama jendela layar kedua yang aktif.', en:'Move the 3D viewport to a separate window. Drag it to a second monitor or projector, then double-click for full screen. The main window can be minimized: the display keeps running and all hotkeys keep working while the second-screen window is focused.' },
+        s2_placeholder:    { id:'Viewport 3D sedang tampil di layar kedua.', en:'The 3D viewport is showing on the second screen.' },
+        s2_restore:        { id:'KEMBALIKAN KE SINI', en:'BRING BACK HERE' },
         s2_open:           { id:'BUKA', en:'OPEN' },
         s2_close:          { id:'TUTUP', en:'CLOSE' },
         s2_blocked:        { id:'Jendela diblokir browser. Izinkan pop-up untuk situs ini lalu coba lagi.', en:'Window blocked by the browser. Allow pop-ups for this site and try again.' },
@@ -11696,8 +11778,8 @@
     // tepat di puncak, lalu beam turun CEPAT dalam keadaan gelap (tanpa berhenti di atas).
     // Tim lain mulai naik dan menyala perlahan saat tim di atas mulai meredup (offset 0.75 dari satu siklus 1.5),
     // dan langsung naik (tidak turun dulu) karena sudah menunggu di bawah.
-    function _flyoutCalc(i, now) {
-        const t = now * 0.001 * _cachedSpeed * fxSpeeds.flyout * 0.5;               // 1 satuan = sekitar 2 detik pada speed 100%
+    function _flyoutCalc(i, now, key) {
+        const t = now * 0.001 * _cachedSpeed * fxSpeeds[key || 'flyout'] * 0.5;               // 1 satuan = sekitar 2 detik pada speed 100%
         let c = (t + (i % 2 === 0 ? 0 : 0.75)) % 1.5; if (c < 0) c += 1.5;          // siklus 1.5: naik 1.0 + turun gelap 0.5
         const ss = (a, b, x) => { const k = Math.min(1, Math.max(0, (x - a) / (b - a))); return k * k * (3 - 2 * k); };
         const env = ss(0, 0.4, c) * (1 - ss(0.7, 1.05, c));                         // muncul perlahan, meredup, habis di puncak
@@ -11713,7 +11795,7 @@
             fxState[f] = !cur;
         } else {
             let cur = fxState[f];
-            const motions = ['circle','circleS','circleBounce','mirrorCircleBounce','pargoy','pargoyTipis','pargoyAtasBawah','pargoySweepUp','wave','snake','bounce','chaos','zigzag','mirrorSweep','flyout'];
+            const motions = ['circle','circleS','circleBounce','mirrorCircleBounce','pargoy','pargoyTipis','pargoyAtasBawah','pargoySweepUp','wave','snake','bounce','chaos','zigzag','mirrorSweep','flyout','flyoutB','flyoutL','flyoutR'];
             if(motions.includes(f) && !multiMotionOn) { motions.forEach(k => { if(k !== f) fxState[k] = false; }); }
             fxState[f] = !cur;
             if(motions.includes(f) && fxState[f]) _lastMotionOn = f;
@@ -12139,7 +12221,7 @@
         lamps.forEach(l => {
             Object.assign(l.state, { dim:0.8, pan:0, tilt:-0.2, zoom:40, mode:'beam', rainbow:0, sunburst:'off', targetGoboX:0 });
         });
-        fxState = { circle:false, circleS:false, circleBounce:false, mirrorCircleBounce:false, pargoy:false, pargoyTipis:false, pargoyAtasBawah:false, pargoySweepUp:false, wave:false, snake:false, bounce:false, chaos:false, zigzag:false, mirrorSweep:false, flyout:false, sLR:false, sCt:false, sOdd:false, sAll:false, sRnd:false, sSplit:false, sChase13:false, sLoop:false };
+        fxState = { circle:false, circleS:false, circleBounce:false, mirrorCircleBounce:false, pargoy:false, pargoyTipis:false, pargoyAtasBawah:false, pargoySweepUp:false, wave:false, snake:false, bounce:false, chaos:false, zigzag:false, mirrorSweep:false, flyout:false, flyoutB:false, flyoutL:false, flyoutR:false, sLR:false, sCt:false, sOdd:false, sAll:false, sRnd:false, sSplit:false, sChase13:false, sLoop:false };
         masterX = 0; masterY = 12; globalSpacing = 12;
         document.getElementById('val-space').value = 12;
 
@@ -12221,7 +12303,7 @@
     _cacheSliders();
 
     function animate() {
-        requestAnimationFrame(animate);
+        _animNext();
         try {
         const now = Date.now(), total = lamps.length;
 
@@ -12532,7 +12614,7 @@
                 else if (fxState.sChase13) d = ((i % 3) === sChase13Step) ? s.dim : 0;
                 else if (fxState.sLoop) d = (i === (Math.floor(now/(1000/_cachedSpdSLoop)) % Math.max(1, total))) ? s.dim : 0; // terus maju, tidak balik
                 d *= masterDimLevel;
-                if (fxState.flyout) d *= _flyoutCalc(i, now).env;   // Flyout: cahaya muncul/hilang bergantian antar tim
+                ['flyout', 'flyoutB', 'flyoutL', 'flyoutR'].forEach(k => { if (fxState[k]) d *= _flyoutCalc(i, now, k).env; });   // Flyout: cahaya muncul/hilang bergantian antar tim
             }
             s.curDim += (d - s.curDim) * 0.35;
             s.curDim *= (1 - _mbFlashLevel); // overlay Flash MB — smooth sesuai slider MB SMOOTH
@@ -12584,9 +12666,12 @@
             if (fxState.chaos)  { tp += Math.sin(now*0.0013*globalSpeed*fxSpeeds.chaos + i*2.1)*0.7; tt += Math.cos(now*0.0017*globalSpeed*fxSpeeds.chaos + i*1.3)*0.7; }
             if (fxState.zigzag)       { const tZZ = now*0.001*globalSpeed*fxSpeeds.zigzag*2 - (i * delay); const tri = (2/Math.PI)*Math.asin(Math.sin(tZZ*Math.PI)); tp += tri * 1.2; }
             if (fxState.flyout) {
-                // FLYOUT: lihat _flyoutCalc. Tilt negatif = sinar ke atas; cahaya diatur di bagian dim (d) di atas.
-                tt += 0.3 - _flyoutCalc(i, now).pos * 1.2;   // dari agak ke bawah sampai ~65 derajat ke atas
+                // FLYOUT A (atas): lihat _flyoutCalc. Tilt negatif = sinar ke atas; cahaya diatur di bagian dim (d) di atas.
+                tt += 0.3 - _flyoutCalc(i, now, 'flyout').pos * 1.2;   // dari agak ke bawah sampai ~65 derajat ke atas
             }
+            if (fxState.flyoutB) tt += -0.3 + _flyoutCalc(i, now, 'flyoutB').pos * 1.2;   // FLYOUT B (bawah): dari agak ke atas turun ke arah lantai
+            if (fxState.flyoutL) tp += 0.3 - _flyoutCalc(i, now, 'flyoutL').pos * 1.2;    // FLYOUT L (kiri): dari agak ke kanan menyapu keluar ke kiri
+            if (fxState.flyoutR) tp += -0.3 + _flyoutCalc(i, now, 'flyoutR').pos * 1.2;   // FLYOUT R (kanan): dari agak ke kiri menyapu keluar ke kanan
             if (fxState.mirrorSweep) {
                 // Ganjil (0,2,4...) ke kiri, genap (1,3,5...) ke kanan — sweep bolak-balik berlawanan arah
                 const dir = (i % 2 === 0) ? -1 : 1;
@@ -16881,7 +16966,7 @@
         }
     }
 
-    const FX_MOTION_KEYS = ['circle','circleS','circleBounce','mirrorCircleBounce','pargoy','pargoyTipis','pargoyAtasBawah','pargoySweepUp','wave','snake','bounce','chaos','zigzag','mirrorSweep','flyout'];
+    const FX_MOTION_KEYS = ['circle','circleS','circleBounce','mirrorCircleBounce','pargoy','pargoyTipis','pargoyAtasBawah','pargoySweepUp','wave','snake','bounce','chaos','zigzag','mirrorSweep','flyout','flyoutB','flyoutL','flyoutR'];
 
     function _syncMultiMotionUI() {
         const btn = document.getElementById('multimotion-toggle-btn');
