@@ -1,3 +1,4 @@
+
 {
   "name": "ian lighting",
   "short_name": "ian lighting",
@@ -10,16 +11,22 @@
   "theme_color": "#00cc44",
   "icons": [
     {
-      "src": "app.png",
+      "src": "app-v2-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
-      "src": "app.png",
+      "src": "app-v2-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "app-v2-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }
