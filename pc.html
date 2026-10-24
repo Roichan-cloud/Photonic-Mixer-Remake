@@ -1069,6 +1069,7 @@
                     <input type="range" class="fx-speed-slider" id="val-flyoutR-spd" min="10" max="300" value="100" oninput="updateFxSpeed('flyoutR',this.value)">
                 </div><!-- end flyoutR card -->
                 </div><!-- end fx-gen-container -->
+                <button class="mini-fx-btn" id="btn-add-multi" onclick="multiFxOpenDialog()" data-i18n="mfx_add" style="border-style:dashed; margin-top:2px;">ADD MULTIPLE</button>
             </div>
         </div>
 
@@ -5017,6 +5018,148 @@
         _screen2Ui(!!(_screen2 && !_screen2.closed));
     }
 
+
+    // ══ ADD MULTIPLE: gabungkan 2 gerakan FX jadi satu generator gerakan baru ══
+    // Setiap gerakan multiple = 1 kunci FX baru "mfx_<id>" yang ikut urutan FX, custom delay, custom hotkey, slider SPD, dan tersimpan di project.
+    function _mfxList() { if (!Array.isArray(settingsState.multiFx)) settingsState.multiFx = []; return settingsState.multiFx; }
+    function _mfxKey(m) { return 'mfx_' + m.id; }
+    function _mfxByKey(k) { return (typeof k === 'string' && k.indexOf('mfx_') === 0) ? _mfxList().find(m => _mfxKey(m) === k) : null; }
+    function _mfxLabel(k) { return (typeof FX_LABELS !== 'undefined' && FX_LABELS[k]) ? FX_LABELS[k] : k; }
+    function _mfxRegister(m) {
+        const k = _mfxKey(m);
+        FX_LABELS[k] = m.name;
+        if (!Array.isArray(settingsState.fxOrder)) settingsState.fxOrder = [];
+        if (!settingsState.fxOrder.includes(k)) settingsState.fxOrder.push(k);
+        if (!settingsState.delayCustom) settingsState.delayCustom = {};
+        if (!settingsState.delayCustomValue) settingsState.delayCustomValue = {};
+        if (!settingsState.fxHotkeys) settingsState.fxHotkeys = {};
+        if (settingsState.delayCustom[k] === undefined) settingsState.delayCustom[k] = false;
+        if (settingsState.delayCustomValue[k] === undefined) settingsState.delayCustomValue[k] = 30;
+        if (settingsState.fxHotkeys[k] === undefined) settingsState.fxHotkeys[k] = null;
+        if (fxSpeeds[k] === undefined) fxSpeeds[k] = (fxSpeeds[m.a] !== undefined ? fxSpeeds[m.a] : 1);
+        if (fxState[k] === undefined) fxState[k] = false;
+    }
+    function _mfxSync() {                                       // status gabungan = kedua gerakan penyusunnya sama-sama menyala
+        _mfxList().forEach(m => { fxState[_mfxKey(m)] = !!(fxState[m.a] && fxState[m.b]); });
+    }
+    function _mfxCleanStale() {
+        const keep = new Set(_mfxList().map(_mfxKey));
+        const stale = k => typeof k === 'string' && k.indexOf('mfx_') === 0 && !keep.has(k);
+        settingsState.fxOrder = (settingsState.fxOrder || []).filter(k => !stale(k));
+        ['delayCustom', 'delayCustomValue', 'fxHotkeys'].forEach(mn => { const o = settingsState[mn]; if (o) Object.keys(o).forEach(k => { if (stale(k)) delete o[k]; }); });
+        Object.keys(fxSpeeds).forEach(k => { if (stale(k)) delete fxSpeeds[k]; });
+        Object.keys(fxState).forEach(k => { if (stale(k)) delete fxState[k]; });
+    }
+    function multiFxRender() {
+        _mfxCleanStale();
+        const list = _mfxList();
+        list.forEach(_mfxRegister);
+        const box = document.getElementById('fx-gen-container'); if (!box) return;
+        box.querySelectorAll('[data-mfx-card]').forEach(c => c.remove());
+        list.forEach(m => {
+            const k = _mfxKey(m);
+            const card = document.createElement('div');
+            card.className = 'fx-control-card'; card.dataset.fxKey = k; card.dataset.mfxCard = '1';
+            card.style.cssText = 'width:100%; box-sizing:border-box;';
+            const row = document.createElement('div'); row.style.cssText = 'display:flex; gap:4px; align-items:stretch;';
+            const b = document.createElement('button');
+            b.className = 'mini-fx-btn'; b.id = 'fx-' + k; b.style.cssText = 'white-space:normal; line-height:1.2; padding:8px 2px; flex:1;';
+            b.textContent = m.name; b.onclick = () => tFX(k);
+            const x = document.createElement('button');
+            x.className = 'mini-fx-btn'; x.style.cssText = 'width:28px; flex:none; padding:0; color:#f55; border-color:#633;';
+            x.textContent = '×'; x.title = _envT('mfx_delete'); x.onclick = () => multiFxDelete(m.id);
+            row.appendChild(b); row.appendChild(x);
+            const sub = document.createElement('span'); sub.className = 'fx-speed-label'; sub.style.cssText += 'color:#777;';
+            sub.textContent = _mfxLabel(m.a) + ' + ' + _mfxLabel(m.b);
+            const spd = Math.round((fxSpeeds[k] !== undefined ? fxSpeeds[k] : 1) * 100);
+            const lab = document.createElement('span'); lab.className = 'fx-speed-label';
+            lab.innerHTML = 'SPD: <span id="val-' + k + '-spd-txt">' + spd + '%</span>';
+            const sl = document.createElement('input'); sl.type = 'range'; sl.className = 'fx-speed-slider'; sl.id = 'val-' + k + '-spd';
+            sl.min = 10; sl.max = 300; sl.value = spd; sl.oninput = () => updateFxSpeed(k, sl.value);
+            if (typeof fxSpeedLocked !== 'undefined' && fxSpeedLocked) { sl.disabled = true; sl.style.opacity = '0.3'; }
+            card.appendChild(row); card.appendChild(sub); card.appendChild(lab); card.appendChild(sl);
+            box.appendChild(card);
+        });
+        if (typeof applyFxOrder === 'function') applyFxOrder();
+        if (typeof renderFxOrderList === 'function') renderFxOrderList();
+        if (typeof renderDelayCustomList === 'function') renderDelayCustomList();
+        if (typeof renderFxHotkeyList === 'function') renderFxHotkeyList();
+        _mfxSync();
+        if (typeof updateButtons === 'function') updateButtons();
+    }
+    function _multiFxToggle(m) {
+        _mfxSync();
+        const on = !!(fxState[m.a] && fxState[m.b]);
+        const prev = multiMotionOn;
+        multiMotionOn = true;                                   // paksa agar dua gerakan bisa menyala bersamaan
+        try {
+            if (on) {
+                if (fxState[m.a]) tFX(m.a);
+                if (fxState[m.b]) tFX(m.b);
+            } else {
+                if (!prev) FX_MOTION_KEYS.forEach(k => { if (k !== m.a && k !== m.b) fxState[k] = false; });
+                if (!fxState[m.a]) tFX(m.a);
+                if (!fxState[m.b]) tFX(m.b);
+            }
+        } finally { multiMotionOn = prev; }
+        _mfxSync();
+        updateButtons(); updateDelaySliderState();
+    }
+    function multiFxDelete(id) {
+        const list = _mfxList(), i = list.findIndex(x => x.id === id); if (i < 0) return;
+        const m = list[i];
+        if (fxState[m.a] && fxState[m.b]) _multiFxToggle(m);       // matikan dulu kalau sedang menyala
+        list.splice(i, 1);
+        multiFxRender(); showStatus(_envT('mfx_deleted').replace('{n}', m.name));
+    }
+    function multiFxOpenDialog() {
+        if (document.getElementById('mfx-dlg')) return;
+        const sel = [];
+        const ov = document.createElement('div'); ov.id = 'mfx-dlg';
+        ov.style.cssText = 'position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,0.75);display:flex;align-items:center;justify-content:center;padding:14px;';
+        const box = document.createElement('div');
+        box.style.cssText = 'width:100%;max-width:360px;max-height:90vh;overflow-y:auto;background:#111;border:1px solid var(--tp);border-radius:8px;padding:14px;color:#ddd;font-family:inherit;';
+        box.innerHTML = '<div style="font-size:12px;font-weight:bold;color:var(--tp);margin-bottom:10px;">' + _envT('mfx_title') + '</div>'
+            + '<label style="font-size:10px;color:#aaa;display:block;margin-bottom:4px;">' + _envT('mfx_name') + '</label>'
+            + '<input id="mfx-name" type="text" maxlength="24" style="width:100%;box-sizing:border-box;background:#000;color:var(--tp);border:1px solid #444;border-radius:4px;padding:8px;font-size:12px;outline:none;margin-bottom:12px;">'
+            + '<div style="font-size:10px;color:#aaa;margin-bottom:6px;">' + _envT('mfx_pick') + ' <span id="mfx-count" style="color:var(--tp);">0/2</span></div>'
+            + '<div id="mfx-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:12px;"></div>'
+            + '<div id="mfx-err" style="font-size:9px;color:#f66;min-height:12px;margin-bottom:6px;"></div>'
+            + '<div style="display:flex;gap:8px;"><button id="mfx-cancel" class="mini-fx-btn" style="flex:1;">' + _envT('mfx_cancel') + '</button><button id="mfx-save" class="mini-fx-btn active" style="flex:1;">' + _envT('mfx_save') + '</button></div>';
+        ov.appendChild(box); document.body.appendChild(ov);
+        const grid = box.querySelector('#mfx-grid'), cnt = box.querySelector('#mfx-count'), err = box.querySelector('#mfx-err'), nameIn = box.querySelector('#mfx-name');
+        const refresh = () => {
+            cnt.textContent = sel.length + '/2';
+            grid.querySelectorAll('button').forEach(b => {
+                const on = sel.includes(b.dataset.k);
+                b.classList.toggle('active', on);
+                b.style.opacity = (!on && sel.length >= 2) ? '0.35' : '1';
+            });
+        };
+        FX_MOTION_KEYS.forEach(k => {
+            const b = document.createElement('button'); b.className = 'mini-fx-btn'; b.dataset.k = k;
+            b.style.cssText = 'padding:8px 2px;font-size:9px;white-space:normal;line-height:1.15;';
+            b.textContent = _mfxLabel(k);
+            b.onclick = () => {
+                const i = sel.indexOf(k);
+                if (i >= 0) sel.splice(i, 1); else if (sel.length < 2) sel.push(k);
+                err.textContent = ''; refresh();
+            };
+            grid.appendChild(b);
+        });
+        const close = () => { try { ov.remove(); } catch (e) {} };
+        box.querySelector('#mfx-cancel').onclick = close;
+        ov.addEventListener('mousedown', e => { if (e.target === ov) close(); });
+        box.querySelector('#mfx-save').onclick = () => {
+            if (sel.length !== 2) { err.textContent = _envT('mfx_err_pick'); return; }
+            const name = (nameIn.value || '').trim() || (_mfxLabel(sel[0]) + ' + ' + _mfxLabel(sel[1]));
+            _mfxList().push({ id: 'm' + Date.now().toString(36) + Math.floor(Math.random() * 1000).toString(36), name, a: sel[0], b: sel[1] });
+            close(); multiFxRender(); showStatus(_envT('mfx_added').replace('{n}', name));
+        };
+        nameIn.addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Enter') box.querySelector('#mfx-save').click(); else if (e.key === 'Escape') close(); });
+        refresh(); setTimeout(() => nameIn.focus(), 30);
+    }
+
     function init() {
         const v = document.getElementById('viewport');
         scene = new THREE.Scene();
@@ -5062,7 +5205,7 @@
         createColorChaseButtons();
         createSceneButtons();
         setupEvents();
-        try { _setupPcMouse(); _setupPrecisionSliders(); _deviceUiInit(); } catch (e) { console.warn(e); }
+        try { _setupPcMouse(); _setupPrecisionSliders(); _deviceUiInit(); multiFxRender(); } catch (e) { console.warn(e); }
         renderColorSteps();
 
         colorStepRenderInterval = setInterval(() => { renderColorSteps(); }, 500);
@@ -10257,13 +10400,19 @@
         fxSpeeds[name] = parseFloat(val) / 100;
         const el = document.getElementById('val-'+name+'-spd-txt');
         if(el) el.innerText = Math.round(val) + '%';
+        const mf = _mfxByKey(name);                                 // gerakan multiple: kecepatan dua gerakan penyusunnya ikut diatur
+        if (mf) [mf.a, mf.b].forEach(k => {
+            fxSpeeds[k] = parseFloat(val) / 100;
+            const t = document.getElementById('val-'+k+'-spd-txt'); if (t) t.innerText = Math.round(val) + '%';
+            const sl = document.getElementById('val-'+k+'-spd'); if (sl) sl.value = Math.round(val);
+        });
     }
 
     let fxSpeedLocked = false;
     function toggleFxSpeedLock() {
         fxSpeedLocked = !fxSpeedLocked;
         const btn = document.getElementById('fx-speed-lock-btn');
-        const keys = ['circle','circleS','circleBounce','mirrorCircleBounce','pargoy','pargoyTipis','pargoyAtasBawah','pargoySweepUp','wave','snake','bounce','chaos','zigzag','mirrorSweep','flyout','flyoutB','flyoutL','flyoutR'];
+        const keys = _mfxList().map(_mfxKey).concat(['circle','circleS','circleBounce','mirrorCircleBounce','pargoy','pargoyTipis','pargoyAtasBawah','pargoySweepUp','wave','snake','bounce','chaos','zigzag','mirrorSweep','flyout','flyoutB','flyoutL','flyoutR']);
         keys.forEach(k => {
             const sldr = document.getElementById('val-'+k+'-spd');
             if (sldr) sldr.disabled = fxSpeedLocked;
@@ -10356,6 +10505,7 @@
         gfx: { fxaa: true, filmic: false, exposure: 1.0, beam: true, spots: true, haze: true, bloom: false, bloomAmt: 0.6, refl: false, reflAmt: 0.5, metal: false, fade: true, vol: false, volAmt: 0.5, shaft: false, shaftAmt: 0.4, lens: false, lensAmt: 0.4, reflhq: false, sshadow: false, auto: false },
         showFps: true,
         showVersion: true,
+        multiFx: [],
         language: 'id',
         fxOrder: ['circle','circleS','circleBounce','mirrorCircleBounce','mirrorSweep','zigzag','pargoy','pargoyTipis','pargoyAtasBawah','pargoySweepUp','wave','snake','bounce','chaos','flyout','flyoutB','flyoutL','flyoutR'],
         strobeOrder: ['sLR','sCt','sOdd','sAll','sRnd','sSplit','sChase13','sLoop'],
@@ -10382,7 +10532,8 @@
             wave:null, snake:null, bounce:null, chaos:null, flyout:null, flyoutB:null, flyoutL:null, flyoutR:null
         },
         actionHotkeys: {
-            minibrute:' ', freeze:'f', blackout:'b', gobo:'g', bounceReverse:'backspace'
+            minibrute:' ', freeze:'f', blackout:'b', gobo:'g', bounceReverse:'backspace',
+            goboBeam:null, goboPrism:null, goboFan:null, goboDots:null, goboMatrix:null, goboStar:null, goboPrism16:null, goboPrism32:null
         }
     };
     // Snapshot bawaan (pristine) — dipakai oleh fitur "Reset ke Default"
@@ -10400,8 +10551,11 @@
     };
     const ACTION_LABELS = {
         minibrute:'FLASH MINIBRUTE', freeze:'FREEZE', blackout:'BLACKOUT', gobo:'MASTER GOBO (CYCLE)',
-        bounceReverse:'BALIK ARAH MANUAL (CIRCLE/MIRROR BOLAK-BALIK)'
+        bounceReverse:'BALIK ARAH MANUAL (CIRCLE/MIRROR BOLAK-BALIK)',
+        goboBeam:'GOBO: BEAM', goboPrism:'GOBO: PRISM', goboFan:'GOBO: FAN', goboDots:'GOBO: DOTS',
+        goboMatrix:'GOBO: MATRIX', goboStar:'GOBO: STAR', goboPrism16:'GOBO: PRISM 16', goboPrism32:'GOBO: PRISM 32'
     };
+    const GOBO_HOTKEY_MODES = { goboBeam:'beam', goboPrism:'prism', goboFan:'fan', goboDots:'dots', goboMatrix:'matrix', goboStar:'star', goboPrism16:'prism16', goboPrism32:'prism32' };
     const ACTION_HOLD_KEYS = ['minibrute']; // jenis hold (nyala pas ditahan), sisanya toggle
 
     // ─── TEMA WARNA ───────────────────────────────────────
@@ -10719,6 +10873,16 @@
         dev_pc:            { id:'Komputer / laptop (mouse dan keyboard)', en:'Computer / laptop (mouse and keyboard)' },
         dev_phone:         { id:'HP / tablet (layar sentuh)', en:'Phone / tablet (touch screen)' },
         dev_desc:          { id:'Menentukan pengaturan grafis awal dan fitur khusus PC (kontrol mouse, slider presisi, layar kedua).', en:'Determines the initial graphics settings and PC-only features (mouse controls, precision sliders, second screen).' },
+        mfx_add:           { id:'ADD MULTIPLE', en:'ADD MULTIPLE' },
+        mfx_title:         { id:'GERAKAN MULTIPLE BARU', en:'NEW MULTIPLE MOTION' },
+        mfx_name:          { id:'Nama gerakan:', en:'Motion name:' },
+        mfx_pick:          { id:'Gerakan yang mau di multiple: (pilih 2 gerakan)', en:'Motions to combine: (pick 2 motions)' },
+        mfx_save:          { id:'SIMPAN', en:'SAVE' },
+        mfx_cancel:        { id:'BATAL', en:'CANCEL' },
+        mfx_err_pick:      { id:'Pilih tepat 2 gerakan dulu.', en:'Pick exactly 2 motions first.' },
+        mfx_added:         { id:'Gerakan multiple "{n}" ditambahkan', en:'Multiple motion "{n}" added' },
+        mfx_deleted:       { id:'Gerakan multiple "{n}" dihapus', en:'Multiple motion "{n}" deleted' },
+        mfx_delete:        { id:'Hapus gerakan ini', en:'Delete this motion' },
         gfx_haze:          { id:'HAZE REALISTIS', en:'REALISTIC HAZE' },
         gfx_haze_d:        { id:'Lapisan asap bernoise yang bergulung pelan dengan lebih banyak lapisan.', en:'Noise-based smoke layers that slowly roll, with more layers.' },
         gfx_auto:          { id:'AUTO KUALITAS', en:'AUTO QUALITY' },
@@ -10834,6 +10998,7 @@
         _applyVersionText();
         renderFxOrderList(); applyFxOrder();
         renderStrobeOrderList(); applyStrobeOrder();
+        try { multiFxRender(); } catch (e) {}
         if (typeof renderDelayCustomList === 'function') renderDelayCustomList();
         if (typeof renderRotationCustomList === 'function') renderRotationCustomList();
         if (typeof renderBounceAngleCustomList === 'function') renderBounceAngleCustomList();
@@ -11385,6 +11550,7 @@
     let _delayWasDisabled = false; // track apakah sebelumnya sedang disabled
 
     function updateDelaySliderState() {
+        try { _mfxSync(); } catch (e) {}
         const noDelay = Object.keys(settingsState.delayCustom).some(k => fxState[k] && settingsState.delayCustom[k]);
         let customVal = 30;
         Object.keys(settingsState.delayCustom).forEach(k => {
@@ -11789,6 +11955,7 @@
     }
 
     function tFX(f) {
+        const _mf = _mfxByKey(f); if (_mf) { _multiFxToggle(_mf); return; }
         if(['sLR','sCt','sOdd','sAll','sRnd','sSplit','sChase13','sLoop'].includes(f)) {
             let cur = fxState[f];
             ['sLR','sCt','sOdd','sAll','sRnd','sSplit','sChase13','sLoop'].forEach(k => fxState[k] = false);
@@ -12143,6 +12310,7 @@
     }
 
     function updateButtons() {
+        try { _mfxSync(); } catch (e) {}
         let refState = (selectedFixtures[0] === -1) ? lamps[0]?.state : lamps[selectedFixtures[0]]?.state;
         // Fallback: kalau seleksi fixture lagi gak valid (misal habis ubah jumlah fixture), jangan berhenti total —
         // pakai lampu pertama yang ada sebagai acuan mode, biar tombol FX/Strobe/Chase/Gobo di bawah tetap ke-refresh.
@@ -12534,9 +12702,9 @@
         // GERAK SMOOTH: 0% = PERSIS seperti sebelumnya (0.28), 100% = paling halus (0.02).
         // Pakai kurva eksponensial (bukan linear) biar smoothing-nya kerasa mulai pertengahan slider, bukan cuma dekat 100%.
         const lerpMotor = 0.28 * Math.pow(0.02 / 0.28, _cachedGerakSmooth / 100);
-        // Kecepatan transisi Gobo/Mode — default 0.12 (seperti sekarang, ada jeda gelap total pas ganti gobo/mode).
-        // Kalau ada Chase Gobo yang lagi aktif, dipercepat sesuai slider speed slot itu (mentok kanan = nyaris instan, tanpa jeda gelap).
-        let lerpGobo = 0.12;
+        // Kecepatan transisi Gobo/Mode — default 1.0 = INSTAN (tanpa jeda gelap pas ganti gobo/mode).
+        // Kalau ada Chase Gobo yang lagi aktif, kecepatannya mengikuti slider speed slot itu (makin ke kiri makin pelan/halus).
+        let lerpGobo = 1.0;
         if (activeSceneIdx !== -1 && !isSceneRecording) {
             const _goboMult = sceneSlotSpeeds[activeSceneIdx] || 1.0;
             lerpGobo = Math.min(0.95, 0.12 * _goboMult);
@@ -16532,7 +16700,7 @@
                 DEFAULT_SETTINGS_STATE.strobeOrder.forEach(k => { if (!settingsState.strobeOrder.includes(k)) settingsState.strobeOrder.push(k); });
                 // Project lama belum punya FX baru (mis. flyout) — tambahkan ke urutan & peta pengaturannya
                 DEFAULT_SETTINGS_STATE.fxOrder.forEach(k => { if (!settingsState.fxOrder.includes(k)) settingsState.fxOrder.push(k); });
-                ['delayCustom', 'delayCustomValue', 'fxHotkeys', 'gfx'].forEach(m => {
+                ['delayCustom', 'delayCustomValue', 'fxHotkeys', 'actionHotkeys', 'gfx'].forEach(m => {
                     settingsState[m] = Object.assign({}, DEFAULT_SETTINGS_STATE[m], settingsState[m] || {});
                 });
                 applyTheme(settingsState.theme || 'green');
@@ -16541,6 +16709,7 @@
                 applyLanguage(settingsState.language || 'id');
                 _applyFpsCounterUI(settingsState.showFps || false);
                 _applyVersionText();
+                try { multiFxRender(); } catch (e) {}
                 applyFxOrder();
                 applyStrobeOrder();
                 if (typeof renderFxOrderList === 'function') renderFxOrderList();
@@ -17999,6 +18168,8 @@
                         if (!e.repeat) toggleBlackout();
                     } else if (actMatch === 'gobo') {
                         if (!e.repeat) cycleGoboMode();
+                    } else if (GOBO_HOTKEY_MODES[actMatch]) {
+                        if (!e.repeat) sMode(GOBO_HOTKEY_MODES[actMatch]);   // Master Gobo langsung ke mode tertentu
                     } else if (actMatch === 'bounceReverse') {
                         // Balik arah manual — cuma efektif kalau motion yang lagi aktif emang mode MANUAL
                         if (!e.repeat) {
