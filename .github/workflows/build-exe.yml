@@ -1,0 +1,50 @@
+name: Build EXE
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Siapkan folder www
+        shell: bash
+        run: node scripts/prepare-www.js
+
+      - name: Salin ke folder desktop
+        shell: bash
+        run: |
+          cp -r www desktop/www
+          mkdir -p desktop/build
+          cp app-v2-512.png desktop/build/icon.png
+
+      - name: Build EXE
+        working-directory: desktop
+        run: |
+          npm install
+          npm run dist
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: IanLighting-exe
+          path: desktop/dist/IanLighting.exe
+
+      - name: Rilis (latest) di GitHub
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: exe-latest
+          name: EXE terbaru
+          body: "EXE (portable) otomatis dari commit ${{ github.sha }}"
+          files: desktop/dist/IanLighting.exe
