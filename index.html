@@ -8,11 +8,6 @@
     <meta name="description" content="Ian Lighting">
     <meta name="theme-color" content="#00cc44">
     <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Ian Lighting">
-    <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="app.png">
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
     <script src="firebase-config.js"></script>
@@ -286,15 +281,6 @@
         #chat-sheet .sheet-btn:active { background:rgba(255,255,255,.06); }
         #chat-sheet .sheet-btn.danger { color:#f15c6d; }
 
-        /* Banner "versi baru tersedia" */
-        #update-banner { position: fixed; top: 44px; left: 50%; transform: translateX(-50%); z-index: 100001; width: min(92vw, 360px); box-sizing: border-box; display: flex; align-items: center; gap: 10px; padding: 9px 10px; background: #06140a; border: 1px solid #0f0; border-radius: 8px; box-shadow: 0 4px 18px rgba(0,0,0,0.6); }
-        #update-banner .ub-icon { color: #0f0; display: flex; flex-shrink: 0; }
-        #update-banner .ub-text { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-        #update-banner .ub-text b { color: #0f0; font-size: 10px; }
-        #update-banner .ub-text span { color: #8a9; font-size: 8px; }
-        #update-banner button { cursor: pointer; font-family: inherit; }
-        #update-banner .ub-primary { background: #0f0; color: #000; border: none; border-radius: 4px; padding: 7px 10px; font-size: 9px; font-weight: bold; white-space: nowrap; }
-        #update-banner .ub-close { background: transparent; color: #8a9; border: 1px solid #243; border-radius: 4px; padding: 5px; display: flex; }
 
         /* Mode offline: fitur yang butuh server (laporan bug & cek status) dikunci, tombol dibuat redup dan tidak bisa ditekan */
         .offline-note { display: none; align-items: center; gap: 5px; font-size: 8px; color: #fa0; margin-top: 6px; }
@@ -352,7 +338,7 @@
         .settings-motion-row { display: flex; flex-direction: column; gap: 5px; background: #1a1a1a; border-radius: 8px; padding: 8px; margin-top: 5px; }
         .motion-grid { display: flex; gap: 6px; }
         .mini-fx-btn { width:100%; background: #222; border: 1px solid #444; color: var(--tp); font-size: 10px; font-weight: bold; padding: 10px 0; border-radius: 4px; cursor: pointer; white-space:nowrap; }
-        .mini-fx-btn.active { background: #040; border-color: var(--tp); }
+        .mini-fx-btn.active { background: var(--ts); border-color: var(--tp); }
         .btn-reset { flex: 0.6; background: #322; color: #f99; border: 1px solid #533; font-size: 9px; padding: 12px 0; border-radius: 4px; cursor: pointer; align-self:center; }
         .fx-control-card { display:flex; flex-direction:column; gap:3px; flex-shrink:0; width:80px; background:#1a1a1a; border:1px solid #333; border-radius:6px; padding:6px 5px; box-sizing:border-box; overflow:hidden; }
         .fx-speed-label { font-size:8px; color:#888; text-align:center; }
@@ -602,39 +588,6 @@
             #resize-handle:hover { filter: brightness(1.4); }
         }
     </style>
-    <style>
-        /* CUSTOM INSTALL BANNER */
-        #pwa-banner {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; right: 0;
-            z-index: 99999;
-            background: #111;
-            border-bottom: 2px solid #00cc44;
-            padding: 10px 12px;
-            align-items: center;
-            gap: 10px;
-            box-shadow: 0 2px 12px rgba(0,204,68,0.3);
-            animation: slideDown 0.3s ease;
-        }
-        #pwa-banner.show { display: flex; }
-        @keyframes slideDown { from { transform:translateY(-100%); } to { transform:translateY(0); } }
-        #pwa-banner img { width: 42px; height: 42px; border-radius: 10px; flex-shrink:0; }
-        #pwa-banner-text { flex: 1; }
-        #pwa-banner-text strong { display:block; font-size: 12px; color: #fff; font-family:'Segoe UI',sans-serif; }
-        #pwa-banner-text span { font-size: 10px; color: #aaa; font-family:'Segoe UI',sans-serif; }
-        #pwa-install-btn {
-            background: #00cc44; color: #000; border: none;
-            padding: 8px 16px; border-radius: 6px; font-size: 12px;
-            font-weight: bold; cursor: pointer; flex-shrink:0;
-            font-family:'Segoe UI',sans-serif;
-        }
-        #pwa-dismiss-btn {
-            background: none; border: none; color: #888;
-            font-size: 18px; cursor: pointer; padding: 4px; flex-shrink:0;
-            line-height:1;
-        }
-    </style>
 </head>
 <body>
     <!-- LOADING BAR -->
@@ -704,51 +657,12 @@
         window.addEventListener('load', () => setTimeout(hideSplash, 500));
     </script>
 
-    <!-- CUSTOM INSTALL BANNER -->
-    <div id="pwa-banner">
-        <img src="app.png" alt="icon">
-        <div id="pwa-banner-text">
-            <strong>Ian Lighting</strong>
-            <span>Tambahkan ke layar utama</span>
-        </div>
-        <button id="pwa-install-btn">Instal</button>
-        <button id="pwa-dismiss-btn">X</button>
-    </div>
-    <script>
-        let deferredPrompt = null;
-        window.addEventListener('beforeinstallprompt', e => {
-            e.preventDefault();
-            deferredPrompt = e;
-            const banner = document.getElementById('pwa-banner');
-            if(banner) banner.classList.add('show');
-        });
-        document.addEventListener('DOMContentLoaded', () => {
-            const installBtn = document.getElementById('pwa-install-btn');
-            const dismissBtn = document.getElementById('pwa-dismiss-btn');
-            const banner = document.getElementById('pwa-banner');
-            if(installBtn) installBtn.addEventListener('click', async () => {
-                if(!deferredPrompt) return;
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                deferredPrompt = null;
-                banner.classList.remove('show');
-            });
-            if(dismissBtn) dismissBtn.addEventListener('click', () => {
-                banner.classList.remove('show');
-            });
-        });
-        window.addEventListener('appinstalled', () => {
-            const banner = document.getElementById('pwa-banner');
-            if(banner) banner.classList.remove('show');
-            deferredPrompt = null;
-        });
-    </script>
 <div id="app-root">
 
 <div id="dz-tooltip">Seret filenya ke sini</div>
 
 <div id="viewport">
-    <div id="display">IAN LIGHTING v8.7 — Remake From IJUL</div>
+    <div id="display">IAN LIGHTING v8.8 — Remake From IJUL</div>
     <div id="status-msg"></div>
     <div id="fps-counter" style="display:block;">FPS: --</div>
     <div id="vprec-countdown-overlay" style="display:none; position:absolute; inset:0; z-index:50; align-items:center; justify-content:center; background:rgba(0,0,0,0.35);">
@@ -757,7 +671,6 @@
     <div id="vprec-info-overlay" style="display:none; position:absolute; left:8px; bottom:8px; z-index:40; background:rgba(0,0,0,0.55); border:1px solid rgba(255,68,68,0.5); border-radius:6px; padding:5px 9px; font-size:9px; color:#f88; font-family:monospace; line-height:1.5; pointer-events:none;"></div>
 </div>
 <div id="resize-handle" title="Drag untuk resize viewport"></div>
-<button id="btn-fullscreen" onclick="toggleFullscreen()" style="position:fixed; top:10px; left:10px; z-index:200; background:#110022; color:#a0f; border:1px solid #440088; font-size:9px; padding:5px 10px; border-radius:4px; cursor:pointer; font-weight:bold;">FULLSCREEN</button>
 
 <!-- UNDO TOAST -->
 <div id="undo-toast">
@@ -785,13 +698,13 @@
             <div class="compat-arrow">→</div>
             <div class="compat-ver-badge new">
                 <div class="label">VERSI SAAT INI</div>
-                <div class="ver" id="compat-cur-ver">8.7</div>
+                <div class="ver" id="compat-cur-ver">8.8</div>
             </div>
         </div>
         <div id="compat-outdated-banner" class="compat-outdated-banner" style="display:none;">
             <b>File ini dari versi KADALUARSA.</b><br>
             Beberapa fitur baru (Rigging Bundar, Wallwasher, Parled, 3D Model) <b>tidak akan termuat</b> dan akan menggunakan nilai default.<br>
-            Disarankan untuk <b>save ulang</b> setelah dimuat agar tersimpan di format v8.7.
+            Disarankan untuk <b>save ulang</b> setelah dimuat agar tersimpan di format v8.8.
         </div>
         <div id="compat-msg" style="font-size:10px; color:#aaa; margin: 6px 0;"></div>
         <ul class="compat-list" id="compat-list"></ul>
@@ -1050,11 +963,27 @@
                     <input type="range" class="fx-speed-slider" id="val-chaos-spd" min="10" max="300" value="100" oninput="updateFxSpeed('chaos',this.value)">
                 </div><!-- end chaos card -->
                 <div class="fx-control-card" data-fx-key="flyout" style="width:100%; box-sizing:border-box;">
-                    <button class="mini-fx-btn" id="fx-flyout" onclick="tFX('flyout')">FLYOUT</button>
+                    <button class="mini-fx-btn" id="fx-flyout" onclick="tFX('flyout')">FLYOUT A</button>
                     <span class="fx-speed-label">SPD: <span id="val-flyout-spd-txt">100%</span></span>
                     <input type="range" class="fx-speed-slider" id="val-flyout-spd" min="10" max="300" value="100" oninput="updateFxSpeed('flyout',this.value)">
                 </div><!-- end flyout card -->
+                <div class="fx-control-card" data-fx-key="flyoutB" style="width:100%; box-sizing:border-box;">
+                    <button class="mini-fx-btn" id="fx-flyoutB" onclick="tFX('flyoutB')">FLYOUT B</button>
+                    <span class="fx-speed-label">SPD: <span id="val-flyoutB-spd-txt">100%</span></span>
+                    <input type="range" class="fx-speed-slider" id="val-flyoutB-spd" min="10" max="300" value="100" oninput="updateFxSpeed('flyoutB',this.value)">
+                </div><!-- end flyoutB card -->
+                <div class="fx-control-card" data-fx-key="flyoutL" style="width:100%; box-sizing:border-box;">
+                    <button class="mini-fx-btn" id="fx-flyoutL" onclick="tFX('flyoutL')">FLYOUT L</button>
+                    <span class="fx-speed-label">SPD: <span id="val-flyoutL-spd-txt">100%</span></span>
+                    <input type="range" class="fx-speed-slider" id="val-flyoutL-spd" min="10" max="300" value="100" oninput="updateFxSpeed('flyoutL',this.value)">
+                </div><!-- end flyoutL card -->
+                <div class="fx-control-card" data-fx-key="flyoutR" style="width:100%; box-sizing:border-box;">
+                    <button class="mini-fx-btn" id="fx-flyoutR" onclick="tFX('flyoutR')">FLYOUT R</button>
+                    <span class="fx-speed-label">SPD: <span id="val-flyoutR-spd-txt">100%</span></span>
+                    <input type="range" class="fx-speed-slider" id="val-flyoutR-spd" min="10" max="300" value="100" oninput="updateFxSpeed('flyoutR',this.value)">
+                </div><!-- end flyoutR card -->
                 </div><!-- end fx-gen-container -->
+                <button class="mini-fx-btn" id="btn-add-multi" onclick="multiFxOpenDialog()" data-i18n="mfx_add" style="border-style:dashed; margin-top:2px;">ADD MULTIPLE</button>
             </div>
         </div>
 
@@ -1068,6 +997,8 @@
                 <button class="btn-wheel" id="btn-dots-main" onclick="sMode('dots')">DOTS</button>
                 <button class="btn-wheel" id="btn-matrix-main" onclick="sMode('matrix')">MATRIX</button>
                 <button class="btn-wheel" id="btn-star-main" onclick="sMode('star')">STAR</button>
+                <button class="btn-wheel" id="btn-prism16-main" onclick="sMode('prism16')">PRISM 16</button>
+                <button class="btn-wheel" id="btn-prism32-main" onclick="sMode('prism32')">PRISM 32</button>
                 <button class="btn-wheel" id="btn-rainbow-prism-main" onclick="toggleRainbowPrism()" style="background:linear-gradient(90deg,#f00,#ff0,#0f0,#0ff,#00f,#f0f);color:#fff;font-weight:bold;border-color:#fff;">RAINBOW PRISM</button>
                 <button class="btn-wheel" id="btn-sb-pink-main" onclick="tSunburst('pink')">SUNBURST</button>
                 <div id="sb-color-swatch-main" onclick="openColorWheel(this.dataset.color, v=>{this.dataset.color=v;this.style.background=v;updateSBColor(v);const e=document.getElementById('sb-color-swatch');if(e){e.dataset.color=v;e.style.background=v;}})" data-color="#ff00ff" style="width:100%;height:28px;background:#ff00ff;border-radius:4px;border:1px solid #555;cursor:pointer;"></div>
@@ -2131,6 +2062,8 @@
                 <button class="btn-wheel" id="btn-dots"   onclick="sMode('dots')"  style="padding:12px 2px;">DOTS</button>
                 <button class="btn-wheel" id="btn-matrix" onclick="sMode('matrix')" style="padding:12px 2px;">MATRIX</button>
                 <button class="btn-wheel" id="btn-star"   onclick="sMode('star')"  style="padding:12px 2px;">STAR</button>
+                <button class="btn-wheel" id="btn-prism16" onclick="sMode('prism16')" style="padding:12px 2px;">PRISM 16</button>
+                <button class="btn-wheel" id="btn-prism32" onclick="sMode('prism32')" style="padding:12px 2px;">PRISM 32</button>
                 <button class="btn-wheel" id="btn-sb-pink" onclick="tSunburst('pink')" style="padding:12px 2px; grid-column:span 2;">SUNBURST</button>
                 <div style="grid-column:span 2;">
                     <div id="sb-color-swatch" onclick="openColorWheel(this.dataset.color, v=>{this.dataset.color=v;this.style.background=v;updateSBColor(v);const e=document.getElementById('sb-color-swatch-main');if(e){e.dataset.color=v;e.style.background=v;}})" data-color="#ff00ff" style="width:100%;height:28px;background:#ff00ff;border-radius:4px;border:1px solid #555;cursor:pointer;margin-top:2px;"></div>
@@ -2412,6 +2345,44 @@
     <!-- ===== TAB SETTINGS ===== -->
     <div id="tab-settings" class="tab-content" style="flex-direction:column; gap:0; padding:10px; background:#111;">
 
+        <!-- TAMPILAN LAYAR: fullscreen + tulisan versi -->
+        <div class="settings-section">
+            <div class="settings-section-title">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:5px;"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+                <span data-i18n="sec_screen">TAMPILAN LAYAR</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:2px;">
+                <span style="font-size:9px; color:#ccc; flex:1;" data-i18n="fs_label">LAYAR PENUH (FULLSCREEN)</span>
+                <button class="quality-btn" id="btn-fullscreen" onclick="toggleFullscreen()" style="min-width:90px;">FULLSCREEN</button>
+            </div>
+            <div style="font-size:8px; color:#666; margin-bottom:10px;" data-i18n="fs_desc">Tampilkan aplikasi memenuhi layar. Tekan lagi untuk keluar.</div>
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:2px;">
+                <span style="font-size:9px; color:#ccc; flex:1;" data-i18n="vt_label">TULISAN VERSI DI VIEWPORT</span>
+                <button class="quality-btn active" id="btn-version-text" onclick="toggleVersionText()" style="min-width:90px;">TAMPIL</button>
+            </div>
+            <div style="font-size:8px; color:#666;" data-i18n="vt_desc">Sembunyikan atau tampilkan tulisan "IAN LIGHTING v8.8" di pojok kanan atas viewport.</div>
+            <div style="border-top:1px solid #222; margin-top:10px; padding-top:10px;">
+                <div style="display:flex; align-items:center; gap:8px; margin-bottom:2px;">
+                    <span style="font-size:9px; color:#ccc; flex:1;" data-i18n="s2_label">LAYAR KEDUA (MONITOR/PROYEKTOR)</span>
+                    <button class="quality-btn" id="btn-screen2" onclick="screen2Toggle()" style="min-width:90px;">BUKA</button>
+                </div>
+                <div style="font-size:8px; color:#666;" data-i18n="s2_desc">Pindahkan viewport 3D ke jendela terpisah. Seret ke monitor atau proyektor kedua, lalu klik dua kali untuk layar penuh. Jendela utama boleh di-minimize: tampilan tetap jalan dan semua hotkey tetap bekerja selama jendela layar kedua yang aktif.</div>
+            </div>
+            <div style="border-top:1px solid #222; margin-top:10px; padding-top:10px;">
+                <div style="font-size:9px; color:#ccc; margin-bottom:2px;" data-i18n="dev_label">PERANGKAT TERDETEKSI</div>
+                <div id="device-info" style="font-size:9px; color:var(--tp);"></div>
+                <div style="font-size:8px; color:#666; margin-top:2px;" data-i18n="dev_desc">Menentukan pengaturan grafis awal dan fitur khusus PC (kontrol mouse, slider presisi, layar kedua).</div>
+            </div>
+            <div style="border-top:1px solid #222; margin-top:10px; padding-top:10px;">
+                <div style="display:flex; align-items:center; gap:8px; margin-bottom:2px;">
+                    <span style="font-size:9px; color:#ccc; flex:1;" data-i18n="fps_label">FPS COUNTER</span>
+                    <button class="quality-btn active" data-fps="on" onclick="toggleFpsCounter(true)" id="fps-btn-on" style="min-width:60px;">ON</button>
+                    <button class="quality-btn" data-fps="off" onclick="toggleFpsCounter(false)" id="fps-btn-off" style="min-width:60px;">OFF</button>
+                </div>
+                <div style="font-size:8px; color:#666;" data-i18n="fps_desc">Tampilkan indikator FPS kecil di pojok viewport 3D — buat pantau performa, terutama saat pakai kualitas ULTRA</div>
+            </div>
+        </div>
+
         <!-- REKAM VIEWPORT 3D -->
         <div class="settings-section">
             <div class="settings-section-title">
@@ -2606,17 +2577,140 @@
                 <button class="quality-btn" data-q="ultra"  onclick="applyRenderQuality('ultra')" style="border-color:#f0f; color:#f0f;">ULTRA</button>
             </div>
             <div style="font-size:8px; color:#666; margin-top:4px;" id="quality-desc">Resolusi render sesuai layar (default)</div>
-            <div style="border-top:1px solid #222; margin-top:10px; padding-top:10px;">
-                <div style="font-size:9px; color:#ccc; font-weight:bold; margin-bottom:4px; display:flex; align-items:center; gap:5px;">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-                    <span data-i18n="fps_label">FPS COUNTER</span>
-                </div>
-                <div style="display:flex; gap:6px;">
-                    <button class="quality-btn active" data-fps="on" onclick="toggleFpsCounter(true)" id="fps-btn-on">ON</button>
-                    <button class="quality-btn" data-fps="off" onclick="toggleFpsCounter(false)" id="fps-btn-off">OFF</button>
-                </div>
-                <div style="font-size:8px; color:#666; margin-top:4px;" data-i18n="fps_desc">Tampilkan indikator FPS kecil di pojok viewport 3D — buat pantau performa, terutama saat pakai kualitas ULTRA</div>
+        </div>
+
+        <!-- GRAFIS REALISTIS -->
+        <div class="settings-section" id="gfx-section">
+            <div class="settings-section-title">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:5px;"><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/></svg>
+                <span data-i18n="gfx_title">GRAFIS REALISTIS</span>
             </div>
+            <div style="font-size:8px; color:#888; margin-bottom:8px;" data-i18n="gfx_desc">Efek tambahan supaya viewport 3D lebih tajam dan realistis. Matikan yang berat kalau HP terasa patah-patah.</div>
+            <div style="display:flex; gap:6px; margin-bottom:10px;">
+                <button class="quality-btn" onclick="gfxPreset('eco')" data-i18n="gfx_p_eco">HEMAT</button>
+                <button class="quality-btn" onclick="gfxPreset('bal')" data-i18n="gfx_p_bal">SEIMBANG</button>
+                <button class="quality-btn" onclick="gfxPreset('max')" data-i18n="gfx_p_max">MAKSIMAL</button>
+            </div>
+            <div style="display:flex; gap:6px; margin-bottom:10px;">
+                <button class="quality-btn" onclick="gfxSave()" data-i18n="gfx_save">SIMPAN</button>
+                <button class="quality-btn" onclick="gfxClearSaved()" data-i18n="gfx_clear">HAPUS SIMPANAN</button>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:2px;">
+                <span style="font-size:9px; color:#ccc; flex:1;" data-i18n="gfx_fxaa">ANTI-ALIASING (FXAA)</span>
+                <button class="quality-btn active" id="gfx-fxaa" onclick="gfxToggle('fxaa')" style="min-width:48px;">ON</button>
+            </div>
+            <div style="font-size:8px; color:#666; margin-bottom:8px;" data-i18n="gfx_fxaa_d">Menghaluskan tepi bergerigi pada beam, truss, dan teks 3D.</div>
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:2px;">
+                <span style="font-size:9px; color:#ccc; flex:1;" data-i18n="gfx_filmic">FILMIC (TONE MAPPING)</span>
+                <button class="quality-btn" id="gfx-filmic" onclick="gfxToggle('filmic')" style="min-width:48px;">OFF</button>
+            </div>
+            <div style="font-size:8px; color:#666; margin-bottom:8px;" data-i18n="gfx_filmic_d">Sorotan terang tidak jebol jadi putih rata, kontras dan warna lebih sinematik.</div>
+            <div id="gfx-exp-row" style="display:flex; align-items:center; gap:8px; margin:-4px 0 8px 0;">
+                <span style="font-size:8px; color:#aaa; min-width:84px;" data-i18n="gfx_exp">EKSPOSUR</span>
+                <input type="range" class="slider-h" id="gfx-exp" min="50" max="160" value="100" style="flex:1;" oninput="gfxSetExposure(this.value)">
+                <span id="gfx-exp-val" style="font-size:8px; color:var(--tp); min-width:34px; text-align:right;">100%</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:2px;">
+                <span style="font-size:9px; color:#ccc; flex:1;" data-i18n="gfx_beam">BEAM REALISTIS</span>
+                <button class="quality-btn" id="gfx-beam" onclick="gfxToggle('beam')" style="min-width:48px;">OFF</button>
+            </div>
+            <div style="font-size:8px; color:#666; margin-bottom:8px;" data-i18n="gfx_beam_d">Tepi beam lembut, memudar menjauhi lampu, dan ada gerak asap halus di dalamnya.</div>
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:2px;">
+                <span style="font-size:9px; color:#ccc; flex:1;" data-i18n="gfx_spots">BERCAK CAHAYA DI LANTAI</span>
+                <button class="quality-btn active" id="gfx-spots" onclick="gfxToggle('spots')" style="min-width:48px;">ON</button>
+            </div>
+            <div style="font-size:8px; color:#666; margin-bottom:8px;" data-i18n="gfx_spots_d">Titik terang di lantai tempat beam menyentuh, mengikuti bentuk prisma, kipas, dan dots.</div>
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:2px;">
+                <span style="font-size:9px; color:#ccc; flex:1;" data-i18n="gfx_haze">HAZE REALISTIS</span>
+                <button class="quality-btn active" id="gfx-haze" onclick="gfxToggle('haze')" style="min-width:48px;">ON</button>
+            </div>
+            <div style="font-size:8px; color:#666; margin-bottom:8px;" data-i18n="gfx_haze_d">Lapisan asap bernoise yang bergulung pelan dengan lebih banyak lapisan.</div>
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:2px;">
+                <span style="font-size:9px; color:#ccc; flex:1;" data-i18n="gfx_fade">PUDAR DI UJUNG BEAM</span>
+                <button class="quality-btn" id="gfx-fade" onclick="gfxToggle('fade')" style="min-width:48px;">OFF</button>
+            </div>
+            <div style="font-size:8px; color:#666; margin-bottom:8px;" data-i18n="gfx_fade_d">Cahaya beam meredup perlahan menjelang batas panjangnya, tidak terpotong tiba-tiba.</div>
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:2px;">
+                <span style="font-size:9px; color:#ccc; flex:1;" data-i18n="gfx_bloom">BLOOM (CAHAYA MENDERAS)</span>
+                <button class="quality-btn" id="gfx-bloom" onclick="gfxToggle('bloom')" style="min-width:48px;">OFF</button>
+            </div>
+            <div id="gfx-bloom-row" style="display:flex; align-items:center; gap:8px; margin:0 0 4px 0;">
+                <span style="font-size:8px; color:#aaa; min-width:84px;" data-i18n="gfx_bloom_s">KEKUATAN</span>
+                <input type="range" class="slider-h" id="gfx-bloom-sl" min="10" max="150" value="50" style="flex:1;" oninput="gfxSetBloom(this.value)">
+                <span id="gfx-bloom-val" style="font-size:8px; color:var(--tp); min-width:34px; text-align:right;">50%</span>
+            </div>
+            <div style="font-size:8px; color:#666; margin-bottom:8px;" data-i18n="gfx_bloom_d">Sorotan terang berpendar lembut di sekitarnya seperti lensa kamera.</div>
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:2px;">
+                <span style="font-size:9px; color:#ccc; flex:1;" data-i18n="gfx_refl">LANTAI MENGILAP</span>
+                <button class="quality-btn" id="gfx-refl" onclick="gfxToggle('refl')" style="min-width:48px;">OFF</button>
+            </div>
+            <div id="gfx-refl-row" style="display:flex; align-items:center; gap:8px; margin:0 0 4px 0;">
+                <span style="font-size:8px; color:#aaa; min-width:84px;" data-i18n="gfx_refl_s">KEMILAP</span>
+                <input type="range" class="slider-h" id="gfx-refl-sl" min="10" max="120" value="50" style="flex:1;" oninput="gfxSetRefl(this.value)">
+                <span id="gfx-refl-val" style="font-size:8px; color:var(--tp); min-width:34px; text-align:right;">50%</span>
+            </div>
+            <div style="font-size:8px; color:#666; margin-bottom:8px;" data-i18n="gfx_refl_d">Lantai memantulkan beam dan lampu. Berat di perangkat lemah.</div>
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:2px;">
+                <span style="font-size:9px; color:#ccc; flex:1;" data-i18n="gfx_metal">MATERIAL LOGAM</span>
+                <button class="quality-btn" id="gfx-metal" onclick="gfxToggle('metal')" style="min-width:48px;">OFF</button>
+            </div>
+            <div style="font-size:8px; color:#666; margin-bottom:8px;" data-i18n="gfx_metal_d">Truss dan bodi lampu memantulkan lingkungan panggung sehingga terlihat berkilau.</div>
+            <div style="margin:10px 0 8px 0; padding:8px; border:1px solid #a60; border-radius:5px; background:rgba(255,140,0,0.07);">
+                <div style="display:flex; align-items:center; gap:6px; font-size:9px; font-weight:bold; color:#f90; margin-bottom:4px;">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                    <span data-i18n="gfx_ultra_title">ULTRA: KHUSUS PERANGKAT KUAT</span>
+                </div>
+                <div style="font-size:8px; color:#c96; line-height:1.5;" data-i18n="gfx_ultra_warn">Efek di bawah sangat berat. Hanya untuk PC dan HP gaming kelas atas. Di perangkat biasa bisa membuat lag parah, layar patah-patah, panas, dan baterai cepat habis. Kalau terasa berat, matikan atau tekan HAPUS SIMPANAN lalu muat ulang.</div>
+                <div id="gfx-ultra-dev" style="font-size:8px; color:#fff; margin-top:4px;"></div>
+                <div style="display:flex; gap:6px; margin-top:6px;">
+                    <button class="quality-btn" onclick="gfxPreset('ultra')" data-i18n="gfx_p_ultra">PRESET ULTRA</button>
+                </div>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:2px;">
+                <span style="font-size:9px; color:#ccc; flex:1;" data-i18n="gfx_vol">ASAP VOLUMETRIK</span>
+                <button class="quality-btn" id="gfx-vol" onclick="gfxToggle('vol')" style="min-width:48px;">OFF</button>
+            </div>
+            <div id="gfx-vol-row" style="display:flex; align-items:center; gap:8px; margin:0 0 4px 0;">
+                <span style="font-size:8px; color:#aaa; min-width:84px;" data-i18n="gfx_vol_s">KEPEKATAN</span>
+                <input type="range" class="slider-h" id="gfx-vol-sl" min="10" max="200" value="50" style="flex:1;" oninput="gfxSetUltraAmt('volAmt', this.value)">
+                <span id="gfx-vol-val" style="font-size:8px; color:var(--tp); min-width:34px; text-align:right;">50%</span>
+            </div>
+            <div style="font-size:8px; color:#666; margin-bottom:8px;" data-i18n="gfx_vol_d">Asap 3D sungguhan yang disinari tiap beam, terlihat tebal dan bergumpal. Paling berat.</div>
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:2px;">
+                <span style="font-size:9px; color:#ccc; flex:1;" data-i18n="gfx_shaft">LIGHT SHAFTS</span>
+                <button class="quality-btn" id="gfx-shaft" onclick="gfxToggle('shaft')" style="min-width:48px;">OFF</button>
+            </div>
+            <div id="gfx-shaft-row" style="display:flex; align-items:center; gap:8px; margin:0 0 4px 0;">
+                <span style="font-size:8px; color:#aaa; min-width:84px;" data-i18n="gfx_shaft_s">KEKUATAN</span>
+                <input type="range" class="slider-h" id="gfx-shaft-sl" min="10" max="150" value="50" style="flex:1;" oninput="gfxSetUltraAmt('shaftAmt', this.value)">
+                <span id="gfx-shaft-val" style="font-size:8px; color:var(--tp); min-width:34px; text-align:right;">50%</span>
+            </div>
+            <div style="font-size:8px; color:#666; margin-bottom:8px;" data-i18n="gfx_shaft_d">Berkas cahaya menembus asap dan terpotong oleh truss atau bodi lampu.</div>
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:2px;">
+                <span style="font-size:9px; color:#ccc; flex:1;" data-i18n="gfx_lens">EFEK LENSA SINEMATIK</span>
+                <button class="quality-btn" id="gfx-lens" onclick="gfxToggle('lens')" style="min-width:48px;">OFF</button>
+            </div>
+            <div id="gfx-lens-row" style="display:flex; align-items:center; gap:8px; margin:0 0 4px 0;">
+                <span style="font-size:8px; color:#aaa; min-width:84px;" data-i18n="gfx_lens_s">KEKUATAN</span>
+                <input type="range" class="slider-h" id="gfx-lens-sl" min="10" max="120" value="50" style="flex:1;" oninput="gfxSetUltraAmt('lensAmt', this.value)">
+                <span id="gfx-lens-val" style="font-size:8px; color:var(--tp); min-width:34px; text-align:right;">50%</span>
+            </div>
+            <div style="font-size:8px; color:#666; margin-bottom:8px;" data-i18n="gfx_lens_d">Lens flare, chromatic aberration, vignette, dan grain film tipis.</div>
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:2px;">
+                <span style="font-size:9px; color:#ccc; flex:1;" data-i18n="gfx_reflhq">PANTULAN LANTAI HQ</span>
+                <button class="quality-btn" id="gfx-reflhq" onclick="gfxToggle('reflhq')" style="min-width:48px;">OFF</button>
+            </div>
+            <div style="font-size:8px; color:#666; margin-bottom:8px;" data-i18n="gfx_reflhq_d">Pantulan makin buram menjauh dan ada riak halus di lantai. Aktifkan bersama Lantai Mengilap.</div>
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:2px;">
+                <span style="font-size:9px; color:#ccc; flex:1;" data-i18n="gfx_sshadow">BAYANGAN LEMBUT LAMPU</span>
+                <button class="quality-btn" id="gfx-sshadow" onclick="gfxToggle('sshadow')" style="min-width:48px;">OFF</button>
+            </div>
+            <div style="font-size:8px; color:#666; margin-bottom:8px;" data-i18n="gfx_sshadow_d">Truss menjatuhkan bayangan lembut dari lampu paling terang (maks 4 lampu).</div>
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:2px;">
+                <span style="font-size:9px; color:#ccc; flex:1;" data-i18n="gfx_auto">AUTO KUALITAS</span>
+                <button class="quality-btn" id="gfx-auto" onclick="gfxToggle('auto')" style="min-width:48px;">OFF</button>
+            </div>
+            <div style="font-size:8px; color:#666; margin-bottom:8px;" data-i18n="gfx_auto_d">Efek berat dimatikan otomatis satu per satu kalau FPS terus rendah.</div>
         </div>
 
         <!-- ASISTEN AI -->
@@ -2807,6 +2901,9 @@
                 <div data-i18n="dg_mouse_1">• Klik kiri + geser = putar kamera (orbit)</div>
                 <div data-i18n="dg_mouse_pan">• Klik kanan / klik tengah / Shift + klik kiri + geser = geser posisi kamera</div>
                 <div data-i18n="dg_mouse_2">• Scroll wheel = zoom in/out</div>
+                <div data-i18n="dg_mouse_dbl">• Klik dua kali di viewport = reset kamera</div>
+                <div data-i18n="dg_mouse_ctx">• Klik kanan (tanpa geser) pada lampu = menu cepat: pilih lampu, fokus kamera, pilih semua</div>
+                <div data-i18n="dg_slider">• Slider: klik dua kali = ketik angka langsung; saat slider terpilih, scroll wheel = ubah per langkah (Shift = x10)</div>
                 <div data-i18n="dg_mouse_3">• Hover di atas tombol = ada efek terang, tanda bisa diklik</div>
                 <div style="color:var(--tp); font-weight:bold; margin:10px 0 4px;" data-i18n="dg_key_title">KEYBOARD SHORTCUT</div>
                 <div data-i18n="dg_key_pan">• Tombol panah = geser kamera maju/mundur/kiri/kanan, PageUp/PageDown = atas/bawah</div>
@@ -2912,7 +3009,7 @@
                 <span data-i18n="sec_info">INFO &amp; TENTANG</span>
             </div>
             <div style="background:#0a0a0a; border-radius:6px; padding:12px; margin-top:6px; font-size:9px; color:#888; line-height:1.8;">
-                <div style="color:#0f0; font-size:12px; font-weight:bold; margin-bottom:6px;">IAN LIGHTING v8.7</div>
+                <div style="color:#0f0; font-size:12px; font-weight:bold; margin-bottom:6px;">IAN LIGHTING v8.8</div>
                 <div>Remake From IJUL</div>
                 <div style="margin-top:8px; color:#666;" data-i18n="app_desc">Aplikasi simulasi DMX lighting controller berbasis web. Dirancang untuk simulasi show lighting dengan kontrol beam, gobo, color chase, videotron, dan efek gerakan.</div>
                 <div style="margin-top:10px; border-top:1px solid #222; padding-top:8px;">
@@ -2994,9 +3091,9 @@
     let fxSpeeds = {
         circle:1.0, circleS:1.0, circleBounce:1.0, mirrorCircleBounce:1.0, pargoy:1.0, pargoyTipis:1.0,
         pargoyAtasBawah:1.0, pargoySweepUp:1.0, wave:1.0,
-        snake:1.0, bounce:1.0, chaos:1.0, zigzag:1.0, mirrorSweep:1.0, flyout:1.0
+        snake:1.0, bounce:1.0, chaos:1.0, zigzag:1.0, mirrorSweep:1.0, flyout:1.0, flyoutB:1.0, flyoutL:1.0, flyoutR:1.0
     };
-    let fxState = { circle:false, circleS:false, circleBounce:false, mirrorCircleBounce:false, pargoy:false, pargoyTipis:false, pargoyAtasBawah:false, pargoySweepUp:false, wave:false, snake:false, bounce:false, chaos:false, zigzag:false, mirrorSweep:false, flyout:false, sLR:false, sCt:false, sOdd:false, sAll:false, sRnd:false, sSplit:false, sChase13:false, sLoop:false };
+    let fxState = { circle:false, circleS:false, circleBounce:false, mirrorCircleBounce:false, pargoy:false, pargoyTipis:false, pargoyAtasBawah:false, pargoySweepUp:false, wave:false, snake:false, bounce:false, chaos:false, zigzag:false, mirrorSweep:false, flyout:false, flyoutB:false, flyoutL:false, flyoutR:false, sLR:false, sCt:false, sOdd:false, sAll:false, sRnd:false, sSplit:false, sChase13:false, sLoop:false };
     let isFrozen = false;
     let _circleBounceDir = 1;       // 1 = searah jarum jam, -1 = berlawanan
     let _circleBounceAccum = 0;     // akumulasi sudut (bukan waktu absolut) agar mulus saat balik arah
@@ -3148,7 +3245,7 @@
     let tapFlashTimer = null;
 
     // ── FEATURE 4: Version Compatibility
-    const CURRENT_VERSION = "8.7";
+    const CURRENT_VERSION = "8.8";
     let pendingProjectData = null;
 
     // ── NEW FEATURE: Blackout
@@ -3236,20 +3333,24 @@
         const configs = [
             { size: 420, y: -9.4, speedX: 0.006,  speedZ: 0.003,  rot: 0,    opacity: 0.28 },
             { size: 380, y: -9.0, speedX: -0.004, speedZ: 0.005,  rot: 0.6,  opacity: 0.22 },
-            { size: 460, y: -8.6, speedX: 0.003,  speedZ: -0.004, rot: 1.2,  opacity: 0.18 }
+            { size: 460, y: -8.6, speedX: 0.003,  speedZ: -0.004, rot: 1.2,  opacity: 0.18 },
+            { size: 400, y: -8.1, speedX: -0.002, speedZ: -0.003, rot: 2.1,  opacity: 0.14, extra: true },
+            { size: 440, y: -7.6, speedX: 0.0025, speedZ: 0.002,  rot: 2.8,  opacity: 0.10, extra: true }
         ];
+        const noiseBase = _createHazeNoiseTexture();
         configs.forEach(cfg => {
             const t = tex.clone(); t.needsUpdate = true;
             t.repeat.set(2, 2);
-            const mat = new THREE.MeshBasicMaterial({
+            const tn = noiseBase.clone(); tn.needsUpdate = true; tn.repeat.set(2, 2);
+            const mat = _hazeEdgePatch(new THREE.MeshBasicMaterial({
                 map: t, color: 0xffffff, transparent: true, opacity: cfg.opacity,
                 depthWrite: false, side: THREE.DoubleSide, fog: false
-            });
+            }));
             const plane = new THREE.Mesh(new THREE.PlaneGeometry(cfg.size, cfg.size), mat);
             plane.rotation.x = -Math.PI / 2;
             plane.rotation.z = cfg.rot;
             plane.position.set(0, cfg.y, 0);
-            plane.userData = cfg;
+            plane.userData = Object.assign({}, cfg, { texRadial: t, texNoise: tn });
             hazeLayerGroup.add(plane);
             hazePlanes.push(plane);
         });
@@ -3262,10 +3363,14 @@
         const densityFactor = Math.min(currentFogDensityPct, 100) / 100;
         hazeLayerGroup.visible = fogEffectStrength > 0.01 && densityFactor > 0;
         if (!hazeLayerGroup.visible) return;
+        const _hzReal = !!_gfx().haze;
         hazePlanes.forEach((plane, idx) => {
             const cfg = plane.userData;
+            plane.visible = !cfg.extra || _hzReal;
+            if (!plane.visible) return;
             plane.material.map.offset.x = (now * cfg.speedX * 0.05) % 1;
             plane.material.map.offset.y = (now * cfg.speedZ * 0.05) % 1;
+            if (_hzReal) plane.rotation.z = cfg.rot + now * 0.000012 * (idx % 2 ? 1 : -1);   // berputar sangat pelan
             // Naik-turun pelan biar tidak kelihatan seperti lapisan beku
             plane.position.y = cfg.y + Math.sin(now * 0.00015 + idx * 2) * 0.3;
             // Proporsional linear terhadap density — di 0% hasilnya benar-benar 0 (bukan cuma redup)
@@ -3712,7 +3817,7 @@
         '',
         '[Viewport 3D] Panggung 3D di bagian atas. Mouse: klik kiri+geser = putar kamera; klik kanan/tengah atau Shift+klik kiri+geser = geser kamera; scroll = zoom. Panah = geser kamera maju/mundur/kiri/kanan, PageUp/PageDown = atas/bawah. Di HP: geser satu jari memutar, cubit untuk zoom. Ada tombol tarik (drag) untuk memperbesar/memperkecil tinggi viewport. Latar bisa diganti lewat pilihan stage/jam langit, dan kabut (fog) bisa diatur.',
         '',
-        '[Tab Main] Mengontrol lampu moving head: pilih lampu (atau semua), atur warna, gobo/mode (termasuk mode prisma PRISM/FAN/DOTS/STAR dan Rainbow Prism), dimmer, zoom, serta kecepatan. Ada Generator Gerakan (FX) seperti circle, mirror, dsb. dengan slider kecepatan; Chase Mover, Chase Gobo, Chase Color; Scene; Master Strobe; Flash Minibrute (FLASH MB); Freeze; Blackout; dan Master Gobo. Tombol SELECT MB memilih Minibrute untuk digerakkan lewat pan/tilt.',
+        '[Tab Main] Mengontrol lampu moving head: pilih lampu (atau semua), atur warna, gobo/mode (termasuk mode prisma PRISM/FAN/DOTS/STAR/PRISM 16/PRISM 32 dan Rainbow Prism), dimmer, zoom, serta kecepatan. Ada Generator Gerakan (FX) seperti circle, mirror, dsb. dengan slider kecepatan; Chase Mover, Chase Gobo, Chase Color; Scene; Master Strobe; Flash Minibrute (FLASH MB); Freeze; Blackout; dan Master Gobo. Tombol SELECT MB memilih Minibrute untuk digerakkan lewat pan/tilt.',
         'Hotkey bawaan (keyboard): Spasi ditahan = Flash MB; F = Freeze; B = Blackout; G = ganti Master Gobo/Mode berikutnya; 1-9, 0, -, = = Chase Mover 1-12; Shift+1-9,0 = Chase Gobo 1-10; Alt+1-8 = Chase Color 1-8; Q/W/E/R/T/Y/U ditahan = Master Strobe urutan 1-7; Backspace = Balik Arah Manual (untuk gerakan circle/mirror bolak-balik bila mode MANUAL aktif). Hotkey otomatis nonaktif saat mengetik di kolom teks. Hotkey aksi dan FX bisa diganti di tab Settings.',
         '',
         '[Tab Editor] Mengatur isi panggung: jumlah dan jarak lampu, Rigging Truss, Parled, Wallwasher, Strobe Kotak, Lampu Kipas (bisa memakai gambar PNG), Videotron (layar video; kalau tidak ada video tampil layar hitam "VT n" dan "NO SIGNAL"; ada edge RGB), Foto 2D, Banner, Model 3D (upload file OBJ/FBX; harus diupload ulang manual setelah memuat proyek), dan MINIBRUTE HARDWARE CONTROL.',
@@ -3726,7 +3831,7 @@
         '[Tab Settings] Berisi: Rekam Viewport 3D; Tema Warna; Auto-Load Project; Multi Gerakan; Deteksi Offline Otomatis; Anti-Lag; Geser Kamera; Bahasa (Indonesia/English); Kualitas Render 3D; Lantai & Langit Custom (upload gambar sendiri: lantai mode Ulang/Tile atau Satu Gambar, langit mode Panorama 360 atau Latar Datar, slider kecerahan, kabut ikut langit, tombol Kembali ke Bawaan; gambar tidak disimpan dan kembali bawaan setiap aplikasi dibuka); Urutan Generator Gerakan; Urutan Master Strobe; Custom Delay per Gerakan; Custom Rotasi per Prisma; Custom Derajat Balik Arah; Custom Spread per Prisma; Kunci Slider Editor; Custom Hotkey FX dan Aksi; Cara Main di Monitor/Komputer; Laporan Bug/Saran; Cek Status Laporan; Reset ke Default; Info & Tentang.',
         '',
         '[Proyek] Proyek bisa disimpan ke file (Save Project, bisa dikunci password) dan dimuat lagi (Load Project). Sesi juga disimpan otomatis tiap beberapa detik dan bisa dipulihkan. Isi proyek mencakup lampu, truss, parled, wallwasher, strobe, lampu kipas, videotron, foto 2D, banner, Minibrute, chase/scene, dan pengaturan.',
-        '[Lain-lain] Aplikasi bisa dipasang sebagai PWA dan sebagian bisa dipakai offline. Admin dapat mengirim pengumuman, banner New Update, mode maintenance, dan update paksa.'
+        '[Lain-lain] Aplikasi berupa APK Android dan sebagian fitur bisa dipakai offline. Admin dapat mengirim pengumuman, banner New Update, mode maintenance, dan update paksa.'
     ].join('\n');
 
     const AI = { enabled: false, key: '', model: 'gemini-3.8-flash', extra: '', history: [], busy: false };
@@ -3820,6 +3925,1156 @@
         const box = document.getElementById('ai-log'); if (box) box.scrollTop = box.scrollHeight;
     }
 
+    // ═══════════════════════════════════════════════════════════════
+    // GRAFIS REALISTIS — anti-aliasing (FXAA), filmic tone mapping, beam volumetrik, bercak lantai, haze noise, auto kualitas.
+    // Semua bisa dimatikan satu-satu di Settings > GRAFIS REALISTIS (settingsState.gfx, ikut tersimpan di project).
+    // ═══════════════════════════════════════════════════════════════
+    const _gfx = () => (typeof settingsState !== 'undefined' && settingsState.gfx) ? settingsState.gfx : {};
+
+    // ── BEAM VOLUMETRIK: tepi lembut + memudar sepanjang beam + gerak asap halus (disuntik ke MeshBasicMaterial beam) ──
+    const _beamFx = { uFx: { value: 1 }, uTime: { value: 0 }, uFade: { value: 0 } };
+    function _beamFxPatch(mat) {
+        mat.onBeforeCompile = function (shader) {
+            shader.uniforms.uBeamFx = _beamFx.uFx;
+            shader.uniforms.uBeamTime = _beamFx.uTime;
+            shader.uniforms.uBeamFade = _beamFx.uFade;
+            shader.vertexShader = shader.vertexShader
+                .replace('#include <common>', '#include <common>\nvarying vec3 vBfN; varying vec3 vBfV; varying float vBfAx; varying vec3 vBfW;')
+                .replace('#include <project_vertex>', '#include <project_vertex>\n  vBfN = normalize(normalMatrix * normal); vBfV = normalize(-mvPosition.xyz); vBfAx = uv.y; vBfW = (modelMatrix * vec4(transformed, 1.0)).xyz;');
+            shader.fragmentShader = shader.fragmentShader
+                .replace('#include <common>', '#include <common>\nuniform float uBeamFx; uniform float uBeamTime; uniform float uBeamFade; varying vec3 vBfN; varying vec3 vBfV; varying float vBfAx; varying vec3 vBfW;')
+                .replace(/\}\s*$/, [
+                    '  {',
+                    '    float ndv = abs(dot(normalize(vBfN), normalize(vBfV)));',
+                    '    float edge = pow(clamp(ndv, 0.0, 1.0), 0.8) * 1.18;',
+                    '    float ax = smoothstep(0.0, 0.10, vBfAx) * (1.0 - 0.55 * smoothstep(0.45, 1.0, vBfAx));',
+                    '    float nz = 0.90 + 0.10 * sin(dot(vBfW, vec3(0.13, 0.09, 0.11)) + uBeamTime * 0.9) * sin(vBfW.y * 0.21 - uBeamTime * 0.6 + vBfW.x * 0.07);',
+                    '    float f = clamp(edge, 0.0, 1.2) * ax * nz * 1.3;',
+                    '    gl_FragColor.a *= mix(1.0, f, uBeamFx);',
+                    '    gl_FragColor.a *= mix(1.0, pow(1.0 - smoothstep(0.25, 1.0, vBfAx), 1.2), uBeamFade);',
+                    '  }',
+                    '}'
+                ].join('\n'));
+        };
+        return mat;
+    }
+
+    // ── BERCAK CAHAYA DI LANTAI (hotspot di titik beam menyentuh lantai; ikut bentuk prisma/kipas/dots/matrix/star) ──
+    let _spotTex = null;
+    const _spO = new THREE.Vector3(), _spD = new THREE.Vector3();
+    function _spotTexture() {
+        if (_spotTex) return _spotTex;
+        const c = document.createElement('canvas'); c.width = c.height = 128;
+        const x = c.getContext('2d'), g = x.createRadialGradient(64, 64, 0, 64, 64, 64);
+        g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(0.3, 'rgba(255,255,255,0.85)');
+        g.addColorStop(0.65, 'rgba(255,255,255,0.25)'); g.addColorStop(1, 'rgba(255,255,255,0)');
+        x.fillStyle = g; x.fillRect(0, 0, 128, 128);
+        _spotTex = new THREE.CanvasTexture(c);
+        return _spotTex;
+    }
+    function _getSpot(l, k) {
+        if (!l._spots) l._spots = [];
+        if (!l._spots[k]) {
+            const geo = new THREE.PlaneGeometry(1, 1); geo.rotateX(-Math.PI / 2);   // rebah di lantai; sumbu panjang = +z
+            const m = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({
+                map: _spotTexture(), color: 0xffffff, transparent: true, opacity: 0,
+                blending: THREE.AdditiveBlending, depthWrite: false, fog: false
+            }));
+            m.visible = false; m.frustumCulled = false;
+            scene.add(m); l._spots[k] = m;
+        }
+        return l._spots[k];
+    }
+    function _spotFor(l, k, obj, shell, floorY) {
+        if (k >= 28 || !shell || !shell.material || !shell.visible) return k;
+        const op = shell.material.opacity;
+        if (op < 0.03) return k;
+        obj.getWorldPosition(_spO); obj.getWorldDirection(_spD);
+        if (_spD.y > -0.08) return k;                               // beam tidak cukup menghadap ke bawah
+        const t = (floorY - _spO.y) / _spD.y, gp = shell.geometry.parameters, L = gp.height;
+        if (t <= 0 || t > L * 1.1) return k;                        // di luar jangkauan beam
+        const sp = _getSpot(l, k);
+        const lamp = l.group && l.group.scale ? l.group.scale.x : 1;
+        const r = shell.scale.x * lamp * (gp.radiusBottom + (gp.radiusTop - gp.radiusBottom) * Math.min(1.2, t / L));
+        const stretch = Math.min(5, 1 / Math.max(0.2, -_spD.y));    // makin miring makin lonjong
+        sp.position.set(_spO.x + _spD.x * t, floorY, _spO.z + _spD.z * t);
+        sp.rotation.y = Math.atan2(_spD.x, _spD.z);
+        sp.scale.set(Math.max(0.6, r * 2), 1, Math.max(0.6, r * 2 * stretch));
+        sp.material.color.copy(shell.material.color);
+        const fall = 1 - THREE.MathUtils.smoothstep(t / L, 0.85, 1.1);
+        sp.material.opacity = Math.min(0.9, op * 0.9 * fall);
+        sp.visible = true;
+        return k + 1;
+    }
+    function updateLampFloorSpots(l) {
+        const arr = l._spots; let k = 0;
+        if (_gfx().spots && floorMesh) {
+            const fy = floorMesh.position.y + 0.12;
+            k = _spotFor(l, k, l.wc, l.beamShell, fy);
+            const grp = (cont, list) => { if (cont && cont.visible && list) for (let j = 0; j < list.length; j++) k = _spotFor(l, k, list[j], list[j].children[0], fy); };
+            if (!antiLagOn) {
+                grp(l.prismContainer, l.prisms); grp(l.fanContainer, l.fans); grp(l.dotsContainer, l.dots);
+                grp(l.matrixContainer, l.matrixDots); grp(l.starContainer, l.stars);
+                grp(l.prism16Container, l.prisms16); grp(l.prism32Container, l.prisms32);
+            }
+        }
+        if (arr) for (let j = k; j < arr.length; j++) if (arr[j]) arr[j].visible = false;
+    }
+
+    // ── HAZE NOISE: tekstur noise tileable (fBm) menggantikan gumpalan radial yang berulang ──
+    function _createHazeNoiseTexture() {
+        const N = 256, cv = document.createElement('canvas'); cv.width = cv.height = N;
+        const cx = cv.getContext('2d'), img = cx.createImageData(N, N);
+        let seed = 1337; const rnd = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
+        const oct = [[4, 0.5], [8, 0.28], [16, 0.14], [32, 0.08]].map(([g, w]) => { const a = new Float32Array(g * g); for (let i = 0; i < a.length; i++) a[i] = rnd(); return { g, w, a }; });
+        const sm = t => t * t * (3 - 2 * t);
+        const samp = (o, x, y) => {
+            const g = o.g, fx = x * g, fy = y * g, xi = Math.floor(fx), yi = Math.floor(fy), tx = sm(fx - xi), ty = sm(fy - yi);
+            const v = (a, b) => o.a[(((b % g) + g) % g) * g + (((a % g) + g) % g)];
+            return (v(xi, yi) * (1 - tx) + v(xi + 1, yi) * tx) * (1 - ty) + (v(xi, yi + 1) * (1 - tx) + v(xi + 1, yi + 1) * tx) * ty;
+        };
+        for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+            let v = 0; oct.forEach(o => { v += samp(o, x / N, y / N) * o.w; });
+            const a = THREE.MathUtils.smoothstep(v, 0.36, 0.78) * 0.9, i = (y * N + x) * 4;
+            img.data[i] = img.data[i + 1] = img.data[i + 2] = 255; img.data[i + 3] = Math.round(a * 255);
+        }
+        cx.putImageData(img, 0, 0);
+        const t = new THREE.CanvasTexture(cv); t.wrapS = t.wrapT = THREE.RepeatWrapping;
+        return t;
+    }
+    function _hazeEdgePatch(mat) {
+        mat.onBeforeCompile = function (shader) {
+            shader.vertexShader = shader.vertexShader
+                .replace('#include <common>', '#include <common>\nvarying vec2 vHzUv;')
+                .replace('#include <project_vertex>', '#include <project_vertex>\n  vHzUv = uv;');
+            shader.fragmentShader = shader.fragmentShader
+                .replace('#include <common>', '#include <common>\nvarying vec2 vHzUv;')
+                .replace(/\}\s*$/, '  gl_FragColor.a *= 1.0 - smoothstep(0.34, 0.5, length(vHzUv - 0.5));\n}');
+        };
+        return mat;
+    }
+
+    // ── POST PASS: FXAA + filmic (render scene ke render target, lalu 1 pass layar penuh) ──
+    const _post = { rt: null, scene: null, cam: null, mat: null, w: 0, h: 0, half: true, broken: false };
+    const _postV2 = new THREE.Vector2();
+    const POST_FRAG = [
+        'uniform sampler2D tDiffuse; uniform sampler2D tBloom; uniform sampler2D tVol; uniform sampler2D tShaft; uniform vec2 uPx; uniform float uExp; uniform float uAA; uniform float uFilm; uniform float uBloom; uniform float uVol; uniform float uShaft; uniform float uLens; uniform float uLensAmt; uniform float uTime; varying vec2 vUv;',
+        'vec3 comp(vec3 c) {',
+        '  c *= uExp;',
+        '  float m = max(c.r, max(c.g, c.b));',
+        '  if (uFilm > 0.5) { if (m > 0.9) { float k = 0.9; float fm = k + (1.0 - k) * (1.0 - exp(-(m - k) / (1.0 - k))); c *= fm / m; } }',
+        '  else { c = min(c, vec3(1.0)); }',
+        '  return c;',
+        '}',
+        'vec3 S(vec2 uv) { return comp(texture2D(tDiffuse, uv).rgb); }',
+        'float L(vec3 c) { return dot(c, vec3(0.299, 0.587, 0.114)); }',
+        'void main() {',
+        '  vec2 uv = vUv;',
+        '  vec3 col = S(uv);',
+        '  if (uAA > 0.5) {',
+        '    vec3 nw = S(uv + vec2(-1.0, -1.0) * uPx), ne = S(uv + vec2(1.0, -1.0) * uPx);',
+        '    vec3 sw = S(uv + vec2(-1.0, 1.0) * uPx),  se = S(uv + vec2(1.0, 1.0) * uPx);',
+        '    float lnw = L(nw), lne = L(ne), lsw = L(sw), lse = L(se), lm = L(col);',
+        '    float lmin = min(lm, min(min(lnw, lne), min(lsw, lse)));',
+        '    float lmax = max(lm, max(max(lnw, lne), max(lsw, lse)));',
+        '    vec2 dir = vec2(-((lnw + lne) - (lsw + lse)), ((lnw + lsw) - (lne + lse)));',
+        '    float dr = max((lnw + lne + lsw + lse) * (0.25 * 0.125), 1.0 / 128.0);',
+        '    float rcp = 1.0 / (min(abs(dir.x), abs(dir.y)) + dr);',
+        '    dir = min(vec2(8.0), max(vec2(-8.0), dir * rcp)) * uPx;',
+        '    vec3 a = 0.5 * (S(uv + dir * (1.0 / 3.0 - 0.5)) + S(uv + dir * (2.0 / 3.0 - 0.5)));',
+        '    vec3 b = a * 0.5 + 0.25 * (S(uv + dir * -0.5) + S(uv + dir * 0.5));',
+        '    float lb = L(b);',
+        '    col = (lb < lmin || lb > lmax) ? a : b;',
+        '  }',
+        '  if (uLens > 0.5) {',
+        '    vec2 d = uv - 0.5;',
+        '    vec2 off = d * (0.002 + 0.01 * dot(d, d)) * uLensAmt * 2.0;',
+        '    col.r = mix(col.r, S(uv + off).r, 0.6); col.b = mix(col.b, S(uv - off).b, 0.6);',
+        '    vec3 gh = vec3(0.0);',
+        '    gh += texture2D(tBloom, 0.5 - d * 0.55).rgb * vec3(1.0, 0.55, 0.35);',
+        '    gh += texture2D(tBloom, 0.5 - d * 1.35).rgb * vec3(0.4, 0.75, 1.0);',
+        '    gh += texture2D(tBloom, 0.5 - d * 2.2).rgb * vec3(0.75, 0.45, 1.0);',
+        '    col += gh * smoothstep(0.05, 0.5, length(d)) * 0.2 * uLensAmt;',
+        '    col *= 1.0 - dot(d, d) * 1.3 * uLensAmt;',
+        '    col += (fract(sin(dot(gl_FragCoord.xy + uTime, vec2(12.9898, 78.233))) * 43758.5453) - 0.5) * 0.02 * uLensAmt;',
+        '  }',
+        '  if (uVol > 0.001) col += texture2D(tVol, uv).rgb * uVol;',
+        '  if (uShaft > 0.001) col += texture2D(tShaft, uv).rgb * uShaft;',
+        '  if (uBloom > 0.001) { vec3 bl = texture2D(tBloom, uv).rgb; bl = clamp(bl, vec3(0.0), vec3(2.0)); col += bl * uBloom * 0.6; }',
+        '  col = clamp(col, 0.0, 1.0);',
+        '  if (uFilm > 0.5) {',
+        '    col = mix(col, col * col * (3.0 - 2.0 * col), 0.30);',
+        '    float lu = L(col); col = mix(vec3(lu), col, 1.08);',
+        '  }',
+        '  col = clamp(col, 0.0, 1.0);',
+        '  col += (fract(sin(dot(gl_FragCoord.xy, vec2(12.9898, 78.233))) * 43758.5453) - 0.5) / 255.0;',
+        '  gl_FragColor = vec4(col, 1.0);',
+        '}'
+    ].join('\n');
+    function _postEnsure(needDepth) {
+        if (!_post.scene) {
+            _post.mat = new THREE.ShaderMaterial({
+                uniforms: { tDiffuse: { value: null }, tBloom: { value: null }, tVol: { value: null }, tShaft: { value: null }, uPx: { value: new THREE.Vector2(1, 1) }, uExp: { value: 1 }, uAA: { value: 1 }, uFilm: { value: 1 }, uBloom: { value: 0 }, uVol: { value: 0 }, uShaft: { value: 0 }, uLens: { value: 0 }, uLensAmt: { value: 0.6 }, uTime: { value: 0 } },
+                vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }',
+                fragmentShader: POST_FRAG, depthTest: false, depthWrite: false
+            });
+            const q = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), _post.mat); q.frustumCulled = false;
+            _post.scene = new THREE.Scene(); _post.scene.add(q);
+            _post.cam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+        }
+        renderer.getDrawingBufferSize(_postV2);
+        const w = Math.max(1, Math.floor(_postV2.x)), h = Math.max(1, Math.floor(_postV2.y));
+        if (_post.rt && _post.w === w && _post.h === h && (!needDepth || _post.rt.depthTexture)) return;
+        if (_post.rt) { try { _post.rt.dispose(); } catch (e) {} _post.rt = null; }
+        const gl = renderer.getContext();
+        const make = (half) => {
+            const r = new THREE.WebGLRenderTarget(w, h, {
+                minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, format: THREE.RGBAFormat,
+                type: half ? THREE.HalfFloatType : THREE.UnsignedByteType, depthBuffer: true, stencilBuffer: false
+            });
+            if (needDepth) {
+                const dt = new THREE.DepthTexture(w, h);
+                dt.type = renderer.capabilities.isWebGL2 ? THREE.UnsignedIntType : THREE.UnsignedShortType;
+                dt.minFilter = THREE.NearestFilter; dt.magFilter = THREE.NearestFilter;
+                r.depthTexture = dt;
+            }
+            return r;
+        };
+        let rt = null;
+        for (let pass = 0; pass < 2 && !rt; pass++) {
+            const half = _post.half && renderer.capabilities.isWebGL2;
+            const cand = make(half);
+            renderer.setRenderTarget(cand);
+            const st = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
+            renderer.setRenderTarget(null);
+            if (st === gl.FRAMEBUFFER_COMPLETE) rt = cand; else { cand.dispose(); if (half) _post.half = false; else break; }
+        }
+        if (!rt) throw new Error('render target tidak lengkap');
+        _post.rt = rt; _post.w = w; _post.h = h;
+    }
+
+    // ── BLOOM: bright-pass di resolusi 1/4, blur Gaussian terpisah (H lalu V, dua tingkat), ditambahkan di pass akhir ──
+    const _bloom = { a: null, b: null, scene: null, mat: null, matBlur: null, w: 0, h: 0 };
+    const BLOOM_BRIGHT_FRAG = [
+        'uniform sampler2D tDiffuse; uniform vec2 uPx; uniform float uThr; uniform float uExp; varying vec2 vUv;',
+        'void main() {',
+        '  vec3 c = (texture2D(tDiffuse, vUv + uPx * vec2(-1.0, -1.0)).rgb + texture2D(tDiffuse, vUv + uPx * vec2(1.0, -1.0)).rgb',
+        '          + texture2D(tDiffuse, vUv + uPx * vec2(-1.0, 1.0)).rgb + texture2D(tDiffuse, vUv + uPx * vec2(1.0, 1.0)).rgb) * 0.25;',
+        '  c = clamp(c, vec3(0.0), vec3(6.0)) * uExp;',
+        '  float m = max(c.r, max(c.g, c.b));',
+        '  float k = clamp((m - uThr) / max(0.0001, 0.35), 0.0, 1.0); k = k * k * (3.0 - 2.0 * k);',
+        '  gl_FragColor = vec4(min(c * k, vec3(4.0)), 1.0);',
+        '}'
+    ].join('\n');
+    const BLOOM_BLUR_FRAG = [
+        'uniform sampler2D tDiffuse; uniform vec2 uDir; varying vec2 vUv;',
+        'void main() {',
+        '  vec3 s = texture2D(tDiffuse, vUv).rgb * 0.227027;',
+        '  s += (texture2D(tDiffuse, vUv + uDir * 1.0).rgb + texture2D(tDiffuse, vUv - uDir * 1.0).rgb) * 0.1945946;',
+        '  s += (texture2D(tDiffuse, vUv + uDir * 2.0).rgb + texture2D(tDiffuse, vUv - uDir * 2.0).rgb) * 0.1216216;',
+        '  s += (texture2D(tDiffuse, vUv + uDir * 3.0).rgb + texture2D(tDiffuse, vUv - uDir * 3.0).rgb) * 0.054054;',
+        '  s += (texture2D(tDiffuse, vUv + uDir * 4.0).rgb + texture2D(tDiffuse, vUv - uDir * 4.0).rgb) * 0.016216;',
+        '  gl_FragColor = vec4(s, 1.0);',
+        '}'
+    ].join('\n');
+    function _bloomEnsure(w, h, half) {
+        const bw = Math.max(8, Math.floor(w / 4)), bh = Math.max(8, Math.floor(h / 4));
+        if (!_bloom.scene) {
+            const vs = 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }';
+            _bloom.mat = new THREE.ShaderMaterial({ uniforms: { tDiffuse: { value: null }, uPx: { value: new THREE.Vector2() }, uThr: { value: 0.75 }, uExp: { value: 1 } }, vertexShader: vs, fragmentShader: BLOOM_BRIGHT_FRAG, depthTest: false, depthWrite: false });
+            _bloom.matBlur = new THREE.ShaderMaterial({ uniforms: { tDiffuse: { value: null }, uDir: { value: new THREE.Vector2() } }, vertexShader: vs, fragmentShader: BLOOM_BLUR_FRAG, depthTest: false, depthWrite: false });
+            const q = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), _bloom.mat); q.frustumCulled = false;
+            _bloom.scene = new THREE.Scene(); _bloom.scene.add(q); _bloom.quad = q;
+        }
+        if (_bloom.a && _bloom.w === bw && _bloom.h === bh && _bloom.half === half) return;
+        if (_bloom.a) { _bloom.a.dispose(); _bloom.b.dispose(); }
+        const mk = () => new THREE.WebGLRenderTarget(bw, bh, { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, format: THREE.RGBAFormat, type: half ? THREE.HalfFloatType : THREE.UnsignedByteType, depthBuffer: false, stencilBuffer: false });
+        _bloom.a = mk(); _bloom.b = mk(); _bloom.w = bw; _bloom.h = bh; _bloom.half = half;
+    }
+    function _bloomBright(srcTex, g) {
+        _bloomEnsure(_post.w, _post.h, _post.half && renderer.capabilities.isWebGL2);
+        const q = _bloom.quad, cam = _post.cam;
+        q.material = _bloom.mat;
+        _bloom.mat.uniforms.tDiffuse.value = srcTex;
+        _bloom.mat.uniforms.uPx.value.set(1 / _post.w, 1 / _post.h);
+        _bloom.mat.uniforms.uExp.value = g.filmic ? (g.exposure || 1) : 1;
+        renderer.setRenderTarget(_bloom.a); renderer.render(_bloom.scene, cam);
+    }
+    function _bloomBlur() {
+        const q = _bloom.quad, cam = _post.cam;
+        const pass = (mat, src, dst) => { q.material = mat; mat.uniforms.tDiffuse.value = src; renderer.setRenderTarget(dst); renderer.render(_bloom.scene, cam); };
+        const tx = 1 / _bloom.w, ty = 1 / _bloom.h;
+        [1.0, 2.5].forEach(spread => {
+            _bloom.matBlur.uniforms.uDir.value.set(tx * spread, 0); pass(_bloom.matBlur, _bloom.a.texture, _bloom.b);
+            _bloom.matBlur.uniforms.uDir.value.set(0, ty * spread); pass(_bloom.matBlur, _bloom.b.texture, _bloom.a);
+        });
+        return _bloom.a.texture;
+    }
+
+    // ── DATA LAMPU UNTUK EFEK ULTRA (asap volumetrik, light shafts, bayangan lembut) ──
+    const _ult = { list: [], pos: [], dir: [], col: [], tan: [], sp: [], sw: [], n: 0 };
+    for (let i = 0; i < 8; i++) { _ult.pos.push(new THREE.Vector3()); _ult.dir.push(new THREE.Vector3(0, 0, 1)); _ult.col.push(new THREE.Vector3()); _ult.tan.push(0.05); }
+    for (let i = 0; i < 4; i++) { _ult.sp.push(new THREE.Vector2(0.5, 0.5)); _ult.sw.push(0); }
+    const _ultTmp = new THREE.Vector3();
+    function _ultraUpdate(g) {
+        camera.updateMatrixWorld();
+        const list = _ult.list; list.length = 0;
+        lamps.forEach(l => {
+            if (!l.wc || !l.state || !l._lcol) return;
+            const st = (l.state.curDim || 0) * (l._lalpha || 0);
+            if (st >= 0.04) list.push({ l, st });
+        });
+        list.sort((a, b) => b.st - a.st);
+        const n = Math.min(8, list.length); _ult.n = n;
+        for (let i = 0; i < n; i++) {
+            const l = list[i].l, st = list[i].st;
+            l.wc.getWorldPosition(_ult.pos[i]);
+            _ult.dir[i].set(0, 0, 1).transformDirection(l.wc.matrixWorld);
+            const spread = (l.state.mode && l.state.mode !== 'beam') ? 2.2 : 1.0;
+            const k = Math.min(1, st) / (1 + (spread - 1) * 0.6);
+            _ult.col[i].set(l._lcol.r * k, l._lcol.g * k, l._lcol.b * k);
+            _ult.tan[i] = (8 * (l._lzf || 1) * spread) / Math.max(40, beamLength);
+        }
+        for (let j = 0; j < 4; j++) {
+            _ult.sw[j] = 0;
+            if (j < n) {
+                _ultTmp.copy(_ult.pos[j]).project(camera);
+                if (_ultTmp.z < 1 && Math.abs(_ultTmp.x) < 1.6 && Math.abs(_ultTmp.y) < 1.6) {
+                    _ult.sp[j].set(_ultTmp.x * 0.5 + 0.5, _ultTmp.y * 0.5 + 0.5);
+                    const edge = 1 - Math.max(0, Math.max(Math.abs(_ultTmp.x), Math.abs(_ultTmp.y)) - 1) / 0.6;
+                    _ult.sw[j] = Math.min(1, list[j].st) * Math.max(0, edge);
+                }
+            }
+        }
+        if (g.sshadow) _ssUpdate();
+    }
+
+    // ── LIGHT SHAFTS: radial blur dari posisi lampu di layar (di resolusi 1/4) ──
+    const _shaft = { rt: null, mat: null, scene: null, quad: null, w: 0, h: 0 };
+    function _shaftRun() {
+        if (!_shaft.mat) {
+            const vs = 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }';
+            const fs = [
+                'uniform sampler2D tDiffuse; uniform vec2 uSP[4]; uniform float uSW[4]; varying vec2 vUv;',
+                'void main() {',
+                '  vec3 acc = vec3(0.0);',
+                '  for (int j = 0; j < 4; j++) {',
+                '    if (uSW[j] <= 0.001) continue;',
+                '    vec2 dl = (uSP[j] - vUv) / 20.0; vec2 uv = vUv; float dec = 1.0; vec3 sm = vec3(0.0);',
+                '    for (int i = 0; i < 20; i++) { uv += dl; sm += texture2D(tDiffuse, uv).rgb * dec; dec *= 0.94; }',
+                '    acc += sm * uSW[j] / 30.0;',
+                '  }',
+                '  gl_FragColor = vec4(acc, 1.0);',
+                '}'
+            ].join('\n');
+            _shaft.mat = new THREE.ShaderMaterial({ uniforms: { tDiffuse: { value: null }, uSP: { value: _ult.sp }, uSW: { value: _ult.sw } }, vertexShader: vs, fragmentShader: fs, depthTest: false, depthWrite: false });
+            const q = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), _shaft.mat); q.frustumCulled = false;
+            _shaft.scene = new THREE.Scene(); _shaft.scene.add(q);
+        }
+        if (!_shaft.rt || _shaft.w !== _bloom.w || _shaft.h !== _bloom.h) {
+            if (_shaft.rt) _shaft.rt.dispose();
+            _shaft.rt = new THREE.WebGLRenderTarget(_bloom.w, _bloom.h, { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, format: THREE.RGBAFormat, type: _bloom.half ? THREE.HalfFloatType : THREE.UnsignedByteType, depthBuffer: false, stencilBuffer: false });
+            _shaft.w = _bloom.w; _shaft.h = _bloom.h;
+        }
+        _shaft.mat.uniforms.tDiffuse.value = _bloom.a.texture;
+        renderer.setRenderTarget(_shaft.rt); renderer.render(_shaft.scene, _post.cam);
+        return _shaft.rt.texture;
+    }
+
+    // ── ASAP VOLUMETRIK: ray-march di resolusi 1/2, cahaya tiap lampu (kerucut) menyinari asap bernoise ──
+    const _vol = { rt: null, mat: null, scene: null, w: 0, h: 0, inv: new THREE.Matrix4() };
+    function _volRun(g) {
+        if (!_vol.mat) {
+            const vs = 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }';
+            const fs = [
+                'uniform sampler2D tDepth; uniform mat4 uInvVP; uniform vec3 uCam; uniform float uTime; uniform float uN; uniform float uLen;',
+                'uniform vec3 uLP[8]; uniform vec3 uLD[8]; uniform vec3 uLC[8]; uniform float uLT[8]; varying vec2 vUv;',
+                'float nz(vec3 p) {',
+                '  float a = sin(p.x * 1.7 + sin(p.y * 1.3 + p.z * 0.9) * 1.6) * sin(p.z * 1.1 + sin(p.x * 0.7 + p.y * 0.5) * 1.6);',
+                '  float b = sin(p.x * 3.1 + p.z * 2.3 + uTime * 0.4) * sin(p.y * 2.7 - p.z * 1.9);',
+                '  return clamp(0.55 + 0.35 * a + 0.2 * b, 0.0, 1.0);',
+                '}',
+                'void main() {',
+                '  float d = texture2D(tDepth, vUv).r;',
+                '  vec4 w = uInvVP * vec4(vUv * 2.0 - 1.0, d * 2.0 - 1.0, 1.0);',
+                '  vec3 wp = w.xyz / w.w;',
+                '  vec3 rd = normalize(wp - uCam);',
+                '  float dist = min(length(wp - uCam), 450.0);',
+                '  float st = dist / 28.0;',
+                '  float jit = fract(sin(dot(gl_FragCoord.xy + uTime, vec2(12.9898, 78.233))) * 43758.5453);',
+                '  vec3 acc = vec3(0.0);',
+                '  for (int i = 0; i < 28; i++) {',
+                '    vec3 p = uCam + rd * ((float(i) + jit) * st);',
+                '    float dens = 0.35 + 0.65 * nz(p * 0.045 + vec3(0.0, uTime * 0.03, uTime * 0.02));',
+                '    vec3 ls = vec3(0.0);',
+                '    for (int k = 0; k < 8; k++) {',
+                '      if (float(k) >= uN) break;',
+                '      vec3 v = p - uLP[k];',
+                '      float t = dot(v, uLD[k]);',
+                '      if (t > 1.0 && t < uLen) {',
+                '        float r = length(v - uLD[k] * t);',
+                '        float R = 0.85 + t * uLT[k];',
+                '        float f = 1.0 - smoothstep(0.0, 1.0, r / R);',
+                '        f *= (1.0 - t / uLen) * smoothstep(0.0, 12.0, t);',
+                '        ls += uLC[k] * f;',
+                '      }',
+                '    }',
+                '    acc += ls * dens * st;',
+                '  }',
+                '  gl_FragColor = vec4(min(acc * 0.03, vec3(0.6)), 1.0);',
+                '}'
+            ].join('\n');
+            _vol.mat = new THREE.ShaderMaterial({
+                uniforms: { tDepth: { value: null }, uInvVP: { value: _vol.inv }, uCam: { value: new THREE.Vector3() }, uTime: { value: 0 }, uN: { value: 0 }, uLen: { value: 150 }, uLP: { value: _ult.pos }, uLD: { value: _ult.dir }, uLC: { value: _ult.col }, uLT: { value: _ult.tan } },
+                vertexShader: vs, fragmentShader: fs, depthTest: false, depthWrite: false
+            });
+            const q = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), _vol.mat); q.frustumCulled = false;
+            _vol.scene = new THREE.Scene(); _vol.scene.add(q);
+        }
+        const w = Math.max(32, Math.floor(_post.w / 2)), h = Math.max(32, Math.floor(_post.h / 2));
+        if (!_vol.rt || _vol.w !== w || _vol.h !== h) {
+            if (_vol.rt) _vol.rt.dispose();
+            _vol.rt = new THREE.WebGLRenderTarget(w, h, { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, format: THREE.RGBAFormat, type: (_post.half && renderer.capabilities.isWebGL2) ? THREE.HalfFloatType : THREE.UnsignedByteType, depthBuffer: false, stencilBuffer: false });
+            _vol.w = w; _vol.h = h;
+        }
+        if (!_post.rt.depthTexture) throw new Error('depth texture tidak tersedia');
+        const u = _vol.mat.uniforms;
+        _vol.inv.multiplyMatrices(camera.matrixWorld, camera.projectionMatrixInverse);
+        u.tDepth.value = _post.rt.depthTexture;
+        u.uCam.value.setFromMatrixPosition(camera.matrixWorld);
+        u.uTime.value = _beamFx.uTime.value; u.uN.value = _ult.n; u.uLen.value = beamLength;
+        renderer.setRenderTarget(_vol.rt); renderer.render(_vol.scene, _post.cam);
+        return _vol.rt.texture;
+    }
+
+    // ── BAYANGAN LEMBUT DARI LAMPU: SpotLight berbayang (maks 4 lampu paling terang) menjatuhkan bayangan truss ──
+    const _ss = { lights: [], on: false };
+    function _ssMaterialsRefresh() { try { scene.traverse(o => { if (o.material) (Array.isArray(o.material) ? o.material : [o.material]).forEach(m => { m.needsUpdate = true; }); }); } catch (e) {} }
+    function _ssCasters() {
+        if (typeof trusses === 'undefined') return;
+        trusses.forEach(t => { if (t.group) t.group.traverse(o => { if (o.isMesh && o.material && !o.material.transparent && !o.castShadow) { o.castShadow = true; } }); });
+        if (floorMesh) floorMesh.receiveShadow = true;
+    }
+    function _ssApply(on) {
+        if (!scene || on === _ss.on) return;
+        if (on) {
+            if (!_ss.lights.length) {
+                for (let i = 0; i < 4; i++) {
+                    const sl = new THREE.SpotLight(0xffffff, 0, 450, 0.3, 0.7, 1);
+                    sl.castShadow = true; sl.shadow.mapSize.set(1024, 1024);
+                    sl.shadow.camera.near = 2; sl.shadow.camera.far = 320; sl.shadow.bias = -0.0006; sl.shadow.radius = 4;
+                    _ss.lights.push(sl);
+                }
+            }
+            renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            _ss.lights.forEach(sl => { scene.add(sl); scene.add(sl.target); });
+            _ssCasters();
+        } else {
+            _ss.lights.forEach(sl => { scene.remove(sl); scene.remove(sl.target); });
+            renderer.shadowMap.enabled = !!isShadowOn;
+        }
+        _ss.on = on; _ssMaterialsRefresh();
+    }
+    let _ssTick = 0;
+    function _ssUpdate() {
+        if (!_ss.on) return;
+        if ((_ssTick++ % 120) === 0) _ssCasters();
+        for (let i = 0; i < 4; i++) {
+            const sl = _ss.lights[i];
+            if (i < _ult.n) {
+                sl.position.copy(_ult.pos[i]);
+                sl.target.position.copy(_ult.pos[i]).addScaledVector(_ult.dir[i], 60);
+                sl.target.updateMatrixWorld();
+                const c = _ult.col[i];
+                sl.color.setRGB(Math.min(1, c.x * 2), Math.min(1, c.y * 2), Math.min(1, c.z * 2));
+                sl.intensity = 1.2 * Math.max(c.x, c.y, c.z) * 1.0;
+                sl.angle = Math.max(0.1, Math.min(0.9, Math.atan(_ult.tan[i])));
+            } else sl.intensity = 0;
+        }
+    }
+
+    // ── LANTAI MENGILAP: pantulan planar (scene dirender dari kamera cermin ke render target setengah resolusi) ──
+    const _refl = { rt: null, cam: null, tm: new THREE.Matrix4(), u: { tRefl: { value: null }, uTexMat: { value: new THREE.Matrix4() }, uReflAmt: { value: 0 }, uReflRough: { value: 0 }, uRfT: { value: 0 } }, w: 0, h: 0, hq: false };
+    const _rv = { n: new THREE.Vector3(0, 1, 0), rp: new THREE.Vector3(), cp: new THREE.Vector3(), view: new THREE.Vector3(), look: new THREE.Vector3(), tgt: new THREE.Vector3(), rot: new THREE.Matrix4() };
+    function _reflPatch(mat) {
+        mat.onBeforeCompile = function (shader) {
+            shader.uniforms.tRefl = _refl.u.tRefl; shader.uniforms.uTexMat = _refl.u.uTexMat; shader.uniforms.uReflAmt = _refl.u.uReflAmt; shader.uniforms.uReflRough = _refl.u.uReflRough; shader.uniforms.uRfT = _refl.u.uRfT;
+            shader.vertexShader = shader.vertexShader
+                .replace('#include <common>', '#include <common>\nuniform mat4 uTexMat; varying vec4 vRfUv; varying vec3 vRfW;')
+                .replace('#include <project_vertex>', '#include <project_vertex>\n  vec4 rfw = modelMatrix * vec4(transformed, 1.0); vRfW = rfw.xyz; vRfUv = uTexMat * rfw;');
+            shader.fragmentShader = shader.fragmentShader
+                .replace('#include <common>', '#include <common>\nuniform sampler2D tRefl; uniform float uReflAmt; uniform float uReflRough; uniform float uRfT; varying vec4 vRfUv; varying vec3 vRfW;')
+                .replace(/\}\s*$/, [
+                    '  if (uReflAmt > 0.001) {',
+                    '    vec3 rv = normalize(cameraPosition - vRfW);',
+                    '    float fr = pow(1.0 - clamp(rv.y, 0.0, 1.0), 3.0);',
+                    '    float rdist = length(cameraPosition - vRfW);',
+                    '    vec4 rfPu = vRfUv; float rfBias = 0.0;',
+                    '    if (uReflRough > 0.5) {',
+                    '      vec2 rip = vec2(sin(vRfW.x * 0.55 + uRfT * 1.3) + sin(vRfW.z * 0.43 - uRfT), cos(vRfW.z * 0.51 + uRfT * 0.9) + cos(vRfW.x * 0.37 - uRfT * 1.1));',
+                    '      rfPu.xy += rip * 0.0035 * rfPu.w;',
+                    '      rfBias = clamp(rdist / 80.0, 0.0, 1.0) * 3.2 + 0.4 * (0.5 + 0.5 * sin(vRfW.x * 0.21 + vRfW.z * 0.17));',
+                    '    }',
+                    '    vec3 rc = texture2DProj(tRefl, rfPu, rfBias).rgb;',
+                    '    float fade = 1.0 - smoothstep(150.0, 600.0, rdist);',
+                    '    gl_FragColor.rgb += rc * (0.25 + 0.75 * fr) * uReflAmt * fade;',
+                    '  }',
+                    '}'
+                ].join('\n'));
+        };
+        return mat;
+    }
+    function _reflSetup() {
+        if (!floorMesh || floorMesh.userData._reflPatched) return;
+        _reflPatch(floorMesh.material); floorMesh.material.needsUpdate = true;
+        floorMesh.userData._reflPatched = true;
+    }
+    function _reflRender(g) {
+        _reflSetup();
+        const fy = floorMesh.position.y;
+        camera.updateMatrixWorld();
+        _rv.cp.setFromMatrixPosition(camera.matrixWorld);
+        if (_rv.cp.y < fy + 0.3) { _refl.u.uReflAmt.value = 0; return; }       // kamera di bawah lantai: tanpa pantulan
+        _rv.rp.set(0, fy, 0);
+        _rv.view.subVectors(_rv.rp, _rv.cp); _rv.view.reflect(_rv.n).negate(); _rv.view.add(_rv.rp);
+        _rv.rot.extractRotation(camera.matrixWorld);
+        _rv.look.set(0, 0, -1).applyMatrix4(_rv.rot).add(_rv.cp);
+        _rv.tgt.subVectors(_rv.rp, _rv.look); _rv.tgt.reflect(_rv.n).negate().add(_rv.rp);
+        const vc = _refl.cam || (_refl.cam = new THREE.PerspectiveCamera());
+        vc.position.copy(_rv.view);
+        vc.up.set(0, 1, 0).applyMatrix4(_rv.rot).reflect(_rv.n);
+        vc.lookAt(_rv.tgt);
+        vc.near = camera.near; vc.far = camera.far;
+        vc.updateMatrixWorld(); vc.projectionMatrix.copy(camera.projectionMatrix);
+        _refl.tm.set(0.5, 0, 0, 0.5, 0, 0.5, 0, 0.5, 0, 0, 0.5, 0.5, 0, 0, 0, 1);
+        _refl.tm.multiply(vc.projectionMatrix); _refl.tm.multiply(vc.matrixWorldInverse);
+        _refl.u.uTexMat.value.copy(_refl.tm);
+        renderer.getDrawingBufferSize(_postV2);
+        const hq = !!g.reflhq;
+        const w = hq ? 1024 : Math.max(64, Math.min(1024, Math.floor(_postV2.x / 2))), h = hq ? 1024 : Math.max(64, Math.min(1024, Math.floor(_postV2.y / 2)));
+        if (!_refl.rt || _refl.w !== w || _refl.h !== h || _refl.hq !== hq) {
+            if (_refl.rt) _refl.rt.dispose();
+            _refl.rt = new THREE.WebGLRenderTarget(w, h, { minFilter: hq ? THREE.LinearMipmapLinearFilter : THREE.LinearFilter, magFilter: THREE.LinearFilter, format: THREE.RGBAFormat, generateMipmaps: hq });
+            _refl.w = w; _refl.h = h; _refl.hq = hq;
+        }
+        _refl.u.uReflRough.value = hq ? 1 : 0; _refl.u.uRfT.value = _beamFx.uTime.value;
+        _refl.u.tRefl.value = _refl.rt.texture;
+        _refl.u.uReflAmt.value = g.reflAmt;
+        // sembunyikan objek setinggi lantai supaya tidak ikut terpantul / memantul ke dirinya sendiri
+        const hide = [floorMesh, hazeLayerGroup, ENV.floor.plane].concat(floorGlowMeshes);
+        lamps.forEach(l => { if (l._spots) l._spots.forEach(m => hide.push(m)); });
+        const saved = hide.map(o => o ? o.visible : false);
+        hide.forEach(o => { if (o) o.visible = false; });
+        const sa = renderer.shadowMap.autoUpdate; renderer.shadowMap.autoUpdate = false;
+        try {
+            renderer.setRenderTarget(_refl.rt);
+            renderer.render(scene, vc);
+        } finally {
+            renderer.setRenderTarget(null);
+            renderer.shadowMap.autoUpdate = sa;
+            hide.forEach((o, i) => { if (o) o.visible = saved[i]; });
+        }
+    }
+
+    // ── MATERIAL LOGAM: environment map prosedural (panggung gelap + softbox) supaya truss dan bodi lampu punya pantulan logam ──
+    let _metalEnvTex = null;
+    function _metalEnvTexture() {
+        if (_metalEnvTex) return _metalEnvTex;
+        const W = 512, H = 256, c = document.createElement('canvas'); c.width = W; c.height = H;
+        const x = c.getContext('2d');
+        const gr = x.createLinearGradient(0, 0, 0, H);
+        gr.addColorStop(0, '#222a38'); gr.addColorStop(0.45, '#0e1118'); gr.addColorStop(0.55, '#07080b'); gr.addColorStop(1, '#101114');
+        x.fillStyle = gr; x.fillRect(0, 0, W, H);
+        const box = (cx, cy, w, h, col, a) => {
+            const g2 = x.createLinearGradient(cx - w / 2, 0, cx + w / 2, 0);
+            g2.addColorStop(0, 'rgba(255,255,255,0)'); g2.addColorStop(0.2, col); g2.addColorStop(0.8, col); g2.addColorStop(1, 'rgba(255,255,255,0)');
+            x.globalAlpha = a; x.fillStyle = g2; x.fillRect(cx - w / 2, cy - h / 2, w, h); x.globalAlpha = 1;
+        };
+        box(70, 70, 90, 34, '#ffffff', 1);  box(190, 56, 70, 22, '#cfe6ff', 1);
+        box(330, 66, 100, 30, '#ffffff', 1); box(450, 60, 60, 24, '#ffe3c2', 1);
+        box(130, 112, 150, 8, '#8fd0ff', 0.8); box(390, 116, 150, 8, '#ff9ad0', 0.8);
+        const t = new THREE.CanvasTexture(c);
+        t.mapping = THREE.EquirectangularReflectionMapping;
+        _metalEnvTex = t;
+        return t;
+    }
+    let _metalEnvRT = null;
+    function _metalApply(on) {
+        if (!scene) return;
+        if (!on) { scene.environment = null; return; }
+        try {
+            if (!_metalEnvRT) {
+                const pm = new THREE.PMREMGenerator(renderer);
+                _metalEnvRT = pm.fromEquirectangular(_metalEnvTexture());
+                pm.dispose();
+            }
+            scene.environment = _metalEnvRT.texture;
+        } catch (e) {
+            console.warn('Material logam tidak didukung:', e);
+            _gfx().metal = false; scene.environment = null;
+            try { showStatus('Material logam tidak didukung perangkat ini', true); } catch (_) {}
+        }
+    }
+
+    function _renderScene() {
+        const g = _gfx();
+        if (g.vol || g.shaft || g.sshadow) { try { _ultraUpdate(g); } catch (e) { console.warn('Efek ultra:', e); } }
+        if (g.refl && floorMesh) {
+            try { _reflRender(g); }
+            catch (e) { g.refl = false; _refl.u.uReflAmt.value = 0; console.warn('Pantulan lantai dimatikan:', e); try { showStatus('Pantulan lantai tidak didukung perangkat ini', true); gfxRenderUi(); } catch (_) {} }
+        } else if (_refl.u.uReflAmt.value !== 0) _refl.u.uReflAmt.value = 0;
+        const needTex = !!(g.bloom || g.lens || g.shaft);
+        if (!(g.fxaa || g.filmic || needTex || g.vol) || _post.broken) { renderer.render(scene, camera); return; }
+        try {
+            const volOk = g.vol && (renderer.capabilities.isWebGL2 || renderer.extensions.has('WEBGL_depth_texture'));
+            if (g.vol && !volOk) { g.vol = false; try { showStatus('Asap volumetrik tidak didukung perangkat ini', true); gfxRenderUi(); } catch (_) {} }
+            _postEnsure(!!volOk);
+            const u = _post.mat.uniforms;
+            u.tDiffuse.value = _post.rt.texture; u.uPx.value.set(1 / _post.w, 1 / _post.h);
+            u.uExp.value = g.filmic ? (g.exposure || 1) : 1; u.uAA.value = g.fxaa ? 1 : 0; u.uFilm.value = g.filmic ? 1 : 0;
+            u.uTime.value = _beamFx.uTime.value % 100;
+            renderer.setRenderTarget(_post.rt);
+            renderer.render(scene, camera);
+            u.uVol.value = 0; u.uShaft.value = 0; u.uBloom.value = 0; u.uLens.value = 0;
+            u.tBloom.value = u.tVol.value = u.tShaft.value = _post.rt.texture;
+            if (volOk) {
+                try { u.tVol.value = _volRun(g); u.uVol.value = g.volAmt; }
+                catch (e) { g.vol = false; console.warn('Asap volumetrik dimatikan:', e); try { renderer.setRenderTarget(null); showStatus('Asap volumetrik tidak didukung perangkat ini', true); gfxRenderUi(); } catch (_) {} }
+            }
+            if (needTex) {
+                _bloomBright(_post.rt.texture, g);
+                if (g.shaft) { u.tShaft.value = _shaftRun(); u.uShaft.value = g.shaftAmt; }
+                if (g.bloom || g.lens) u.tBloom.value = _bloomBlur(); else u.tBloom.value = _bloom.a.texture;
+                if (g.bloom) u.uBloom.value = g.bloomAmt;
+                if (g.lens) { u.uLens.value = 1; u.uLensAmt.value = g.lensAmt; }
+            }
+            renderer.setRenderTarget(null);
+            renderer.render(_post.scene, _post.cam);
+        } catch (e) {
+            _post.broken = true;                                    // perangkat tidak mendukung: matikan post pass, jangan sampai layar hitam
+            console.warn('Post pass dimatikan:', e);
+            try { renderer.setRenderTarget(null); } catch (_) {}
+            renderer.render(scene, camera);
+            try { showStatus('Efek pasca-proses tidak didukung perangkat ini', true); } catch (_) {}
+        }
+    }
+
+    // ── AUTO KUALITAS: turunkan efek berat kalau FPS terus rendah ──
+    const _auto = { frames: 0, t0: 0, low: 0, quietUntil: 0 };
+    function gfxAutoTick() {
+        const g = _gfx();
+        const now = performance.now();
+        if (!_auto.t0) { _auto.t0 = now; _auto.quietUntil = now + 6000; }
+        _auto.frames++;
+        if (now - _auto.t0 < 1000) return;
+        const fps = _auto.frames * 1000 / (now - _auto.t0);
+        _auto.frames = 0; _auto.t0 = now;
+        if (!g.auto || document.hidden || now < _auto.quietUntil || document.documentElement.classList.contains('vp-resizing')) { _auto.low = 0; return; }
+        if (fps < 24) _auto.low++; else _auto.low = Math.max(0, _auto.low - 1);
+        if (_auto.low >= 3) { _auto.low = 0; gfxDegrade(); }
+    }
+    function gfxDegrade() {
+        const g = _gfx(); let what = '';
+        if (g.sshadow)                 { g.sshadow = false; what = 'Bayangan lembut lampu'; }
+        else if (g.vol)                { g.vol = false; what = 'Asap volumetrik'; }
+        else if (g.shaft)              { g.shaft = false; what = 'Light shafts'; }
+        else if (g.lens)               { g.lens = false; what = 'Efek lensa'; }
+        else if (g.reflhq)             { g.reflhq = false; what = 'Pantulan lantai HQ'; }
+        else if (g.refl)               { g.refl = false; what = 'Lantai mengilap'; }
+        else if (g.bloom)              { g.bloom = false; what = 'Bloom'; }
+        else if (g.haze)               { g.haze = false; what = 'Haze realistis'; }
+        else if (g.fxaa || g.filmic)   { g.fxaa = false; g.filmic = false; what = 'Anti-aliasing dan filmic'; }
+        else if (g.spots)              { g.spots = false; what = 'Bercak lantai'; }
+        else if (g.beam)               { g.beam = false; what = 'Beam realistis'; }
+        else return;
+        applyGfx(); gfxRenderUi();
+        showStatus('Auto kualitas: ' + what + ' dimatikan karena FPS rendah');
+    }
+    // Dipanggil tiap frame dari render loop
+    function gfxFrame(nowMs) {
+        _beamFx.uTime.value = nowMs * 0.001;
+        gfxAutoTick();
+    }
+
+    // ── PENERAPAN & UI ──
+    const GFX_PRESETS = {
+        eco: { fxaa: false, filmic: false, beam: false, spots: false, haze: false, bloom: false, refl: false, metal: false, fade: false, vol: false, shaft: false, lens: false, reflhq: false, sshadow: false },
+        bal: { fxaa: true,  filmic: true,  beam: true,  spots: true,  haze: false, bloom: false, refl: false, metal: true,  fade: true,  vol: false, shaft: false, lens: false, reflhq: false, sshadow: false },
+        max: { fxaa: true,  filmic: true,  beam: true,  spots: true,  haze: true,  bloom: true,  refl: true,  metal: true,  fade: true,  vol: false, shaft: false, lens: false, reflhq: false, sshadow: false },
+        ultra: { fxaa: true, filmic: true, beam: true, spots: true, haze: true, bloom: true, refl: true, metal: true, fade: true, vol: true, shaft: true, lens: true, reflhq: true, sshadow: true, volAmt: 0.5, shaftAmt: 0.4, lensAmt: 0.4 }
+    };
+    function applyGfx() {
+        const g = _gfx();
+        _beamFx.uFx.value = g.beam ? 1 : 0;
+        _beamFx.uFade.value = g.fade ? 1 : 0;
+        if (typeof scene !== 'undefined' && scene) { _metalApply(!!g.metal); try { _ssApply(!!g.sshadow); } catch (e) { g.sshadow = false; console.warn(e); } }
+        if (typeof hazePlanes !== 'undefined') hazePlanes.forEach(p => {
+            const d = p.userData; if (!d.texNoise) return;
+            p.material.map = g.haze ? d.texNoise : d.texRadial;
+            p.material.needsUpdate = false;
+        });
+        _auto.quietUntil = performance.now() + 4000; _auto.low = 0;
+    }
+    const GFX_LS_KEY = 'ianlighting_gfx_v1';
+    function gfxLoadSaved() {
+        let found = false;
+        try {
+            const raw = localStorage.getItem(GFX_LS_KEY);
+            if (raw) { const o = JSON.parse(raw); if (o && typeof o === 'object') { settingsState.gfx = Object.assign({}, settingsState.gfx, o); found = true; } }
+        } catch (e) {}
+        if (!found) { try { _applyDeviceGfxDefaults(); } catch (e) {} }
+    }
+    function gfxSave() {
+        try { localStorage.setItem(GFX_LS_KEY, JSON.stringify(_gfx())); showStatus(_envT('gfx_saved')); }
+        catch (e) { showStatus('Gagal menyimpan (penyimpanan browser diblokir)', true); }
+    }
+    function gfxClearSaved() {
+        try { localStorage.removeItem(GFX_LS_KEY); showStatus(_envT('gfx_cleared')); }
+        catch (e) { showStatus('Gagal menghapus simpanan', true); }
+    }
+    const GFX_ULTRA_KEYS = ['vol', 'shaft', 'lens', 'reflhq', 'sshadow'];
+    let _ultraAck = false;
+    function _ultraCapable() {
+        try {
+            const gl2 = renderer.capabilities.isWebGL2, mt = renderer.capabilities.maxTextureSize || 0;
+            const cores = navigator.hardwareConcurrency || 4, mem = navigator.deviceMemory || 4;
+            return gl2 && mt >= 8192 && cores >= 6 && mem >= 4;
+        } catch (e) { return false; }
+    }
+    // Dialog konfirmasi buatan sendiri (confirm() bawaan sering diblokir di WebView, jadi tombol tidak bisa aktif)
+    function _ultraConfirm(onYes) {
+        if (_ultraAck) { onYes(); return; }
+        if (document.getElementById('gfx-ultra-dlg')) return;
+        const ok = _ultraCapable();
+        const ov = document.createElement('div');
+        ov.id = 'gfx-ultra-dlg';
+        ov.style.cssText = 'position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,0.75);display:flex;align-items:center;justify-content:center;padding:16px;';
+        ov.innerHTML = '<div style="max-width:340px;width:100%;background:#111;border:1px solid #f90;border-radius:8px;padding:14px;font-family:inherit;">'
+            + '<div style="display:flex;align-items:center;gap:6px;color:#f90;font-weight:bold;font-size:12px;margin-bottom:8px;">'
+            + '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'
+            + '<span>' + _envT('gfx_ultra_title') + '</span></div>'
+            + '<div style="font-size:10px;color:#ddd;line-height:1.5;margin-bottom:8px;">' + _envT('gfx_ultra_confirm') + '</div>'
+            + '<div style="font-size:10px;line-height:1.5;margin-bottom:12px;color:' + (ok ? '#7f7' : '#f77') + ';">' + (ok ? _envT('gfx_ultra_dev_ok') : _envT('gfx_ultra_dev_weak')) + '</div>'
+            + '<div style="display:flex;gap:8px;">'
+            + '<button id="gfx-ultra-no" style="flex:1;padding:9px;border-radius:5px;border:1px solid #555;background:#222;color:#ccc;font-size:10px;font-weight:bold;cursor:pointer;">' + _envT('gfx_ultra_no') + '</button>'
+            + '<button id="gfx-ultra-yes" style="flex:1;padding:9px;border-radius:5px;border:1px solid #f90;background:#f90;color:#000;font-size:10px;font-weight:bold;cursor:pointer;">' + _envT('gfx_ultra_yes') + '</button>'
+            + '</div></div>';
+        document.body.appendChild(ov);
+        const close = () => { try { ov.remove(); } catch (e) {} };
+        ov.querySelector('#gfx-ultra-no').onclick = close;
+        ov.querySelector('#gfx-ultra-yes').onclick = () => { _ultraAck = true; close(); onYes(); };
+    }
+    function gfxToggle(key) {
+        const g = _gfx();
+        if (GFX_ULTRA_KEYS.includes(key) && !g[key] && !_ultraAck) { _ultraConfirm(() => gfxToggle(key)); return; }
+        g[key] = !g[key];
+        applyGfx(); gfxRenderUi();
+    }
+    function gfxSetUltraAmt(key, v) {
+        const r = { volAmt: [0.1, 2.0], shaftAmt: [0.1, 1.5], lensAmt: [0.1, 1.2] }[key]; if (!r) return;
+        _gfx()[key] = Math.max(r[0], Math.min(r[1], parseFloat(v) / 100 || r[0])); gfxRenderUi(true);
+    }
+    function gfxSetBloom(v) { _gfx().bloomAmt = Math.max(0.1, Math.min(1.5, parseFloat(v) / 100 || 0.6)); gfxRenderUi(true); }
+    function gfxSetRefl(v)  { _gfx().reflAmt  = Math.max(0.1, Math.min(1.2, parseFloat(v) / 100 || 0.5)); gfxRenderUi(true); }
+    function gfxSetExposure(v) {
+        _gfx().exposure = Math.max(0.5, Math.min(1.6, parseFloat(v) / 100 || 1));
+        gfxRenderUi(true);
+    }
+    function gfxPreset(name) {
+        const p = GFX_PRESETS[name]; if (!p) return;
+        if (name === 'ultra' && !_ultraAck) { _ultraConfirm(() => gfxPreset(name)); return; }
+        Object.assign(_gfx(), p); applyGfx(); gfxRenderUi();
+    }
+    function gfxRenderUi(valuesOnly) {
+        const g = _gfx(), $ = id => document.getElementById(id);
+        const ex = $('gfx-exp-val'); if (ex) ex.textContent = Math.round((g.exposure || 1) * 100) + '%';
+        [['vol', 'volAmt', 0.5], ['shaft', 'shaftAmt', 0.4], ['lens', 'lensAmt', 0.4]].forEach(([k, a, d]) => { const e = $('gfx-' + k + '-val'); if (e) e.textContent = Math.round((g[a] || d) * 100) + '%'; });
+        const dv = $('gfx-ultra-dev'); if (dv) dv.textContent = _ultraCapable() ? _envT('gfx_ultra_dev_ok') : _envT('gfx_ultra_dev_weak');
+        const bv = $('gfx-bloom-val'); if (bv) bv.textContent = Math.round((g.bloomAmt || 0.6) * 100) + '%';
+        const rv = $('gfx-refl-val'); if (rv) rv.textContent = Math.round((g.reflAmt || 0.5) * 100) + '%';
+        if (valuesOnly) return;
+        ['fxaa', 'filmic', 'beam', 'spots', 'haze', 'bloom', 'refl', 'metal', 'fade', 'vol', 'shaft', 'lens', 'reflhq', 'sshadow', 'auto'].forEach(k => {
+            const b = $('gfx-' + k); if (!b) return;
+            b.textContent = g[k] ? 'ON' : 'OFF'; b.classList.toggle('active', !!g[k]);
+        });
+        const sl = $('gfx-exp'); if (sl) sl.value = Math.round((g.exposure || 1) * 100);
+        const row = $('gfx-exp-row'); if (row) row.style.opacity = g.filmic ? '1' : '0.4';
+        const bsl = $('gfx-bloom-sl'); if (bsl) { bsl.value = Math.round((g.bloomAmt || 0.6) * 100); $('gfx-bloom-row').style.opacity = g.bloom ? '1' : '0.4'; }
+        [['vol', 'volAmt', 0.5], ['shaft', 'shaftAmt', 0.4], ['lens', 'lensAmt', 0.4]].forEach(([k, a, d]) => { const sl = $('gfx-' + k + '-sl'); if (sl) { sl.value = Math.round((g[a] || d) * 100); $('gfx-' + k + '-row').style.opacity = g[k] ? '1' : '0.4'; } });
+        const rsl = $('gfx-refl-sl'); if (rsl) { rsl.value = Math.round((g.reflAmt || 0.5) * 100); $('gfx-refl-row').style.opacity = g.refl ? '1' : '0.4'; }
+    }
+
+
+    // ══ PERANGKAT: deteksi PC / HP, kontrol mouse khusus PC, slider presisi, layar kedua ══
+    const _device = (() => {
+        let fine = false, hover = false, ua = '';
+        try { fine = matchMedia('(pointer: fine)').matches; hover = matchMedia('(hover: hover)').matches; ua = navigator.userAgent || ''; } catch (e) {}
+        const mobileUa = /Android|iPhone|iPad|iPod|Mobile/i.test(ua);
+        const pc = fine && hover && !mobileUa;
+        return { pc, type: pc ? 'pc' : 'phone' };
+    })();
+    try { document.documentElement.classList.add(_device.pc ? 'dev-pc' : 'dev-phone'); } catch (e) {}
+    function _applyDeviceGfxDefaults() {
+        const g = _gfx();
+        const base = { fxaa: true, beam: true, fade: true, spots: true, filmic: false, bloom: false, refl: false, metal: false, haze: false };
+        if (_device.pc && _ultraCapable()) Object.assign(base, { haze: true, bloom: true, refl: true, metal: true });
+        else if (_device.pc) Object.assign(base, { haze: true, metal: true });
+        Object.assign(g, base);
+    }
+
+    // ── Kontrol mouse khusus PC: klik dua kali = reset kamera, klik kanan pada lampu = menu cepat ──
+    let _ctxMenu = null, _rcDown = null;
+    function _ctxClose() { if (_ctxMenu) { try { _ctxMenu.remove(); } catch (e) {} _ctxMenu = null; } }
+    function _pickLampAt(clientX, clientY) {
+        const vp = document.getElementById('viewport'); if (!vp || !camera) return -1;
+        const r = vp.getBoundingClientRect();
+        const ndc = new THREE.Vector2(((clientX - r.left) / r.width) * 2 - 1, -((clientY - r.top) / r.height) * 2 + 1);
+        const rc = new THREE.Raycaster(); rc.setFromCamera(ndc, camera);
+        const hits = rc.intersectObjects(lamps.map(l => l.group), true);
+        for (const h of hits) {
+            if (h.object.material && h.object.material.transparent) continue;   // lewati beam / ring cahaya
+            for (let i = 0; i < lamps.length; i++) {
+                let o = h.object; while (o) { if (o === lamps[i].group) return i; o = o.parent; }
+            }
+        }
+        return -1;
+    }
+    function _ctxShow(x, y, idx) {
+        _ctxClose();
+        const m = document.createElement('div'); _ctxMenu = m;
+        m.style.cssText = 'position:fixed;z-index:100001;min-width:190px;background:#111;border:1px solid var(--tp);border-radius:6px;padding:4px;box-shadow:0 4px 18px rgba(0,0,0,0.7);font-family:inherit;';
+        const items = [];
+        if (idx >= 0) {
+            items.push([_envT('ctx_only').replace('{n}', idx + 1), () => { selectedFixtures = [idx]; isMinibruteSelected = false; document.getElementById('fix-all').className = 'btn-fix'; document.getElementById('sel-minibrute').className = ''; renderFixList(); updateFaderLevels(); updateOutlineHighlights(); }]);
+            items.push([_envT('ctx_add').replace('{n}', idx + 1), () => selFix(idx)]);
+            items.push([_envT('ctx_focus').replace('{n}', idx + 1), () => { const p = lamps[idx].group.position; camTarget.x = p.x; camTarget.y = p.y; camTarget.z = p.z; camPanClamp(); updateCameraFromSpherical(); camPanUpdateReadout(); }]);
+        }
+        items.push([_envT('ctx_all'), () => selAll()]);
+        items.push([_envT('ctx_reset'), () => _camResetAll()]);
+        items.forEach(([label, fn]) => {
+            const b = document.createElement('button');
+            b.textContent = label;
+            b.style.cssText = 'display:block;width:100%;text-align:left;background:transparent;color:var(--tp);border:none;padding:8px 10px;font-size:10px;font-weight:bold;cursor:pointer;border-radius:4px;';
+            b.onmouseenter = () => { b.style.background = 'var(--td)'; }; b.onmouseleave = () => { b.style.background = 'transparent'; };
+            b.onclick = () => { _ctxClose(); try { fn(); } catch (e) { console.warn(e); } };
+            m.appendChild(b);
+        });
+        document.body.appendChild(m);
+        const w = m.offsetWidth, h = m.offsetHeight;
+        m.style.left = Math.max(4, Math.min(x, window.innerWidth - w - 4)) + 'px';
+        m.style.top = Math.max(4, Math.min(y, window.innerHeight - h - 4)) + 'px';
+    }
+    function _camResetAll() {
+        camTheta = 0; camPhi = 0.4; camRadius = 110; camTarget.x = 0; camTarget.y = 5; camTarget.z = 0;
+        updateCameraFromSpherical(); camPanUpdateReadout();
+        showStatus(_envT('ctx_reset_done'));
+    }
+    function _setupPcMouse() {
+        const vp = document.getElementById('viewport'); if (!vp || vp._pcMouse) return; vp._pcMouse = true;
+        vp.addEventListener('dblclick', e => { if (!_device.pc) return; if (e.target.closest && e.target.closest('button')) return; _camResetAll(); });
+        vp.addEventListener('mousedown', e => { _ctxClose(); if (e.button === 2) _rcDown = { x: e.clientX, y: e.clientY }; });
+        vp.addEventListener('mouseup', e => {
+            if (e.button !== 2 || !_rcDown || !_device.pc) return;
+            const moved = Math.hypot(e.clientX - _rcDown.x, e.clientY - _rcDown.y); _rcDown = null;
+            if (moved > 4) return;
+            _ctxShow(e.clientX, e.clientY, _pickLampAt(e.clientX, e.clientY));
+        });
+        document.addEventListener('mousedown', e => { if (_ctxMenu && !_ctxMenu.contains(e.target)) _ctxClose(); }, true);
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') _ctxClose(); });
+    }
+
+    // ── Slider presisi (PC): klik dua kali = ketik angka, scroll saat slider terpilih = ubah per langkah ──
+    let _numPop = null;
+    function _numPopClose() { if (_numPop) { try { _numPop.remove(); } catch (e) {} _numPop = null; } }
+    function _sliderSet(el, v) {
+        const mn = parseFloat(el.min || 0), mx = parseFloat(el.max || 100);
+        v = Math.max(mn, Math.min(mx, v));
+        el.value = v;
+        el.dispatchEvent(new Event('input', { bubbles: true }));
+        el.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+    function _setupPrecisionSliders() {
+        if (document._precSliders) return; document._precSliders = true;
+        document.addEventListener('dblclick', e => {
+            const el = e.target; if (!_device.pc || !el || !el.matches || !el.matches('input[type=range]') || el.disabled) return;
+            _numPopClose();
+            const r = el.getBoundingClientRect();
+            const wrap = document.createElement('div'); _numPop = wrap;
+            wrap.style.cssText = 'position:fixed;z-index:100002;background:#111;border:1px solid var(--tp);border-radius:5px;padding:5px;display:flex;gap:5px;align-items:center;box-shadow:0 4px 14px rgba(0,0,0,0.7);';
+            const inp = document.createElement('input'); inp.type = 'number';
+            inp.min = el.min; inp.max = el.max; inp.step = el.step && el.step !== 'any' ? el.step : 'any'; inp.value = el.value;
+            inp.style.cssText = 'width:80px;background:#000;color:var(--tp);border:1px solid #444;border-radius:3px;padding:4px 6px;font-size:11px;outline:none;';
+            const hint = document.createElement('span'); hint.textContent = el.min + ' - ' + el.max; hint.style.cssText = 'font-size:8px;color:#888;';
+            wrap.appendChild(inp); wrap.appendChild(hint); document.body.appendChild(wrap);
+            wrap.style.left = Math.max(4, Math.min(r.left, window.innerWidth - wrap.offsetWidth - 4)) + 'px';
+            wrap.style.top = Math.max(4, Math.min(r.bottom + 4, window.innerHeight - wrap.offsetHeight - 4)) + 'px';
+            inp.focus(); inp.select();
+            const apply = () => { const v = parseFloat(inp.value); if (!isNaN(v)) _sliderSet(el, v); };
+            inp.addEventListener('keydown', ev => { ev.stopPropagation(); if (ev.key === 'Enter') { apply(); _numPopClose(); } else if (ev.key === 'Escape') _numPopClose(); });
+            inp.addEventListener('blur', () => setTimeout(_numPopClose, 120));
+        });
+        document.addEventListener('wheel', e => {
+            const el = e.target;
+            if (!_device.pc || !el || !el.matches || !el.matches('input[type=range]') || el.disabled || document.activeElement !== el) return;
+            e.preventDefault();
+            const st = parseFloat(el.step) > 0 ? parseFloat(el.step) : 1;
+            _sliderSet(el, parseFloat(el.value) + (e.deltaY < 0 ? 1 : -1) * st * (e.shiftKey ? 10 : 1));
+        }, { passive: false });
+    }
+
+    // ── Layar kedua: kanvas 3D dipindah ke jendela terpisah (monitor/proyektor kedua) ──
+    // Loop render dijalankan lewat requestAnimationFrame milik jendela kedua, jadi tetap jalan walau jendela utama
+    // di-minimize. Tombol keyboard di jendela kedua diteruskan ke jendela utama sehingga semua hotkey tetap bekerja.
+    let _screen2 = null, _screen2Timer = 0, _animToken = 0;
+    function _s2Active() { return !!(_screen2 && !_screen2.closed && renderer && renderer.domElement.ownerDocument === _screen2.document); }
+    function _viewSize() {
+        if (_s2Active()) return { w: Math.max(1, _screen2.innerWidth), h: Math.max(1, _screen2.innerHeight) };
+        const vp = document.getElementById('viewport');
+        return { w: Math.max(1, vp.clientWidth), h: Math.max(1, vp.clientHeight) };
+    }
+    function _animNext() {
+        const tok = ++_animToken;
+        const w = _s2Active() ? _screen2 : window;
+        w.requestAnimationFrame(() => { if (tok === _animToken) animate(); });
+    }
+    function _s2Resize() {
+        if (!renderer || !camera) return;
+        const d = _viewSize();
+        renderer.setSize(d.w, d.h); camera.aspect = d.w / d.h; camera.updateProjectionMatrix();
+    }
+    function _s2Key(e) {
+        if (e.ctrlKey || e.metaKey) return;                                  // biarkan kombinasi browser (Ctrl+R, dll)
+        if (['F5', 'F11', 'F12'].includes(e.key)) return;
+        const ev = new KeyboardEvent(e.type, { key: e.key, code: e.code, shiftKey: e.shiftKey, altKey: e.altKey, repeat: e.repeat, bubbles: true, cancelable: true });
+        document.dispatchEvent(ev);
+        if (ev.defaultPrevented) e.preventDefault();
+    }
+    function _s2Placeholder(on) {
+        let ph = document.getElementById('s2-placeholder');
+        if (!on) { if (ph) ph.remove(); return; }
+        if (ph) return;
+        const vp = document.getElementById('viewport'); if (!vp) return;
+        ph = document.createElement('div'); ph.id = 's2-placeholder';
+        ph.style.cssText = 'position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:#0a0a0a;color:#888;font-size:11px;text-align:center;padding:12px;z-index:1;';
+        ph.innerHTML = '<div>' + _envT('s2_placeholder') + '</div>';
+        const b = document.createElement('button'); b.className = 'quality-btn'; b.textContent = _envT('s2_restore'); b.onclick = screen2Toggle; b.style.cssText = 'min-width:140px;';
+        ph.appendChild(b); vp.appendChild(ph);
+    }
+    function _s2Restore() {
+        clearInterval(_screen2Timer);
+        const old = _screen2; _screen2 = null;
+        try {
+            const cv = renderer.domElement, vp = document.getElementById('viewport');
+            if (cv.parentNode !== vp || cv.ownerDocument !== document) vp.appendChild(cv);
+        } catch (e) { console.warn('Gagal mengembalikan kanvas:', e); }
+        _s2Placeholder(false);
+        _s2Resize();
+        _screen2Ui(false);
+        _animNext();                                                          // lanjutkan loop render di jendela utama
+        try { if (old && !old.closed) old.close(); } catch (e) {}
+    }
+    function screen2Toggle() {
+        if (_screen2 && !_screen2.closed) { _s2Restore(); return; }
+        try {
+            if (!renderer) throw new Error('renderer');
+            const w = window.open('', 'ianLightingScreen2', 'popup=yes,width=1280,height=720');
+            if (!w) { showStatus(_envT('s2_blocked'), true); return; }
+            const d = w.document;
+            d.title = 'Ian Lighting - Layar 2';
+            d.body.style.cssText = 'margin:0;background:#000;overflow:hidden;height:100vh;cursor:default;';
+            const hint = d.createElement('div');
+            hint.textContent = _envT('s2_hint');
+            hint.style.cssText = 'position:fixed;left:0;right:0;bottom:14px;text-align:center;color:#999;font:12px sans-serif;transition:opacity 1s;pointer-events:none;z-index:5;text-shadow:0 0 4px #000;';
+            const cv = renderer.domElement;
+            d.body.appendChild(cv);                                           // pindahkan kanvas WebGL ke jendela kedua
+            d.body.appendChild(hint);
+            setTimeout(() => { try { hint.style.opacity = '0'; } catch (e) {} }, 4000);
+            _screen2 = w;
+            _s2Placeholder(true);
+            _s2Resize();
+            // kontrol kamera mouse/sentuh di jendela kedua
+            d.body.addEventListener('mousedown', onViewportMouseDown);
+            d.body.addEventListener('mousemove', onViewportMouseMove);
+            d.body.addEventListener('mouseup', onViewportMouseUp);
+            d.body.addEventListener('wheel', onViewportWheel, { passive: false });
+            d.body.addEventListener('contextmenu', e => e.preventDefault());
+            d.body.addEventListener('touchstart', onViewportTouchStart, { passive: false });
+            d.body.addEventListener('touchmove', onViewportTouchMove, { passive: false });
+            d.body.addEventListener('touchend', onViewportTouchEnd, { passive: true });
+            // hotkey: teruskan ke jendela utama
+            d.addEventListener('keydown', _s2Key); d.addEventListener('keyup', _s2Key);
+            w.addEventListener('focus', () => { try { const a = document.activeElement; if (!document.hasFocus() && a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA')) a.blur(); } catch (e) {} });
+            w.addEventListener('resize', _s2Resize);
+            d.addEventListener('dblclick', () => { try { if (!d.fullscreenElement) d.documentElement.requestFullscreen(); else d.exitFullscreen(); } catch (e) {} });
+            const back = () => { if (_screen2 === w) _s2Restore(); };
+            w.addEventListener('pagehide', back); w.addEventListener('beforeunload', back);
+            clearInterval(_screen2Timer);
+            _screen2Timer = setInterval(() => { if (!_screen2 || _screen2.closed) _s2Restore(); }, 1000);
+            _animNext();                                                       // loop render pindah ke jendela kedua
+            _screen2Ui(true);
+            w.focus();
+            showStatus(_envT('s2_opened'));
+        } catch (e) {
+            console.warn('Layar kedua:', e);
+            try { _s2Restore(); } catch (_) {}
+            showStatus(_envT('s2_unsupported'), true);
+        }
+    }
+    function _screen2Closed() { _s2Restore(); }
+    function _screen2Ui(on) {
+        const b = document.getElementById('btn-screen2'); if (!b) return;
+        b.classList.toggle('active', on); b.textContent = on ? _envT('s2_close') : _envT('s2_open');
+    }
+    window.addEventListener('beforeunload', () => { try { if (_screen2 && !_screen2.closed) _screen2.close(); } catch (e) {} });
+    function _deviceUiInit() {
+        const el = document.getElementById('device-info');
+        if (el) el.textContent = _device.pc ? _envT('dev_pc') : _envT('dev_phone');
+        _screen2Ui(!!(_screen2 && !_screen2.closed));
+    }
+
+
+    // ══ ADD MULTIPLE: gabungkan 2 gerakan FX jadi satu generator gerakan baru ══
+    // Setiap gerakan multiple = 1 kunci FX baru "mfx_<id>" yang ikut urutan FX, custom delay, custom hotkey, slider SPD, dan tersimpan di project.
+    function _mfxList() { if (!Array.isArray(settingsState.multiFx)) settingsState.multiFx = []; return settingsState.multiFx; }
+    function _mfxKey(m) { return 'mfx_' + m.id; }
+    function _mfxByKey(k) { return (typeof k === 'string' && k.indexOf('mfx_') === 0) ? _mfxList().find(m => _mfxKey(m) === k) : null; }
+    function _mfxLabel(k) { return (typeof FX_LABELS !== 'undefined' && FX_LABELS[k]) ? FX_LABELS[k] : k; }
+    function _mfxRegister(m) {
+        const k = _mfxKey(m);
+        FX_LABELS[k] = m.name;
+        if (!Array.isArray(settingsState.fxOrder)) settingsState.fxOrder = [];
+        if (!settingsState.fxOrder.includes(k)) settingsState.fxOrder.push(k);
+        if (!settingsState.delayCustom) settingsState.delayCustom = {};
+        if (!settingsState.delayCustomValue) settingsState.delayCustomValue = {};
+        if (!settingsState.fxHotkeys) settingsState.fxHotkeys = {};
+        if (settingsState.delayCustom[k] === undefined) settingsState.delayCustom[k] = false;
+        if (settingsState.delayCustomValue[k] === undefined) settingsState.delayCustomValue[k] = 30;
+        if (settingsState.fxHotkeys[k] === undefined) settingsState.fxHotkeys[k] = null;
+        if (fxSpeeds[k] === undefined) fxSpeeds[k] = (fxSpeeds[m.a] !== undefined ? fxSpeeds[m.a] : 1);
+        if (fxState[k] === undefined) fxState[k] = false;
+    }
+    function _mfxSync() {                                       // status gabungan = kedua gerakan penyusunnya sama-sama menyala
+        _mfxList().forEach(m => { fxState[_mfxKey(m)] = !!(fxState[m.a] && fxState[m.b]); });
+    }
+    function _mfxCleanStale() {
+        const keep = new Set(_mfxList().map(_mfxKey));
+        const stale = k => typeof k === 'string' && k.indexOf('mfx_') === 0 && !keep.has(k);
+        settingsState.fxOrder = (settingsState.fxOrder || []).filter(k => !stale(k));
+        ['delayCustom', 'delayCustomValue', 'fxHotkeys'].forEach(mn => { const o = settingsState[mn]; if (o) Object.keys(o).forEach(k => { if (stale(k)) delete o[k]; }); });
+        Object.keys(fxSpeeds).forEach(k => { if (stale(k)) delete fxSpeeds[k]; });
+        Object.keys(fxState).forEach(k => { if (stale(k)) delete fxState[k]; });
+    }
+    function multiFxRender() {
+        _mfxCleanStale();
+        const list = _mfxList();
+        list.forEach(_mfxRegister);
+        const box = document.getElementById('fx-gen-container'); if (!box) return;
+        box.querySelectorAll('[data-mfx-card]').forEach(c => c.remove());
+        list.forEach(m => {
+            const k = _mfxKey(m);
+            const card = document.createElement('div');
+            card.className = 'fx-control-card'; card.dataset.fxKey = k; card.dataset.mfxCard = '1';
+            card.style.cssText = 'width:100%; box-sizing:border-box;';
+            const row = document.createElement('div'); row.style.cssText = 'display:flex; gap:4px; align-items:stretch;';
+            const b = document.createElement('button');
+            b.className = 'mini-fx-btn'; b.id = 'fx-' + k; b.style.cssText = 'white-space:normal; line-height:1.2; padding:8px 2px; flex:1;';
+            b.textContent = m.name; b.onclick = () => tFX(k);
+            const x = document.createElement('button');
+            x.className = 'mini-fx-btn'; x.style.cssText = 'width:28px; flex:none; padding:0; color:#f55; border-color:#633;';
+            x.textContent = '×'; x.title = _envT('mfx_delete'); x.onclick = () => multiFxDelete(m.id);
+            row.appendChild(b); row.appendChild(x);
+            const sub = document.createElement('span'); sub.className = 'fx-speed-label'; sub.style.cssText += 'color:#777;';
+            sub.textContent = _mfxLabel(m.a) + ' + ' + _mfxLabel(m.b);
+            const spd = Math.round((fxSpeeds[k] !== undefined ? fxSpeeds[k] : 1) * 100);
+            const lab = document.createElement('span'); lab.className = 'fx-speed-label';
+            lab.innerHTML = 'SPD: <span id="val-' + k + '-spd-txt">' + spd + '%</span>';
+            const sl = document.createElement('input'); sl.type = 'range'; sl.className = 'fx-speed-slider'; sl.id = 'val-' + k + '-spd';
+            sl.min = 10; sl.max = 300; sl.value = spd; sl.oninput = () => updateFxSpeed(k, sl.value);
+            if (typeof fxSpeedLocked !== 'undefined' && fxSpeedLocked) { sl.disabled = true; sl.style.opacity = '0.3'; }
+            card.appendChild(row); card.appendChild(sub); card.appendChild(lab); card.appendChild(sl);
+            box.appendChild(card);
+        });
+        if (typeof applyFxOrder === 'function') applyFxOrder();
+        if (typeof renderFxOrderList === 'function') renderFxOrderList();
+        if (typeof renderDelayCustomList === 'function') renderDelayCustomList();
+        if (typeof renderFxHotkeyList === 'function') renderFxHotkeyList();
+        _mfxSync();
+        if (typeof updateButtons === 'function') updateButtons();
+    }
+    function _multiFxToggle(m) {
+        _mfxSync();
+        const on = !!(fxState[m.a] && fxState[m.b]);
+        const prev = multiMotionOn;
+        multiMotionOn = true;                                   // paksa agar dua gerakan bisa menyala bersamaan
+        try {
+            if (on) {
+                if (fxState[m.a]) tFX(m.a);
+                if (fxState[m.b]) tFX(m.b);
+            } else {
+                if (!prev) FX_MOTION_KEYS.forEach(k => { if (k !== m.a && k !== m.b) fxState[k] = false; });
+                if (!fxState[m.a]) tFX(m.a);
+                if (!fxState[m.b]) tFX(m.b);
+            }
+        } finally { multiMotionOn = prev; }
+        _mfxSync();
+        updateButtons(); updateDelaySliderState();
+    }
+    function multiFxDelete(id) {
+        const list = _mfxList(), i = list.findIndex(x => x.id === id); if (i < 0) return;
+        const m = list[i];
+        if (fxState[m.a] && fxState[m.b]) _multiFxToggle(m);       // matikan dulu kalau sedang menyala
+        list.splice(i, 1);
+        multiFxRender(); showStatus(_envT('mfx_deleted').replace('{n}', m.name));
+    }
+    function multiFxOpenDialog() {
+        if (document.getElementById('mfx-dlg')) return;
+        const sel = [];
+        const ov = document.createElement('div'); ov.id = 'mfx-dlg';
+        ov.style.cssText = 'position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,0.75);display:flex;align-items:center;justify-content:center;padding:14px;';
+        const box = document.createElement('div');
+        box.style.cssText = 'width:100%;max-width:360px;max-height:90vh;overflow-y:auto;background:#111;border:1px solid var(--tp);border-radius:8px;padding:14px;color:#ddd;font-family:inherit;';
+        box.innerHTML = '<div style="font-size:12px;font-weight:bold;color:var(--tp);margin-bottom:10px;">' + _envT('mfx_title') + '</div>'
+            + '<label style="font-size:10px;color:#aaa;display:block;margin-bottom:4px;">' + _envT('mfx_name') + '</label>'
+            + '<input id="mfx-name" type="text" maxlength="24" style="width:100%;box-sizing:border-box;background:#000;color:var(--tp);border:1px solid #444;border-radius:4px;padding:8px;font-size:12px;outline:none;margin-bottom:12px;">'
+            + '<div style="font-size:10px;color:#aaa;margin-bottom:6px;">' + _envT('mfx_pick') + ' <span id="mfx-count" style="color:var(--tp);">0/2</span></div>'
+            + '<div id="mfx-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:12px;"></div>'
+            + '<div id="mfx-err" style="font-size:9px;color:#f66;min-height:12px;margin-bottom:6px;"></div>'
+            + '<div style="display:flex;gap:8px;"><button id="mfx-cancel" class="mini-fx-btn" style="flex:1;">' + _envT('mfx_cancel') + '</button><button id="mfx-save" class="mini-fx-btn active" style="flex:1;">' + _envT('mfx_save') + '</button></div>';
+        ov.appendChild(box); document.body.appendChild(ov);
+        const grid = box.querySelector('#mfx-grid'), cnt = box.querySelector('#mfx-count'), err = box.querySelector('#mfx-err'), nameIn = box.querySelector('#mfx-name');
+        const refresh = () => {
+            cnt.textContent = sel.length + '/2';
+            grid.querySelectorAll('button').forEach(b => {
+                const on = sel.includes(b.dataset.k);
+                b.classList.toggle('active', on);
+                b.style.opacity = (!on && sel.length >= 2) ? '0.35' : '1';
+            });
+        };
+        FX_MOTION_KEYS.forEach(k => {
+            const b = document.createElement('button'); b.className = 'mini-fx-btn'; b.dataset.k = k;
+            b.style.cssText = 'padding:8px 2px;font-size:9px;white-space:normal;line-height:1.15;';
+            b.textContent = _mfxLabel(k);
+            b.onclick = () => {
+                const i = sel.indexOf(k);
+                if (i >= 0) sel.splice(i, 1); else if (sel.length < 2) sel.push(k);
+                err.textContent = ''; refresh();
+            };
+            grid.appendChild(b);
+        });
+        const close = () => { try { ov.remove(); } catch (e) {} };
+        box.querySelector('#mfx-cancel').onclick = close;
+        ov.addEventListener('mousedown', e => { if (e.target === ov) close(); });
+        box.querySelector('#mfx-save').onclick = () => {
+            if (sel.length !== 2) { err.textContent = _envT('mfx_err_pick'); return; }
+            const name = (nameIn.value || '').trim() || (_mfxLabel(sel[0]) + ' + ' + _mfxLabel(sel[1]));
+            _mfxList().push({ id: 'm' + Date.now().toString(36) + Math.floor(Math.random() * 1000).toString(36), name, a: sel[0], b: sel[1] });
+            close(); multiFxRender(); showStatus(_envT('mfx_added').replace('{n}', name));
+        };
+        nameIn.addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Enter') box.querySelector('#mfx-save').click(); else if (e.key === 'Escape') close(); });
+        refresh(); setTimeout(() => nameIn.focus(), 30);
+    }
+
+
     function init() {
         const v = document.getElementById('viewport');
         scene = new THREE.Scene();
@@ -3838,9 +5093,9 @@
         v.appendChild(renderer.domElement);
 
         window.addEventListener('resize', () => {
-            const vp = document.getElementById('viewport');
-            renderer.setSize(vp.clientWidth, vp.clientHeight);
-            camera.aspect = vp.clientWidth / vp.clientHeight;
+            const vd = _viewSize();
+            renderer.setSize(vd.w, vd.h);
+            camera.aspect = vd.w / vd.h;
             camera.updateProjectionMatrix();
         });
 
@@ -3855,6 +5110,8 @@
         floorMesh = floor;
         scene.add(new THREE.AmbientLight(0xffffff, 0.22));
         createHazeLayer();
+        gfxLoadSaved();
+        applyGfx(); gfxRenderUi();
 
         spawnBeams(fixCount);
         createMinibrute();
@@ -3863,6 +5120,7 @@
         createColorChaseButtons();
         createSceneButtons();
         setupEvents();
+        try { _setupPcMouse(); _setupPrecisionSliders(); _deviceUiInit(); multiFxRender(); } catch (e) { console.warn(e); }
         renderColorSteps();
 
         colorStepRenderInterval = setInterval(() => { renderColorSteps(); }, 500);
@@ -4254,7 +5512,7 @@
             const s = {
                 dim: 0.8, pan: 0, tilt: -0.2, zoom: 40, mode: 'beam', rainbow: 0, sunburst: 'off',
                 posX: x, posY: 12, posZ: -25, rot: 20, curPan: 0, curTilt: -0.2, curDim: 0.8, curRot: 0,
-                curRotPrism: 0, curRotFan: 0, curRotDots: 0, curRotMatrix: 0, curRotStar: 0, curZoom: 40,
+                curRotPrism: 0, curRotFan: 0, curRotDots: 0, curRotMatrix: 0, curRotStar: 0, curRotPrism16: 0, curRotPrism32: 0, curZoom: 40,
                 targetX: x, targetY: 12, curGoboX: 0, targetGoboX: 0,
                 colorSteps: [{ color: '#ffffff', speed: 1.0 }],
                 curColStepIdx: 0, colStepTimer: 0,
@@ -4536,7 +5794,7 @@
         head.add(wc);
 
         const createGlowCylinder = (radius, length, opacity, color = 0xffffff, startRadius = 0.05) => {
-            const mat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide });
+            const mat = _beamFxPatch(new THREE.MeshBasicMaterial({ color, transparent: true, opacity, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
             const c = new THREE.Mesh(new THREE.CylinderGeometry(radius, startRadius, length, 32, 1, true), mat);
             c.geometry.translate(0, length/2, 0); c.geometry.rotateX(Math.PI/2);
             return c;
@@ -4615,6 +5873,29 @@
             starContainer.add(sg); stars.push(sg); sPinkCores.push(sPink);
         }
 
+        // PRISM 16 — 16 cahaya menyebar dalam satu cincin; PRISM 32 — 32 cahaya dalam dua cincin (16 luar + 16 dalam)
+        const prism16Container = new THREE.Group(); prism16Container.position.x = 105; wc.add(prism16Container);
+        const prisms16 = [], p16PinkCores = [];
+        for (let i = 0; i < 16; i++) {
+            const pg = new THREE.Group();
+            const pShell = createGlowCylinder(2.2, beamLength - 10, 0.4, 0xffffff, 0.16);
+            const pPink  = createGlowCylinder(1.8, beamLength - 11, 1.0, SB_COLOR, 0.12);
+            pPink.visible = false; pg.add(pShell, pPink);
+            pg.userData = { angle: (i / 16) * Math.PI * 2, ring: 'outer' };
+            prism16Container.add(pg); prisms16.push(pg); p16PinkCores.push(pPink);
+        }
+        const prism32Container = new THREE.Group(); prism32Container.position.x = 120; wc.add(prism32Container);
+        const prisms32 = [], p32PinkCores = [];
+        for (let i = 0; i < 32; i++) {
+            const pg = new THREE.Group();
+            const pShell = createGlowCylinder(1.7, beamLength - 10, 0.36, 0xffffff, 0.13);
+            const pPink  = createGlowCylinder(1.4, beamLength - 11, 1.0, SB_COLOR, 0.1);
+            pPink.visible = false; pg.add(pShell, pPink);
+            pg.userData = i < 16 ? { angle: (i / 16) * Math.PI * 2, ring: 'outer' }
+                                 : { angle: ((i - 16) / 16) * Math.PI * 2 + Math.PI / 16, ring: 'inner' };
+            prism32Container.add(pg); prisms32.push(pg); p32PinkCores.push(pPink);
+        }
+
         scene.add(group);
 
         lamps.push({
@@ -4628,6 +5909,8 @@
             dots, dPinkCores,
             matrixDots, mPinkCores,
             stars, sPinkCores,
+            prism16Container, prisms16, p16PinkCores,
+            prism32Container, prisms32, p32PinkCores,
             originalIndex: index,
             state: null
         });
@@ -4715,34 +5998,33 @@
         vp.addEventListener('touchend',   onViewportTouchEnd,   {passive:true});
     }
 
+    function _fsLabel() {
+        const btn = document.getElementById('btn-fullscreen'); if (!btn) return;
+        const on = !!document.fullscreenElement;
+        btn.innerText = on ? 'EXIT FULL' : 'FULLSCREEN';
+        btn.classList.toggle('active', on);
+    }
     function toggleFullscreen() {
-        const btn = document.getElementById('btn-fullscreen');
         if (!document.fullscreenElement) {
-            document.documentElement.requestFullscreen().then(() => {
-                btn.innerText = 'EXIT FULL';
-                btn.style.color = '#f0a';
-                btn.style.borderColor = '#880044';
-            }).catch(err => {
+            document.documentElement.requestFullscreen().then(_fsLabel).catch(err => {
                 showStatus('Fullscreen tidak didukung: ' + err.message, true);
             });
         } else {
-            document.exitFullscreen().then(() => {
-                btn.innerText = 'FULLSCREEN';
-                btn.style.color = '#a0f';
-                btn.style.borderColor = '#440088';
-            });
+            document.exitFullscreen().then(_fsLabel);
         }
     }
+    document.addEventListener('fullscreenchange', _fsLabel);
 
-    document.addEventListener('fullscreenchange', () => {
-        const btn = document.getElementById('btn-fullscreen');
-        if (!btn) return;
-        if (!document.fullscreenElement) {
-            btn.innerText = 'FULLSCREEN';
-            btn.style.color = '#a0f';
-            btn.style.borderColor = '#440088';
-        }
-    });
+    function toggleVersionText() {
+        settingsState.showVersion = settingsState.showVersion === false;
+        _applyVersionText();
+    }
+    function _applyVersionText() {
+        const on = settingsState.showVersion !== false;
+        const el = document.getElementById('display'); if (el) el.style.display = on ? '' : 'none';
+        const b = document.getElementById('btn-version-text');
+        if (b) { b.classList.toggle('active', on); b.textContent = on ? (_envT('vt_show')) : (_envT('vt_hide')); }
+    }
 
     function onViewportMouseDown(e) {
         if (e.button === 1 || e.button === 2 || (e.button === 0 && e.shiftKey)) {
@@ -8251,10 +9533,10 @@
         // Rebuild semua beam geometry
         lamps.forEach((l, idx) => {
             const rebuildCone = (radius, length, opacity, color = 0xffffff, startRadius = 0.05) => {
-                const mat = new THREE.MeshBasicMaterial({
+                const mat = _beamFxPatch(new THREE.MeshBasicMaterial({
                     color, transparent: true, opacity,
                     blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide
-                });
+                }));
                 const geom = new THREE.CylinderGeometry(radius, startRadius, length, 32, 1, true);
                 geom.translate(0, length / 2, 0);
                 geom.rotateX(Math.PI / 2);
@@ -8288,6 +9570,22 @@
                 pPink.visible = false;
                 pg.add(pShell, pPink);
                 l.pPinkCores[i] = pPink;
+            });
+
+            // Rebuild prism 16 / 32
+            [[l.prisms16, l.p16PinkCores, 2.2, 1.8, 0.4, 0.16, 0.12], [l.prisms32, l.p32PinkCores, 1.7, 1.4, 0.36, 0.13, 0.1]].forEach(([arr, pinks, r1, r2, op, e1, e2]) => {
+                if (!arr) return;
+                arr.forEach((pg, i) => {
+                    while (pg.children.length > 0) {
+                        const ch = pg.children[0];
+                        if (ch.geometry) ch.geometry.dispose();
+                        if (ch.material) ch.material.dispose();
+                        pg.remove(ch);
+                    }
+                    const sh = rebuildCone(r1, beamLength - 10, op, 0xffffff, e1);
+                    const pk = rebuildCone(r2, beamLength - 11, 1.0, SB_COLOR, e2);
+                    pk.visible = false; pg.add(sh, pk); pinks[i] = pk;
+                });
             });
 
             // Rebuild fans
@@ -8977,7 +10275,7 @@
 
     function sMode(m) {
         const indices = (selectedFixtures[0] === -1) ? lamps.map((_,i)=>i) : selectedFixtures;
-        const isPrism = ['prism', 'fan', 'dots', 'star'].includes(m);
+        const isPrism = ['prism', 'fan', 'dots', 'star', 'prism16', 'prism32'].includes(m);
         indices.forEach(idx => {
             lamps[idx].state.mode = m;
             if(m === 'beam')        lamps[idx].state.targetGoboX = 0;
@@ -8986,6 +10284,8 @@
             else if(m === 'dots')   lamps[idx].state.targetGoboX = -45;
             else if(m === 'matrix') lamps[idx].state.targetGoboX = -75;
             else if(m === 'star')   lamps[idx].state.targetGoboX = -90;
+            else if(m === 'prism16') lamps[idx].state.targetGoboX = -105;
+            else if(m === 'prism32') lamps[idx].state.targetGoboX = -120;
             // Jika mode bukan prisma, matikan rainbow prism otomatis
             if (!isPrism) lamps[idx].state.rainbowPrism = false;
             // Custom Rotasi Per Prisma — terapkan speed rotasi otomatis kalau diaktifkan di Settings
@@ -9006,6 +10306,8 @@
             if(l.fPinkCores) l.fPinkCores.forEach(f => { if(f) f.material.color.copy(newCol); });
             if(l.dPinkCores) l.dPinkCores.forEach(d => { if(d) d.material.color.copy(newCol); });
             if(l.sPinkCores) l.sPinkCores.forEach(s => { if(s) s.material.color.copy(newCol); });
+            if(l.p16PinkCores) l.p16PinkCores.forEach(s => { if(s) s.material.color.copy(newCol); });
+            if(l.p32PinkCores) l.p32PinkCores.forEach(s => { if(s) s.material.color.copy(newCol); });
         });
     }
 
@@ -9013,13 +10315,19 @@
         fxSpeeds[name] = parseFloat(val) / 100;
         const el = document.getElementById('val-'+name+'-spd-txt');
         if(el) el.innerText = Math.round(val) + '%';
+        const mf = _mfxByKey(name);                                 // gerakan multiple: kecepatan dua gerakan penyusunnya ikut diatur
+        if (mf) [mf.a, mf.b].forEach(k => {
+            fxSpeeds[k] = parseFloat(val) / 100;
+            const t = document.getElementById('val-'+k+'-spd-txt'); if (t) t.innerText = Math.round(val) + '%';
+            const sl = document.getElementById('val-'+k+'-spd'); if (sl) sl.value = Math.round(val);
+        });
     }
 
     let fxSpeedLocked = false;
     function toggleFxSpeedLock() {
         fxSpeedLocked = !fxSpeedLocked;
         const btn = document.getElementById('fx-speed-lock-btn');
-        const keys = ['circle','circleS','circleBounce','mirrorCircleBounce','pargoy','pargoyTipis','pargoyAtasBawah','pargoySweepUp','wave','snake','bounce','chaos','zigzag','mirrorSweep','flyout'];
+        const keys = _mfxList().map(_mfxKey).concat(['circle','circleS','circleBounce','mirrorCircleBounce','pargoy','pargoyTipis','pargoyAtasBawah','pargoySweepUp','wave','snake','bounce','chaos','zigzag','mirrorSweep','flyout','flyoutB','flyoutL','flyoutR']);
         keys.forEach(k => {
             const sldr = document.getElementById('val-'+k+'-spd');
             if (sldr) sldr.disabled = fxSpeedLocked;
@@ -9054,7 +10362,7 @@
     }
 
 
-    const PRISM_MODES = ['prism', 'fan', 'dots', 'star'];
+    const PRISM_MODES = ['prism', 'fan', 'dots', 'star', 'prism16', 'prism32'];
 
     function isPrismModeActive() {
         const indices = (selectedFixtures[0] === -1) ? lamps.map((_,i)=>i) : selectedFixtures;
@@ -9109,34 +10417,38 @@
         theme: 'green',
         customTheme: { primary: '#ff2d95', dark: '#1a0010', outlineOn: false, outlineColor: '#000000', outlineSize: 1 },
         renderQuality: 'medium',
+        gfx: { fxaa: true, filmic: false, exposure: 1.0, beam: true, spots: true, haze: true, bloom: false, bloomAmt: 0.6, refl: false, reflAmt: 0.5, metal: false, fade: true, vol: false, volAmt: 0.5, shaft: false, shaftAmt: 0.4, lens: false, lensAmt: 0.4, reflhq: false, sshadow: false, auto: false },
         showFps: true,
+        showVersion: true,
+        multiFx: [],
         language: 'id',
-        fxOrder: ['circle','circleS','circleBounce','mirrorCircleBounce','mirrorSweep','zigzag','pargoy','pargoyTipis','pargoyAtasBawah','pargoySweepUp','wave','snake','bounce','chaos','flyout'],
+        fxOrder: ['circle','circleS','circleBounce','mirrorCircleBounce','mirrorSweep','zigzag','pargoy','pargoyTipis','pargoyAtasBawah','pargoySweepUp','wave','snake','bounce','chaos','flyout','flyoutB','flyoutL','flyoutR'],
         strobeOrder: ['sLR','sCt','sOdd','sAll','sRnd','sSplit','sChase13','sLoop'],
         delayCustom: {
             circle:false, circleS:false, circleBounce:false, mirrorCircleBounce:false, mirrorSweep:false, zigzag:false,
             pargoy:false, pargoyTipis:false, pargoyAtasBawah:false, pargoySweepUp:false,
-            wave:false, snake:false, bounce:false, chaos:false, flyout:false
+            wave:false, snake:false, bounce:false, chaos:false, flyout:false, flyoutB:false, flyoutL:false, flyoutR:false
         },
         delayCustomValue: {
             circle:30, circleS:30, circleBounce:30, mirrorCircleBounce:30, mirrorSweep:30, zigzag:30,
             pargoy:30, pargoyTipis:30, pargoyAtasBawah:30, pargoySweepUp:30,
-            wave:30, snake:30, bounce:30, chaos:30, flyout:30
+            wave:30, snake:30, bounce:30, chaos:30, flyout:30, flyoutB:30, flyoutL:30, flyoutR:30
         },
-        customRotation: { prism:false, fan:false, dots:false, star:false },
-        customRotationValue: { prism:20, fan:20, dots:20, star:20 },
+        customRotation: { prism:false, fan:false, dots:false, star:false, prism16:false, prism32:false },
+        customRotationValue: { prism:20, fan:20, dots:20, star:20, prism16:20, prism32:20 },
         customBounceAngleValue: { circleBounce:360, mirrorCircleBounce:360 },
         bounceMode: { circleBounce:'auto', mirrorCircleBounce:'auto' }, // 'auto' = balik otomatis sesuai derajat, 'manual' = balik cuma pas ditombol/hotkey
-        customSpread: { prism:false, fan:false, dots:false, matrix:false, star:false },
-        customSpreadValue: { prism:100, fan:100, dots:100, matrix:100, star:100 },
+        customSpread: { prism:false, fan:false, dots:false, matrix:false, star:false, prism16:false, prism32:false },
+        customSpreadValue: { prism:100, fan:100, dots:100, matrix:100, star:100, prism16:100, prism32:100 },
         disabledSliders: { dim:false, pan:false, tilt:false, zoom:false, space:false, posX:false, posY:false, rot:false, rainbow:false, posZ:false, rotZ:false },
         fxHotkeys: {
             circle:null, circleS:null, circleBounce:null, mirrorCircleBounce:null, mirrorSweep:null, zigzag:null,
             pargoy:null, pargoyTipis:null, pargoyAtasBawah:null, pargoySweepUp:null,
-            wave:null, snake:null, bounce:null, chaos:null, flyout:null
+            wave:null, snake:null, bounce:null, chaos:null, flyout:null, flyoutB:null, flyoutL:null, flyoutR:null
         },
         actionHotkeys: {
-            minibrute:' ', freeze:'f', blackout:'b', gobo:'g', bounceReverse:'backspace'
+            minibrute:' ', freeze:'f', blackout:'b', gobo:'g', bounceReverse:'backspace',
+            goboBeam:null, goboPrism:null, goboFan:null, goboDots:null, goboMatrix:null, goboStar:null, goboPrism16:null, goboPrism32:null
         }
     };
     // Snapshot bawaan (pristine) — dipakai oleh fitur "Reset ke Default"
@@ -9146,7 +10458,7 @@
         circle:'CIRCLE', circleS:'MIRROR CIR', circleBounce:'CIRCLE BOLAK-BALIK', mirrorCircleBounce:'MIRROR CIR BOLAK-BALIK',
         mirrorSweep:'MIRROR SWEEP', zigzag:'ZIG-ZAG', pargoy:'PARGOY',
         pargoyTipis:'PARGOY TIPIS', pargoyAtasBawah:'PARGOY AB', pargoySweepUp:'SWEEP UP',
-        wave:'WAVE', snake:'SNAKE', bounce:'BOUNCE', chaos:'CHAOS', flyout:'FLYOUT'
+        wave:'WAVE', snake:'SNAKE', bounce:'BOUNCE', chaos:'CHAOS', flyout:'FLYOUT A', flyoutB:'FLYOUT B', flyoutL:'FLYOUT L', flyoutR:'FLYOUT R'
     };
     const STROBE_LABELS = {
         sLR:'L-R SWIPE', sCt:'COUNTER', sOdd:'ODD-EVEN',
@@ -9154,8 +10466,11 @@
     };
     const ACTION_LABELS = {
         minibrute:'FLASH MINIBRUTE', freeze:'FREEZE', blackout:'BLACKOUT', gobo:'MASTER GOBO (CYCLE)',
-        bounceReverse:'BALIK ARAH MANUAL (CIRCLE/MIRROR BOLAK-BALIK)'
+        bounceReverse:'BALIK ARAH MANUAL (CIRCLE/MIRROR BOLAK-BALIK)',
+        goboBeam:'GOBO: BEAM', goboPrism:'GOBO: PRISM', goboFan:'GOBO: FAN', goboDots:'GOBO: DOTS',
+        goboMatrix:'GOBO: MATRIX', goboStar:'GOBO: STAR', goboPrism16:'GOBO: PRISM 16', goboPrism32:'GOBO: PRISM 32'
     };
+    const GOBO_HOTKEY_MODES = { goboBeam:'beam', goboPrism:'prism', goboFan:'fan', goboDots:'dots', goboMatrix:'matrix', goboStar:'star', goboPrism16:'prism16', goboPrism32:'prism32' };
     const ACTION_HOLD_KEYS = ['minibrute']; // jenis hold (nyala pas ditahan), sisanya toggle
 
     // ─── TEMA WARNA ───────────────────────────────────────
@@ -9249,7 +10564,7 @@
             .tab-btn.active { background:${t.accent} !important; box-shadow:inset 0 -3px 0 ${t.primary} !important; }
             .chase-btn.active { background:${t.primary} !important; color:#000 !important; border-color:#fff !important; box-shadow:0 0 10px ${t.glow} !important; }
             .scene-btn.active { background:${t.primary} !important; color:#000 !important; }
-            .mini-fx-btn.active { background:#040 !important; border-color:${t.primary} !important; }
+            .mini-fx-btn.active { background:${t.subtle} !important; border-color:${t.primary} !important; }
             .btn-strobe-big.active { background:${t.primary} !important; color:#000 !important; box-shadow:0 0 8px ${t.glow} !important; border-color:#fff !important; }
             .quality-btn.active { border-color:${t.primary} !important; color:${t.primary} !important; }
             .settings-section { border-color:${t.accent} !important; }
@@ -9270,7 +10585,7 @@
     };
     function applyRenderQuality(q) {
         settingsState.renderQuality = q;
-        document.querySelectorAll('.quality-btn').forEach(b => b.classList.toggle('active', b.dataset.q === q));
+        document.querySelectorAll('.quality-btn[data-q]').forEach(b => b.classList.toggle('active', b.dataset.q === q));
         document.getElementById('quality-desc').innerText = QUALITY_DESC[q];
         if (typeof renderer !== 'undefined' && renderer) {
             const ratioMap = { low: 0.5, medium: 1, high: 2, ultra: 3 };
@@ -9394,6 +10709,99 @@
         ai_ph:             { id:'Ketik pertanyaanmu...', en:'Type your question...' },
         ai_send:           { id:'KIRIM', en:'SEND' },
         ai_clear:          { id:'HAPUS PERCAKAPAN', en:'CLEAR CHAT' },
+        gfx_title:         { id:'GRAFIS REALISTIS', en:'REALISTIC GRAPHICS' },
+        gfx_desc:          { id:'Efek tambahan supaya viewport 3D lebih tajam dan realistis. Matikan yang berat kalau HP terasa patah-patah.', en:'Extra effects that make the 3D viewport sharper and more realistic. Turn off the heavy ones if your phone stutters.' },
+        gfx_p_eco:         { id:'HEMAT', en:'ECO' },
+        gfx_p_bal:         { id:'SEIMBANG', en:'BALANCED' },
+        gfx_p_max:         { id:'MAKSIMAL', en:'MAX' },
+        gfx_fxaa:          { id:'ANTI-ALIASING (FXAA)', en:'ANTI-ALIASING (FXAA)' },
+        gfx_fxaa_d:        { id:'Menghaluskan tepi bergerigi pada beam, truss, dan teks 3D.', en:'Smooths jagged edges on beams, trusses, and 3D text.' },
+        gfx_filmic:        { id:'FILMIC (TONE MAPPING)', en:'FILMIC (TONE MAPPING)' },
+        gfx_filmic_d:      { id:'Sorotan terang tidak jebol jadi putih rata, kontras dan warna lebih sinematik.', en:'Bright highlights do not clip to flat white; contrast and color feel more cinematic.' },
+        gfx_exp:           { id:'EKSPOSUR', en:'EXPOSURE' },
+        gfx_beam:          { id:'BEAM REALISTIS', en:'REALISTIC BEAMS' },
+        gfx_beam_d:        { id:'Tepi beam lembut, memudar menjauhi lampu, dan ada gerak asap halus di dalamnya.', en:'Soft beam edges that fade away from the fixture, with subtle moving smoke inside.' },
+        gfx_spots:         { id:'BERCAK CAHAYA DI LANTAI', en:'FLOOR LIGHT SPOTS' },
+        gfx_spots_d:       { id:'Titik terang di lantai tempat beam menyentuh, mengikuti bentuk prisma, kipas, dan dots.', en:'Bright spots on the floor where beams land, following prism, fan, and dots shapes.' },
+        gfx_fade:          { id:'PUDAR DI UJUNG BEAM', en:'BEAM END FADE' },
+        gfx_fade_d:        { id:'Cahaya beam meredup perlahan menjelang batas panjangnya, tidak terpotong tiba-tiba.', en:'Beam light fades out gradually toward its length limit instead of cutting off.' },
+        gfx_bloom:         { id:'BLOOM (CAHAYA MENDERAS)', en:'BLOOM' },
+        gfx_bloom_s:       { id:'KEKUATAN', en:'STRENGTH' },
+        gfx_bloom_d:       { id:'Sorotan terang berpendar lembut di sekitarnya seperti lensa kamera.', en:'Bright highlights glow softly around them like a camera lens.' },
+        gfx_refl:          { id:'LANTAI MENGILAP', en:'GLOSSY FLOOR' },
+        gfx_refl_s:        { id:'KEMILAP', en:'GLOSS' },
+        gfx_refl_d:        { id:'Lantai memantulkan beam dan lampu. Berat di perangkat lemah.', en:'The floor reflects beams and fixtures. Heavy on weak devices.' },
+        gfx_metal:         { id:'MATERIAL LOGAM', en:'METAL MATERIAL' },
+        gfx_metal_d:       { id:'Truss dan bodi lampu memantulkan lingkungan panggung sehingga terlihat berkilau.', en:'Truss and fixture bodies reflect the stage environment so they look shiny.' },
+        gfx_save:          { id:'SIMPAN', en:'SAVE' },
+        gfx_clear:         { id:'HAPUS SIMPANAN', en:'DELETE SAVED' },
+        gfx_saved:         { id:'Pengaturan grafis disimpan di perangkat ini', en:'Graphics settings saved on this device' },
+        gfx_cleared:       { id:'Simpanan grafis dihapus', en:'Saved graphics settings deleted' },
+        gfx_ultra_title:   { id:'ULTRA: KHUSUS PERANGKAT KUAT', en:'ULTRA: HIGH-END DEVICES ONLY' },
+        gfx_ultra_warn:    { id:'Efek di bawah sangat berat. Hanya untuk PC dan HP gaming kelas atas. Di perangkat biasa bisa membuat lag parah, layar patah-patah, panas, dan baterai cepat habis. Kalau terasa berat, matikan atau tekan HAPUS SIMPANAN lalu muat ulang.', en:'The effects below are very heavy. For high-end PCs and gaming phones only. On regular devices they can cause severe lag, stutter, heat and fast battery drain. If it feels heavy, turn them off or press DELETE SAVED and reload.' },
+        gfx_ultra_confirm: { id:'PERINGATAN: efek Ultra sangat berat dan hanya untuk PC atau HP gaming kelas atas. Di perangkat biasa bisa membuat lag parah, panas, dan baterai cepat habis. Lanjutkan?', en:'WARNING: Ultra effects are very heavy and meant for high-end PCs or gaming phones only. On regular devices they can cause severe lag, heat and fast battery drain. Continue?' },
+        gfx_ultra_dev_ok:  { id:'Perangkat ini terdeteksi cukup kuat untuk efek Ultra.', en:'This device looks capable enough for Ultra effects.' },
+        gfx_ultra_dev_weak:{ id:'Perangkat ini terdeteksi KURANG kuat untuk efek Ultra. Disarankan jangan diaktifkan.', en:'This device looks NOT powerful enough for Ultra effects. Enabling them is not recommended.' },
+        gfx_ultra_yes:     { id:'LANJUTKAN', en:'CONTINUE' },
+        gfx_ultra_no:      { id:'BATAL', en:'CANCEL' },
+        gfx_p_ultra:       { id:'PRESET ULTRA', en:'ULTRA PRESET' },
+        gfx_vol:           { id:'ASAP VOLUMETRIK', en:'VOLUMETRIC SMOKE' },
+        gfx_vol_s:         { id:'KEPEKATAN', en:'DENSITY' },
+        gfx_vol_d:         { id:'Asap 3D sungguhan yang disinari tiap beam, terlihat tebal dan bergumpal. Paling berat.', en:'Real 3D smoke lit by each beam, thick and clumpy. The heaviest effect.' },
+        gfx_shaft:         { id:'LIGHT SHAFTS', en:'LIGHT SHAFTS' },
+        gfx_shaft_s:       { id:'KEKUATAN', en:'STRENGTH' },
+        gfx_shaft_d:       { id:'Berkas cahaya menembus asap dan terpotong oleh truss atau bodi lampu.', en:'Light rays pierce the smoke and get cut by trusses or fixture bodies.' },
+        gfx_lens:          { id:'EFEK LENSA SINEMATIK', en:'CINEMATIC LENS' },
+        gfx_lens_s:        { id:'KEKUATAN', en:'STRENGTH' },
+        gfx_lens_d:        { id:'Lens flare, chromatic aberration, vignette, dan grain film tipis.', en:'Lens flare, chromatic aberration, vignette and light film grain.' },
+        gfx_reflhq:        { id:'PANTULAN LANTAI HQ', en:'FLOOR REFLECTION HQ' },
+        gfx_reflhq_d:      { id:'Pantulan makin buram menjauh dan ada riak halus di lantai. Aktifkan bersama Lantai Mengilap.', en:'Reflection blurs with distance and the floor has subtle ripples. Enable together with Glossy Floor.' },
+        gfx_sshadow:       { id:'BAYANGAN LEMBUT LAMPU', en:'SOFT LAMP SHADOWS' },
+        gfx_sshadow_d:     { id:'Truss menjatuhkan bayangan lembut dari lampu paling terang (maks 4 lampu).', en:'Trusses cast soft shadows from the brightest lamps (up to 4).' },
+        sec_screen:        { id:'TAMPILAN LAYAR', en:'SCREEN DISPLAY' },
+        fs_label:          { id:'LAYAR PENUH (FULLSCREEN)', en:'FULLSCREEN' },
+        fs_desc:           { id:'Tampilkan aplikasi memenuhi layar. Tekan lagi untuk keluar.', en:'Show the app full screen. Press again to exit.' },
+        vt_label:          { id:'TULISAN VERSI DI VIEWPORT', en:'VERSION TEXT IN VIEWPORT' },
+        vt_desc:           { id:'Sembunyikan atau tampilkan tulisan "IAN LIGHTING v8.8" di pojok kanan atas viewport.', en:'Hide or show the "IAN LIGHTING v8.8" text at the top right of the viewport.' },
+        vt_show:           { id:'TAMPIL', en:'SHOWN' },
+        vt_hide:           { id:'SEMBUNYI', en:'HIDDEN' },
+        dg_mouse_dbl:      { id:'• Klik dua kali di viewport = reset kamera', en:'• Double-click the viewport = reset camera' },
+        dg_mouse_ctx:      { id:'• Klik kanan (tanpa geser) pada lampu = menu cepat: pilih lampu, fokus kamera, pilih semua', en:'• Right-click (without dragging) on a fixture = quick menu: select fixture, focus camera, select all' },
+        dg_slider:         { id:'• Slider: klik dua kali = ketik angka langsung; saat slider terpilih, scroll wheel = ubah per langkah (Shift = x10)', en:'• Sliders: double-click = type a value; when a slider is focused, scroll wheel = change by step (Shift = x10)' },
+        ctx_only:          { id:'Pilih hanya MH{n}', en:'Select only MH{n}' },
+        ctx_add:           { id:'Tambah / lepas MH{n}', en:'Add / remove MH{n}' },
+        ctx_focus:         { id:'Fokus kamera ke MH{n}', en:'Focus camera on MH{n}' },
+        ctx_all:           { id:'Pilih semua lampu', en:'Select all fixtures' },
+        ctx_reset:         { id:'Reset kamera', en:'Reset camera' },
+        ctx_reset_done:    { id:'KAMERA DIRESET', en:'CAMERA RESET' },
+        s2_label:          { id:'LAYAR KEDUA (MONITOR/PROYEKTOR)', en:'SECOND SCREEN (MONITOR/PROJECTOR)' },
+        s2_desc:           { id:'Pindahkan viewport 3D ke jendela terpisah. Seret ke monitor atau proyektor kedua, lalu klik dua kali untuk layar penuh. Jendela utama boleh di-minimize: tampilan tetap jalan dan semua hotkey tetap bekerja selama jendela layar kedua yang aktif.', en:'Move the 3D viewport to a separate window. Drag it to a second monitor or projector, then double-click for full screen. The main window can be minimized: the display keeps running and all hotkeys keep working while the second-screen window is focused.' },
+        s2_placeholder:    { id:'Viewport 3D sedang tampil di layar kedua.', en:'The 3D viewport is showing on the second screen.' },
+        s2_restore:        { id:'KEMBALIKAN KE SINI', en:'BRING BACK HERE' },
+        s2_open:           { id:'BUKA', en:'OPEN' },
+        s2_close:          { id:'TUTUP', en:'CLOSE' },
+        s2_blocked:        { id:'Jendela diblokir browser. Izinkan pop-up untuk situs ini lalu coba lagi.', en:'Window blocked by the browser. Allow pop-ups for this site and try again.' },
+        s2_unsupported:    { id:'Layar kedua tidak didukung browser ini', en:'Second screen is not supported by this browser' },
+        s2_opened:         { id:'Layar kedua dibuka. Seret ke monitor lain, klik dua kali untuk layar penuh.', en:'Second screen opened. Drag it to another monitor, double-click for full screen.' },
+        s2_hint:           { id:'Klik dua kali untuk layar penuh', en:'Double-click for full screen' },
+        dev_label:         { id:'PERANGKAT TERDETEKSI', en:'DETECTED DEVICE' },
+        dev_pc:            { id:'Komputer / laptop (mouse dan keyboard)', en:'Computer / laptop (mouse and keyboard)' },
+        dev_phone:         { id:'HP / tablet (layar sentuh)', en:'Phone / tablet (touch screen)' },
+        dev_desc:          { id:'Menentukan pengaturan grafis awal dan fitur khusus PC (kontrol mouse, slider presisi, layar kedua).', en:'Determines the initial graphics settings and PC-only features (mouse controls, precision sliders, second screen).' },
+        mfx_add:           { id:'ADD MULTIPLE', en:'ADD MULTIPLE' },
+        mfx_title:         { id:'GERAKAN MULTIPLE BARU', en:'NEW MULTIPLE MOTION' },
+        mfx_name:          { id:'Nama gerakan:', en:'Motion name:' },
+        mfx_pick:          { id:'Gerakan yang mau di multiple: (pilih 2 gerakan)', en:'Motions to combine: (pick 2 motions)' },
+        mfx_save:          { id:'SIMPAN', en:'SAVE' },
+        mfx_cancel:        { id:'BATAL', en:'CANCEL' },
+        mfx_err_pick:      { id:'Pilih tepat 2 gerakan dulu.', en:'Pick exactly 2 motions first.' },
+        mfx_added:         { id:'Gerakan multiple "{n}" ditambahkan', en:'Multiple motion "{n}" added' },
+        mfx_deleted:       { id:'Gerakan multiple "{n}" dihapus', en:'Multiple motion "{n}" deleted' },
+        mfx_delete:        { id:'Hapus gerakan ini', en:'Delete this motion' },
+        gfx_haze:          { id:'HAZE REALISTIS', en:'REALISTIC HAZE' },
+        gfx_haze_d:        { id:'Lapisan asap bernoise yang bergulung pelan dengan lebih banyak lapisan.', en:'Noise-based smoke layers that slowly roll, with more layers.' },
+        gfx_auto:          { id:'AUTO KUALITAS', en:'AUTO QUALITY' },
+        gfx_auto_d:        { id:'Efek berat dimatikan otomatis satu per satu kalau FPS terus rendah.', en:'Heavy effects are turned off one by one automatically when FPS stays low.' },
         env_title:         { id:'LANTAI & LANGIT CUSTOM', en:'CUSTOM FLOOR & SKY' },
         env_desc:          { id:'Pasang gambar sendiri sebagai lantai dan langit di viewport 3D. Gambar hanya berlaku di sesi ini (tidak disimpan).', en:'Use your own images as the floor and sky of the 3D viewport. Images apply to this session only (not saved).' },
         env_floor:         { id:'LANTAI', en:'FLOOR' },
@@ -9499,10 +10907,13 @@
         settingsState = JSON.parse(JSON.stringify(DEFAULT_SETTINGS_STATE));
         applyTheme(settingsState.theme);
         applyRenderQuality(settingsState.renderQuality);
+        if (typeof applyGfx === 'function') { applyGfx(); gfxRenderUi(); }
         applyLanguage(settingsState.language);
         _applyFpsCounterUI(settingsState.showFps);
+        _applyVersionText();
         renderFxOrderList(); applyFxOrder();
         renderStrobeOrderList(); applyStrobeOrder();
+        try { multiFxRender(); } catch (e) {}
         if (typeof renderDelayCustomList === 'function') renderDelayCustomList();
         if (typeof renderRotationCustomList === 'function') renderRotationCustomList();
         if (typeof renderBounceAngleCustomList === 'function') renderBounceAngleCustomList();
@@ -9742,7 +11153,7 @@
                 device: typeof _deviceInfo !== 'undefined' ? _deviceInfo.device : null,
                 browser: typeof _deviceInfo !== 'undefined' ? _deviceInfo.browser : null,
                 screen: typeof _deviceInfo !== 'undefined' ? _deviceInfo.screen : null,
-                appVersion: 'v8.7',
+                appVersion: 'v8.8',
                 status: 'baru',
                 timestamp: Date.now()
             });
@@ -10054,6 +11465,7 @@
     let _delayWasDisabled = false; // track apakah sebelumnya sedang disabled
 
     function updateDelaySliderState() {
+        try { _mfxSync(); } catch (e) {}
         const noDelay = Object.keys(settingsState.delayCustom).some(k => fxState[k] && settingsState.delayCustom[k]);
         let customVal = 30;
         Object.keys(settingsState.delayCustom).forEach(k => {
@@ -10094,8 +11506,8 @@
     }
 
     // ─── CUSTOM ROTASI PER PRISMA ──────────────────────────
-    const ROTATION_MODES = ['prism', 'fan', 'dots', 'star'];
-    const ROTATION_LABELS = { prism:'PRISM', fan:'FAN', dots:'DOTS', star:'STAR' };
+    const ROTATION_MODES = ['prism', 'fan', 'dots', 'star', 'prism16', 'prism32'];
+    const ROTATION_LABELS = { prism:'PRISM', fan:'FAN', dots:'DOTS', star:'STAR', prism16:'PRISM 16', prism32:'PRISM 32' };
 
     function renderRotationCustomList() {
         const list = document.getElementById('rotation-custom-list'); if (!list) return;
@@ -10130,8 +11542,8 @@
     }
 
     // ─── CUSTOM SPREAD PER PRISMA ───────────────────────────
-    const SPREAD_MODES = ['prism', 'fan', 'dots', 'matrix', 'star'];
-    const SPREAD_LABELS = { prism:'PRISM', fan:'FAN', dots:'DOTS', matrix:'MATRIX', star:'STAR' };
+    const SPREAD_MODES = ['prism', 'fan', 'dots', 'matrix', 'star', 'prism16', 'prism32'];
+    const SPREAD_LABELS = { prism:'PRISM', fan:'FAN', dots:'DOTS', matrix:'MATRIX', star:'STAR', prism16:'PRISM 16', prism32:'PRISM 32' };
 
     function renderSpreadCustomList() {
         const list = document.getElementById('spread-custom-list'); if (!list) return;
@@ -10447,8 +11859,8 @@
     // tepat di puncak, lalu beam turun CEPAT dalam keadaan gelap (tanpa berhenti di atas).
     // Tim lain mulai naik dan menyala perlahan saat tim di atas mulai meredup (offset 0.75 dari satu siklus 1.5),
     // dan langsung naik (tidak turun dulu) karena sudah menunggu di bawah.
-    function _flyoutCalc(i, now) {
-        const t = now * 0.001 * _cachedSpeed * fxSpeeds.flyout * 0.5;               // 1 satuan = sekitar 2 detik pada speed 100%
+    function _flyoutCalc(i, now, key) {
+        const t = now * 0.001 * _cachedSpeed * fxSpeeds[key || 'flyout'] * 0.5;               // 1 satuan = sekitar 2 detik pada speed 100%
         let c = (t + (i % 2 === 0 ? 0 : 0.75)) % 1.5; if (c < 0) c += 1.5;          // siklus 1.5: naik 1.0 + turun gelap 0.5
         const ss = (a, b, x) => { const k = Math.min(1, Math.max(0, (x - a) / (b - a))); return k * k * (3 - 2 * k); };
         const env = ss(0, 0.4, c) * (1 - ss(0.7, 1.05, c));                         // muncul perlahan, meredup, habis di puncak
@@ -10458,13 +11870,14 @@
     }
 
     function tFX(f) {
+        const _mf = _mfxByKey(f); if (_mf) { _multiFxToggle(_mf); return; }
         if(['sLR','sCt','sOdd','sAll','sRnd','sSplit','sChase13','sLoop'].includes(f)) {
             let cur = fxState[f];
             ['sLR','sCt','sOdd','sAll','sRnd','sSplit','sChase13','sLoop'].forEach(k => fxState[k] = false);
             fxState[f] = !cur;
         } else {
             let cur = fxState[f];
-            const motions = ['circle','circleS','circleBounce','mirrorCircleBounce','pargoy','pargoyTipis','pargoyAtasBawah','pargoySweepUp','wave','snake','bounce','chaos','zigzag','mirrorSweep','flyout'];
+            const motions = ['circle','circleS','circleBounce','mirrorCircleBounce','pargoy','pargoyTipis','pargoyAtasBawah','pargoySweepUp','wave','snake','bounce','chaos','zigzag','mirrorSweep','flyout','flyoutB','flyoutL','flyoutR'];
             if(motions.includes(f) && !multiMotionOn) { motions.forEach(k => { if(k !== f) fxState[k] = false; }); }
             fxState[f] = !cur;
             if(motions.includes(f) && fxState[f]) _lastMotionOn = f;
@@ -10812,6 +12225,7 @@
     }
 
     function updateButtons() {
+        try { _mfxSync(); } catch (e) {}
         let refState = (selectedFixtures[0] === -1) ? lamps[0]?.state : lamps[selectedFixtures[0]]?.state;
         // Fallback: kalau seleksi fixture lagi gak valid (misal habis ubah jumlah fixture), jangan berhenti total —
         // pakai lampu pertama yang ada sebagai acuan mode, biar tombol FX/Strobe/Chase/Gobo di bawah tetap ke-refresh.
@@ -10819,8 +12233,8 @@
 
         if (refState) {
             // Reset semua mode button dulu baru set yang aktif (termasuk versi -main)
-            ['btn-beam','btn-prism','btn-fan','btn-dots','btn-matrix','btn-star','btn-sb-pink',
-             'btn-beam-main','btn-prism-main','btn-fan-main','btn-dots-main','btn-matrix-main','btn-star-main','btn-sb-pink-main'].forEach(id => {
+            ['btn-beam','btn-prism','btn-fan','btn-dots','btn-matrix','btn-star','btn-prism16','btn-prism32','btn-sb-pink',
+             'btn-beam-main','btn-prism-main','btn-fan-main','btn-dots-main','btn-matrix-main','btn-star-main','btn-prism16-main','btn-prism32-main','btn-sb-pink-main'].forEach(id => {
                 const el = document.getElementById(id);
                 if(el) el.classList.remove('active');
             });
@@ -10834,7 +12248,7 @@
             const rpBtn = document.getElementById('btn-rainbow-prism-main');
             if (rpBtn) {
                 const rpOn = refState.rainbowPrism;
-                const prismActive = ['prism', 'fan', 'dots', 'star'].includes(refState.mode);
+                const prismActive = ['prism', 'fan', 'dots', 'star', 'prism16', 'prism32'].includes(refState.mode);
                 rpBtn.style.boxShadow = rpOn ? '0 0 8px #fff' : 'none';
                 rpBtn.style.border = rpOn ? '2px solid #fff' : '';
                 rpBtn.style.opacity = prismActive ? '1' : '0.35';
@@ -10890,7 +12304,7 @@
         lamps.forEach(l => {
             Object.assign(l.state, { dim:0.8, pan:0, tilt:-0.2, zoom:40, mode:'beam', rainbow:0, sunburst:'off', targetGoboX:0 });
         });
-        fxState = { circle:false, circleS:false, circleBounce:false, mirrorCircleBounce:false, pargoy:false, pargoyTipis:false, pargoyAtasBawah:false, pargoySweepUp:false, wave:false, snake:false, bounce:false, chaos:false, zigzag:false, mirrorSweep:false, flyout:false, sLR:false, sCt:false, sOdd:false, sAll:false, sRnd:false, sSplit:false, sChase13:false, sLoop:false };
+        fxState = { circle:false, circleS:false, circleBounce:false, mirrorCircleBounce:false, pargoy:false, pargoyTipis:false, pargoyAtasBawah:false, pargoySweepUp:false, wave:false, snake:false, bounce:false, chaos:false, zigzag:false, mirrorSweep:false, flyout:false, flyoutB:false, flyoutL:false, flyoutR:false, sLR:false, sCt:false, sOdd:false, sAll:false, sRnd:false, sSplit:false, sChase13:false, sLoop:false };
         masterX = 0; masterY = 12; globalSpacing = 12;
         document.getElementById('val-space').value = 12;
 
@@ -10972,7 +12386,7 @@
     _cacheSliders();
 
     function animate() {
-        requestAnimationFrame(animate);
+        _animNext();
         try {
         const now = Date.now(), total = lamps.length;
 
@@ -10990,6 +12404,8 @@
         const spreadDots   = csS.dots   ? (csvS.dots   ?? 100) / 100 : spread;
         const spreadMatrix = csS.matrix ? (csvS.matrix ?? 100) / 100 : spread;
         const spreadStar   = csS.star   ? (csvS.star   ?? 100) / 100 : spread;
+        const spreadP16    = csS.prism16 ? (csvS.prism16 ?? 100) / 100 : spread;
+        const spreadP32    = csS.prism32 ? (csvS.prism32 ?? 100) / 100 : spread;
 
         // Mirror Pan — sinkronisasi tiap frame
         applyMirrorPan();
@@ -11201,9 +12617,9 @@
         // GERAK SMOOTH: 0% = PERSIS seperti sebelumnya (0.28), 100% = paling halus (0.02).
         // Pakai kurva eksponensial (bukan linear) biar smoothing-nya kerasa mulai pertengahan slider, bukan cuma dekat 100%.
         const lerpMotor = 0.28 * Math.pow(0.02 / 0.28, _cachedGerakSmooth / 100);
-        // Kecepatan transisi Gobo/Mode — default 0.12 (seperti sekarang, ada jeda gelap total pas ganti gobo/mode).
-        // Kalau ada Chase Gobo yang lagi aktif, dipercepat sesuai slider speed slot itu (mentok kanan = nyaris instan, tanpa jeda gelap).
-        let lerpGobo = 0.12;
+        // Kecepatan transisi Gobo/Mode — default 1.0 = INSTAN (tanpa jeda gelap pas ganti gobo/mode).
+        // Kalau ada Chase Gobo yang lagi aktif, kecepatannya mengikuti slider speed slot itu (makin ke kiri makin pelan/halus).
+        let lerpGobo = 1.0;
         if (activeSceneIdx !== -1 && !isSceneRecording) {
             const _goboMult = sceneSlotSpeeds[activeSceneIdx] || 1.0;
             lerpGobo = Math.min(0.95, 0.12 * _goboMult);
@@ -11281,7 +12697,7 @@
                 else if (fxState.sChase13) d = ((i % 3) === sChase13Step) ? s.dim : 0;
                 else if (fxState.sLoop) d = (i === (Math.floor(now/(1000/_cachedSpdSLoop)) % Math.max(1, total))) ? s.dim : 0; // terus maju, tidak balik
                 d *= masterDimLevel;
-                if (fxState.flyout) d *= _flyoutCalc(i, now).env;   // Flyout: cahaya muncul/hilang bergantian antar tim
+                ['flyout', 'flyoutB', 'flyoutL', 'flyoutR'].forEach(k => { if (fxState[k]) d *= _flyoutCalc(i, now, k).env; });   // Flyout: cahaya muncul/hilang bergantian antar tim
             }
             s.curDim += (d - s.curDim) * 0.35;
             s.curDim *= (1 - _mbFlashLevel); // overlay Flash MB — smooth sesuai slider MB SMOOTH
@@ -11333,9 +12749,12 @@
             if (fxState.chaos)  { tp += Math.sin(now*0.0013*globalSpeed*fxSpeeds.chaos + i*2.1)*0.7; tt += Math.cos(now*0.0017*globalSpeed*fxSpeeds.chaos + i*1.3)*0.7; }
             if (fxState.zigzag)       { const tZZ = now*0.001*globalSpeed*fxSpeeds.zigzag*2 - (i * delay); const tri = (2/Math.PI)*Math.asin(Math.sin(tZZ*Math.PI)); tp += tri * 1.2; }
             if (fxState.flyout) {
-                // FLYOUT: lihat _flyoutCalc. Tilt negatif = sinar ke atas; cahaya diatur di bagian dim (d) di atas.
-                tt += 0.3 - _flyoutCalc(i, now).pos * 1.2;   // dari agak ke bawah sampai ~65 derajat ke atas
+                // FLYOUT A (atas): lihat _flyoutCalc. Tilt negatif = sinar ke atas; cahaya diatur di bagian dim (d) di atas.
+                tt += 0.3 - _flyoutCalc(i, now, 'flyout').pos * 1.2;   // dari agak ke bawah sampai ~65 derajat ke atas
             }
+            if (fxState.flyoutB) tt += -0.3 + _flyoutCalc(i, now, 'flyoutB').pos * 1.2;   // FLYOUT B (bawah): dari agak ke atas turun ke arah lantai
+            if (fxState.flyoutL) tp += 0.3 - _flyoutCalc(i, now, 'flyoutL').pos * 1.2;    // FLYOUT L (kiri): dari agak ke kanan menyapu keluar ke kiri
+            if (fxState.flyoutR) tp += -0.3 + _flyoutCalc(i, now, 'flyoutR').pos * 1.2;   // FLYOUT R (kanan): dari agak ke kiri menyapu keluar ke kanan
             if (fxState.mirrorSweep) {
                 // Ganjil (0,2,4...) ke kiri, genap (1,3,5...) ke kanan — sweep bolak-balik berlawanan arah
                 const dir = (i % 2 === 0) ? -1 : 1;
@@ -11374,6 +12793,8 @@
                 else if (s.mode === 'dots')   s.curRotDots   = (s.curRotDots   || 0) + s.rot * 0.01;
                 else if (s.mode === 'matrix') s.curRotMatrix = (s.curRotMatrix || 0) + s.rot * 0.01;
                 else if (s.mode === 'star')   s.curRotStar   = (s.curRotStar   || 0) + s.rot * 0.01;
+                else if (s.mode === 'prism16') s.curRotPrism16 = (s.curRotPrism16 || 0) + s.rot * 0.01;
+                else if (s.mode === 'prism32') s.curRotPrism32 = (s.curRotPrism32 || 0) + s.rot * 0.01;
                 s.curGoboX += (s.targetGoboX - s.curGoboX) * lerpGobo;
                 l.group.position.x += (s.targetX - l.group.position.x) * lerpMotor;
                 l.group.position.y += (s.targetY - l.group.position.y) * lerpMotor;
@@ -11388,6 +12809,8 @@
             const dA = Math.max(0, 1 - Math.abs(s.curGoboX + 45)   / 4.0);
             const mA = Math.max(0, 1 - Math.abs(s.curGoboX + 75)   / 4.0);
             const gA = Math.max(0, 1 - Math.abs(s.curGoboX + 90)   / 4.0);
+            const p16A = Math.max(0, 1 - Math.abs(s.curGoboX + 105) / 4.0);
+            const p32A = Math.max(0, 1 - Math.abs(s.curGoboX + 120) / 4.0);
 
             // Warna MH — gradient > colorChase > rainbow > colorStep
             let col = s.activeColor;
@@ -11453,6 +12876,7 @@
                 _hazeColorWeight += _hazeW;
             }
             updateFloorGlow(l, i, bA, isPSB ? _glowWhiteScratch : col);
+            updateLampFloorSpots(l);
 
             const isRP = s.rainbowPrism;
             const rpColor = (idx, total) => { const c = new THREE.Color(); c.setHSL(idx/total, 1.0, 0.55); return c; };
@@ -11574,6 +12998,31 @@
                     });
                 }
             }
+
+            l._lcol = l._lcol || new THREE.Color(); if (isPSB) l._lcol.setRGB(1, 1, 1); else l._lcol.copy(col);
+            l._lzf = zf; l._lalpha = Math.max(bA, pA, fA, dA, mA, gA, p16A, p32A);
+
+            // PRISM 16 / PRISM 32 — cincin cahaya menyebar; 32 punya dua cincin yang berputar berlawanan
+            [[l.prism16Container, l.prisms16, l.p16PinkCores, p16A, s.curRotPrism16 || 0, spreadP16, 0.36],
+             [l.prism32Container, l.prisms32, l.p32PinkCores, p32A, s.curRotPrism32 || 0, spreadP32, 0.33]].forEach(([cont, arr, pinks, aa, rotv, spr, op]) => {
+                if (!cont) return;
+                cont.visible = aa > VIS_EPS;
+                if (!cont.visible) return;
+                cont.rotation.z = rotv * 0.6;
+                arr.forEach((pg, idx) => {
+                    const ud = pg.userData;
+                    const ringMul = ud.ring === 'outer' ? 0.3 : 0.15;
+                    const ang = ud.angle + (ud.ring === 'outer' ? rotv : -rotv * 1.2);
+                    pg.rotation.set(Math.sin(ang) * (spr * ringMul), Math.cos(ang) * (spr * ringMul), 0);
+                    const shell = pg.children[0], pink = pinks[idx];
+                    shell.material.color.set(isRP ? rpColor(idx, arr.length) : isPSB ? 0xffffff : col);
+                    shell.material.opacity = Math.min(1, s.curDim * op * aa * _fogBoost);
+                    pink.visible = (isPSB || isRP) && aa > 0.05 && !antiLagOn;
+                    if (isRP) pink.material.color.set(rpColor(idx, arr.length));
+                    pink.material.opacity = Math.min(1, s.curDim * 0.9 * aa * _fogBoost);
+                    shell.scale.set(0.35 * zf, 0.35 * zf, 1); pink.scale.set(0.16 * zf, 0.16 * zf, 1);
+                });
+            });
         });
         updateHazeTint();
 
@@ -11962,7 +13411,8 @@
         }
 
         envFrame();
-        renderer.render(scene, camera);
+        gfxFrame(performance.now());
+        _renderScene();
         _updateFpsCounter();
         } catch (e) {
             // Jaga-jaga: kalau ada error tak terduga di 1 frame, jangan biarkan seluruh render loop
@@ -13911,7 +15361,7 @@
                 const s = {
                     dim: 0.8, pan: 0, tilt: -0.2, zoom: 40, mode: 'beam', rainbow: 0, sunburst: 'off',
                     posX: x, posY: 12, posZ: -25, rot: 20, curPan: 0, curTilt: -0.2, curDim: 0.8, curRot: 0,
-                    curRotPrism: 0, curRotFan: 0, curRotDots: 0, curRotMatrix: 0, curRotStar: 0, curZoom: 40,
+                    curRotPrism: 0, curRotFan: 0, curRotDots: 0, curRotMatrix: 0, curRotStar: 0, curRotPrism16: 0, curRotPrism32: 0, curZoom: 40,
                     targetX: x, targetY: 12, curGoboX: 0, targetGoboX: 0,
                     colorSteps: [{ color: '#ffffff', speed: 1.0 }],
                     curColStepIdx: 0, colStepTimer: 0,
@@ -14760,7 +16210,7 @@
         overlay.innerHTML = `
             <div style="background:#111; border:1px solid #0f0; border-radius:10px; padding:24px 20px; width:320px; max-width:90vw; box-shadow:0 0 30px #0f04;">
                 <div style="font-size:13px; color:#0f0; font-weight:bold; letter-spacing:2px; margin-bottom:4px;">SAVE PROJECT</div>
-                <div style="font-size:9px; color:#555; margin-bottom:14px;">Ian Lighting v8.7</div>
+                <div style="font-size:9px; color:#555; margin-bottom:14px;">Ian Lighting v8.8</div>
 
                 <label style="font-size:9px; color:#aaa; display:block; margin-bottom:6px; letter-spacing:1px;">NAMA PROJECT</label>
                 <div style="display:flex; align-items:center; background:#1a1a1a; border:1px solid #0a0; border-radius:5px; overflow:hidden;">
@@ -14890,7 +16340,7 @@
             }
 
             const project = {
-                version: "8.7",
+                version: "8.8",
                 projectName: fileName,
                 pwHash: pwHash,
                 timestamp: Date.now(),
@@ -15052,7 +16502,7 @@
                     </svg>
                     <div style="font-size:13px; color:#f90; font-weight:bold; letter-spacing:2px;">PROJECT TERKUNCI</div>
                 </div>
-                <div style="font-size:9px; color:#555; margin-bottom:10px;">Ian Lighting v8.7</div>
+                <div style="font-size:9px; color:#555; margin-bottom:10px;">Ian Lighting v8.8</div>
                 <div style="font-size:10px; color:#aaa; margin-bottom:14px; line-height:1.6;">Project <span style="color:#f90; font-weight:bold;">"${projName}"</span> mempunyai password.<br>Silahkan masukkan password untuk melanjutkan.</div>
                 <div style="display:flex; align-items:center; background:#1a0e00; border:1px solid #a50; border-radius:5px; overflow:hidden; margin-bottom:6px;">
                     <input id="load-pw-input" type="password" placeholder="Masukkan password..." maxlength="64"
@@ -15129,7 +16579,7 @@
             if (isOutdated) {
                 setTimeout(() => {
                     saveProject();
-                    showStatus('Proyek diupgrade & file baru v8.7 otomatis didownload!');
+                    showStatus('Proyek diupgrade & file baru v8.8 otomatis didownload!');
                 }, 800);
             }
         };
@@ -15165,13 +16615,16 @@
                 DEFAULT_SETTINGS_STATE.strobeOrder.forEach(k => { if (!settingsState.strobeOrder.includes(k)) settingsState.strobeOrder.push(k); });
                 // Project lama belum punya FX baru (mis. flyout) — tambahkan ke urutan & peta pengaturannya
                 DEFAULT_SETTINGS_STATE.fxOrder.forEach(k => { if (!settingsState.fxOrder.includes(k)) settingsState.fxOrder.push(k); });
-                ['delayCustom', 'delayCustomValue', 'fxHotkeys'].forEach(m => {
+                ['delayCustom', 'delayCustomValue', 'fxHotkeys', 'actionHotkeys', 'gfx'].forEach(m => {
                     settingsState[m] = Object.assign({}, DEFAULT_SETTINGS_STATE[m], settingsState[m] || {});
                 });
                 applyTheme(settingsState.theme || 'green');
                 applyRenderQuality(settingsState.renderQuality || 'medium');
+                if (typeof applyGfx === 'function') { applyGfx(); gfxRenderUi(); }
                 applyLanguage(settingsState.language || 'id');
                 _applyFpsCounterUI(settingsState.showFps || false);
+                _applyVersionText();
+                try { multiFxRender(); } catch (e) {}
                 applyFxOrder();
                 applyStrobeOrder();
                 if (typeof renderFxOrderList === 'function') renderFxOrderList();
@@ -15597,7 +17050,7 @@
         }
     }
 
-    const FX_MOTION_KEYS = ['circle','circleS','circleBounce','mirrorCircleBounce','pargoy','pargoyTipis','pargoyAtasBawah','pargoySweepUp','wave','snake','bounce','chaos','zigzag','mirrorSweep','flyout'];
+    const FX_MOTION_KEYS = ['circle','circleS','circleBounce','mirrorCircleBounce','pargoy','pargoyTipis','pargoyAtasBawah','pargoySweepUp','wave','snake','bounce','chaos','zigzag','mirrorSweep','flyout','flyoutB','flyoutL','flyoutR'];
 
     function _syncMultiMotionUI() {
         const btn = document.getElementById('multimotion-toggle-btn');
@@ -16428,7 +17881,7 @@
     // M = Flash MB (tahan), F = Freeze, B = Blackout, G = ganti Master Gobo/Mode berikutnya
     // Angka 1-9,0,-,= = Chase Mover 1-12 | Shift+1-9,0 = Chase Gobo 1-10 | Alt+1-8 = Chase Color 1-8
     function cycleGoboMode() {
-        const modes = ['beam', 'prism', 'fan', 'dots', 'matrix', 'star'];
+        const modes = ['beam', 'prism', 'fan', 'dots', 'matrix', 'star', 'prism16', 'prism32'];
         const refState = (selectedFixtures[0] === -1) ? lamps[0]?.state : lamps[selectedFixtures[0]]?.state;
         const cur = refState ? refState.mode : 'beam';
         const idx = modes.indexOf(cur);
@@ -16630,6 +18083,8 @@
                         if (!e.repeat) toggleBlackout();
                     } else if (actMatch === 'gobo') {
                         if (!e.repeat) cycleGoboMode();
+                    } else if (GOBO_HOTKEY_MODES[actMatch]) {
+                        if (!e.repeat) sMode(GOBO_HOTKEY_MODES[actMatch]);   // Master Gobo langsung ke mode tertentu
                     } else if (actMatch === 'bounceReverse') {
                         // Balik arah manual — cuma efektif kalau motion yang lagi aktif emang mode MANUAL
                         if (!e.repeat) {
@@ -16722,6 +18177,7 @@
         applyTheme(settingsState.theme || 'green');
         applyLanguage(settingsState.language || 'id');
         _applyFpsCounterUI(settingsState.showFps || false);
+        _applyVersionText();
         if (typeof applySliderLockState === 'function') applySliderLockState();
         try {
             const savedName = localStorage.getItem('_poth_fbname');
@@ -16794,7 +18250,7 @@
 
         function applyVh(vh) { document.documentElement.style.setProperty('--viewport-h', vh + 'vh'); }
         function redrawNow() {
-            try { if (typeof renderer !== 'undefined' && renderer && scene && camera) renderer.render(scene, camera); } catch (e) {}
+            try { if (typeof renderer !== 'undefined' && renderer && scene && camera) _renderScene(); } catch (e) {}
         }
         function realResize() {
             if (typeof onWindowResize === 'function') onWindowResize();
@@ -17016,7 +18472,7 @@
     try { netDetect = localStorage.getItem(NET_KEY) !== '0'; } catch (e) {}
     var netOnline = netDetect ? (navigator.onLine !== false) : true;
     var netTimer = null, retryTimer = null, offTimer = null, firebaseRetrying = false, lastTick = 0, failCount = 0;
-    var updateHook = null;                                  // diisi modul pengecek versi di bawah (kalau service worker didukung)
+    var updateHook = null;                                  // tidak dipakai lagi (pengecek versi PWA dihapus)
 
     function renderNet() {
         document.body.classList.toggle('is-offline', netDetect && !netOnline);
@@ -17139,95 +18595,11 @@
     window.ianNetStatus = function () { return netOnline; };
     window.ianCheckForUpdate = function () { return tick(true); };
 
-        // Service worker hanya jalan lewat http(s) (mis. GitHub Pages), bukan saat file dibuka langsung dari penyimpanan
-    if (!('serviceWorker' in navigator) || !canProbe) return;
-
-    var ICON_REFRESH = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>';
-    var ICON_CLOSE = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
-
-    var pendingSig = '', dismissedSig = '';
-    function showUpdateBanner(sig) {
-        if (window.ianUpdateUiOff) return;   // dimatikan admin
-        if (document.getElementById('update-banner')) return;
-        pendingSig = sig || '';
-        var el = document.createElement('div');
-        el.id = 'update-banner';
-        el.setAttribute('role', 'status');
-        el.innerHTML = '<div class="ub-icon">' + ICON_REFRESH + '</div>'
-            + '<div class="ub-text"><b>' + tr('update_title', 'Versi baru tersedia') + '</b><span>' + tr('update_hint', 'Simpan project dulu sebelum memuat ulang.') + '</span></div>'
-            + '<button type="button" class="ub-primary" id="ub-reload">' + tr('update_reload', 'MUAT ULANG') + '</button>'
-            + '<button type="button" class="ub-close" id="ub-later" aria-label="' + tr('update_later', 'Nanti') + '">' + ICON_CLOSE + '</button>';
-        document.body.appendChild(el);
-        document.getElementById('ub-reload').onclick = function () { location.reload(); };
-        document.getElementById('ub-later').onclick = function () {
-            dismissedSig = pendingSig;
-            el.remove();
-        };
-    }
-
-    // ── Cek versi baru ──────────────────────────────────────────────────────
-    // 1) Dari HEAD tadi: bandingkan Last-Modified (atau ETag) server dengan halaman yang sedang terbuka.
-    // 2) Kalau server lebih baru: unduh sekali & bandingkan isinya (hash) — supaya upload file lain
-    //    (yang membuat tanggal berubah) tidak memunculkan banner palsu.
-    var pageLM = Date.parse(document.lastModified) || 0;
-    var baselineHash = null, lastVerifiedSig = '', lastSwUpdate = 0, swReg = null;
-    function sha(buf) {
-        return crypto.subtle.digest('SHA-1', buf).then(function (h) {
-            return Array.prototype.map.call(new Uint8Array(h), function (b) { return ('0' + b.toString(16)).slice(-2); }).join('');
-        });
-    }
-    function readBaseline() {
-        if (!window.caches || !window.crypto || !crypto.subtle) return;
-        caches.match(location.pathname, { ignoreSearch: true })
-            .then(function (r) { return r || caches.match('index.html', { ignoreSearch: true }); })
-            .then(function (r) { return r ? r.arrayBuffer() : null; })
-            .then(function (b) { return b ? sha(b) : null; })
-            .then(function (h) { baselineHash = h; })
-            .catch(function () {});
-    }
-    readBaseline();
-
-    updateHook = function (res) {
-        if (window.ianUpdateUiOff) return Promise.resolve();   // UI dimatikan admin: tidak perlu cek/unduh apa pun
-        var now = Date.now();
-        if (swReg && now - lastSwUpdate > 5 * 60 * 1000) { lastSwUpdate = now; try { swReg.update(); } catch (e) {} }   // sw.js berganti?
-        var lmHeader = res.headers.get('last-modified') || '';
-        var sig = lmHeader || res.headers.get('etag') || '';
-        if (!sig || sig === lastVerifiedSig || sig === dismissedSig) return Promise.resolve();
-        var lm = Date.parse(lmHeader) || 0;
-        if (lm && pageLM && lm <= pageLM + 2000) { lastVerifiedSig = sig; return Promise.resolve(); }   // sama dengan yang terbuka
-        // ?__chk = diabaikan service worker, langsung ke server
-        return fetch('index.html?__chk=' + now, { cache: 'no-store' })
-            .then(function (r) { return r.arrayBuffer(); })
-            .then(sha)
-            .then(function (h) {
-                lastVerifiedSig = sig;
-                if (baselineHash && h === baselineHash) return;   // isi sama persis: bukan versi baru
-                showUpdateBanner(sig);
-            });
-    };
-
-    // Kalau sw.js sendiri berganti versi dan mengambil alih halaman yang sudah terbuka
-    var hadController = !!navigator.serviceWorker.controller;
-    navigator.serviceWorker.addEventListener('controllerchange', function () {
-        if (hadController) showUpdateBanner('sw');
-        hadController = true;
-    });
-
-    window.addEventListener('load', function () {
-        navigator.serviceWorker.register('sw.js').then(function (reg) {
-            swReg = reg;
-            return navigator.serviceWorker.ready;
-        }).then(function () {
-            var flag = 'ian_offline_ready_v8.7';
-            try {
-                if (!localStorage.getItem(flag)) {
-                    localStorage.setItem(flag, '1');
-                    if (typeof showStatus === 'function') showStatus('Mode offline siap — web ini sekarang bisa dibuka tanpa internet.');
-                }
-            } catch (e) {}
-        }).catch(function (err) { console.log('Service worker gagal didaftarkan:', err); });
-    });
+    // Aplikasi ini tidak lagi memakai service worker/PWA: bersihkan sisa instalasi lama kalau ada
+    try {
+        if ('serviceWorker' in navigator) navigator.serviceWorker.getRegistrations().then(function (rs) { rs.forEach(function (r) { r.unregister(); }); }).catch(function () {});
+        if (window.caches) caches.keys().then(function (ks) { ks.forEach(function (k) { caches.delete(k); }); }).catch(function () {});
+    } catch (e) {}
 })();
 </script>
 <script>
