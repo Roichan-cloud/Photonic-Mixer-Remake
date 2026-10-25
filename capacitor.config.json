@@ -1,8 +1,0 @@
-{
-  "appId": "com.ianlighting.app",
-  "appName": "Ian Lighting",
-  "webDir": "www",
-  "android": {
-    "allowMixedContent": false
-  }
-}
