@@ -7,7 +7,7 @@ const ROOT = path.resolve(__dirname, '..');
 const OUT = path.join(ROOT, 'www');
 const SKIP = new Set([
   'node_modules', 'android', 'www', '.git', '.github', 'scripts',
-  'package.json', 'package-lock.json', 'capacitor.config.json',
+  'assets', 'sw.js', 'manifest.json', 'package.json', 'package-lock.json', 'capacitor.config.json',
   'firestore.rules', 'README.md', 'chat-rules.txt', 'edgeone.json', '.gitignore'
 ]);
 
@@ -54,7 +54,5 @@ async function vendorize(htmlFile) {
     process.exit(1);
   }
   await vendorize(path.join(OUT, 'index.html'));
-  // Service worker tidak diperlukan di dalam APK (aset sudah dibundel)
   console.log('www siap:', fs.readdirSync(OUT).length, 'item');
 })();
-  
