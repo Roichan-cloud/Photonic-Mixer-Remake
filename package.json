@@ -1,0 +1,14 @@
+{
+  "name": "ian-lighting",
+  "version": "8.8.0",
+  "private": true,
+  "description": "Ian Lighting / Photonic Mixer Pro",
+  "scripts": {
+    "prepare:www": "node scripts/prepare-www.js"
+  },
+  "dependencies": {
+    "@capacitor/android": "^6.1.2",
+    "@capacitor/cli": "^6.1.2",
+    "@capacitor/core": "^6.1.2"
+  }
+}
