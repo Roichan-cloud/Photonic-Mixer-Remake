@@ -1,0 +1,20 @@
+{
+  "name": "ian-lighting-desktop",
+  "version": "8.8.0",
+  "description": "Ian Lighting / Photonic Mixer Pro (Windows)",
+  "author": "Ian Studio Localize",
+  "main": "main.js",
+  "scripts": { "dist": "electron-builder --win portable --publish never" },
+  "devDependencies": {
+    "electron": "^31.0.0",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "com.ianlighting.desktop",
+    "productName": "Ian Lighting",
+    "directories": { "output": "dist", "buildResources": "build" },
+    "files": ["main.js", "www/**/*"],
+    "win": { "target": "portable", "icon": "build/icon.png" },
+    "portable": { "artifactName": "IanLighting.exe" }
+  }
+}
