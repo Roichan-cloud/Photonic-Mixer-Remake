@@ -34,6 +34,14 @@ jobs:
           npx cap add android
           npx cap sync android
 
+      - name: Ikon aplikasi
+        continue-on-error: true
+        run: |
+          mkdir -p assets
+          convert app-v2-512.png -resize 1024x1024 assets/icon-only.png
+          convert app-v2-maskable-512.png -resize 1024x1024 assets/icon-foreground.png
+          npx --yes @capacitor/assets@3 generate --android --assetPath assets --iconBackgroundColor '#000000' --iconBackgroundColorDark '#000000'
+
       - name: Izin Android (internet, jaringan)
         run: |
           MANIFEST=android/app/src/main/AndroidManifest.xml
@@ -60,4 +68,3 @@ jobs:
           body: "APK debug otomatis dari commit ${{ github.sha }}"
           files: IanLighting-debug.apk
           prerelease: false
-          
