@@ -1,0 +1,63 @@
+name: Build APK
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: zulu
+          java-version: 17
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Siapkan folder www
+        run: npm run prepare:www
+
+      - name: Buat proyek Android
+        run: |
+          npx cap add android
+          npx cap sync android
+
+      - name: Izin Android (internet, jaringan)
+        run: |
+          MANIFEST=android/app/src/main/AndroidManifest.xml
+          grep -q 'ACCESS_NETWORK_STATE' $MANIFEST || sed -i 's#</manifest>#    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />\n</manifest>#' $MANIFEST
+
+      - name: Build APK debug
+        working-directory: android
+        run: ./gradlew assembleDebug
+
+      - name: Ganti nama APK
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk IanLighting-debug.apk
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: IanLighting-debug-apk
+          path: IanLighting-debug.apk
+
+      - name: Rilis (latest) di GitHub
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: apk-latest
+          name: APK terbaru
+          body: "APK debug otomatis dari commit ${{ github.sha }}"
+          files: IanLighting-debug.apk
+          prerelease: false
+          
