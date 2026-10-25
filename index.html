@@ -1593,6 +1593,15 @@
                         <input type="range" class="slider-h" id="wall-rainbow" min="0" max="100" value="0" style="accent-color:#ff00ff;" oninput="uWall('rainbow', this.value); document.getElementById('wall-rainbow-disp').innerText=this.value+'%';"><span id="wall-rainbow-disp" style="font-size:8px;color:#aaa;min-width:28px;text-align:right;display:inline-block;">0%</span>
                     </div>
                 </div>
+                <!-- KECERAHAN WARNA PILIHAN -->
+                <div style="margin-top:8px; border:1px solid var(--ts); border-radius:6px; padding:6px 8px; background:var(--td);">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <label style="font-size:8px; color:var(--tp); font-weight:bold; flex:1; line-height:1.3;">KECERAHAN WARNA STOP &amp; CUSTOM RAINBOW</label>
+                        <span id="wall-boost-disp" style="font-size:8px; color:#aaa; min-width:34px; text-align:right;">200%</span>
+                    </div>
+                    <input type="range" class="slider-h" id="wall-boost" min="100" max="400" value="200" style="width:100%; margin-top:4px;" oninput="wallColorBoostSet(this.value)">
+                    <div style="font-size:8px; color:#888; margin-top:4px; line-height:1.5;">Naikkan kalau warna pilihan terlihat lebih redup dari pelangi biasa. 100% = warna persis seperti yang dipilih.</div>
+                </div>
                 <!-- CUSTOM WARNA RAINBOW (1 - 5 warna) -->
                 <div id="wall-rbc-box" style="margin-top:8px; border:1px solid #6a006a; border-radius:6px; padding:6px 8px; background:#140014;">
                     <div style="display:flex; align-items:center; gap:8px;">
@@ -1607,6 +1616,24 @@
                         </div>
                         <div style="font-size:8px; color:#888; margin-top:6px; line-height:1.5;">Minimal 1, maksimal 5 warna. Sentuh kotak warna untuk mengganti. Pola alirannya sama seperti pelangi biasa (atur dengan slider RAINBOW), hanya warnanya diambil dari palet ini.</div>
                     </div>
+                </div>
+                <!-- POLA CAHAYA (gerakan di dalam bar) -->
+                <div id="wall-pat-box" style="margin-top:8px; border:1px solid var(--ts); border-radius:6px; padding:6px 8px; background:var(--td);">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <div style="flex:1; font-size:9px; font-weight:bold; color:var(--tp); letter-spacing:0.5px;">POLA CAHAYA LED</div>
+                        <button class="audio-btn" id="wall-pat-off" onclick="wallSetFlowPattern('off')" style="min-width:44px;">MATI</button>
+                    </div>
+                    <div id="wall-pat-grid" style="display:grid; grid-template-columns:repeat(2,1fr); gap:5px; margin-top:6px;"></div>
+                    <div style="display:flex; align-items:center; gap:8px; margin-top:8px;">
+                        <label style="font-size:8px; color:#aaa; min-width:54px;">KECEPATAN</label>
+                        <input type="range" class="slider-h" id="wall-pat-speed" min="10" max="400" value="100" style="flex:1;" oninput="wallPatSpeed(this.value)">
+                        <span id="wall-pat-speed-disp" style="font-size:8px; color:#aaa; min-width:34px; text-align:right;">1.0x</span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:8px; margin-top:8px;">
+                        <label style="font-size:8px; color:#aaa; flex:1; line-height:1.3;">Ikut Master Strobe (per segmen cahaya). Kalau ON, strobe per wallwasher dimatikan.</label>
+                        <button id="wall-pat-strobe-toggle" onclick="wallToggleFollowStrobe()" style="background:#100; color:#f55; border:1px solid #400; border-radius:4px; padding:3px 10px; font-size:8px; font-weight:bold; cursor:pointer;">OFF</button>
+                    </div>
+                    <div style="font-size:8px; color:#888; margin-top:6px; line-height:1.5;">Berlaku untuk semua wallwasher. Bisa dipasang hotkey sendiri di Settings, bagian Custom Hotkey Aksi (WALL: ...). Tekan pola yang sedang aktif sekali lagi untuk mematikannya.</div>
                 </div>
             </div>
 
@@ -7847,6 +7874,99 @@
     }
 
     // ── WALLWASHER STOP FUNCTIONS ─────────────────────────────────────
+    // ── POLA CAHAYA WALLWASHER (gerakan di dalam bar LED) ───────────────────────
+    const WALL_PATTERNS = [
+        { id:'flowLR',  label:'FLOW KIRI-KANAN' },
+        { id:'flowRL',  label:'FLOW KANAN-KIRI' },
+        { id:'out',     label:'TENGAH KELUAR' },
+        { id:'in',      label:'LUAR KE TENGAH' },
+        { id:'bounce',  label:'BOUNCE' },
+        { id:'alt',     label:'KEDIP BERGANTIAN' },
+        { id:'fill',    label:'ISI-KOSONG' },
+        { id:'random',  label:'ACAK' }
+    ];
+    let _wallPatT = 0, _wallPatLastNow = 0;
+    function _wallPatState() {
+        if (!settingsState.wallPattern) settingsState.wallPattern = { id:'off', speed:1 };
+        return settingsState.wallPattern;
+    }
+    // Pengali kecerahan 0..1 untuk segmen ke-j dari n pada waktu t (detik x kecepatan)
+    function wallPatMul(id, j, n, t) {
+        const x = n > 1 ? j / (n - 1) : 0.5;
+        const frac = v => v - Math.floor(v);
+        const tri = v => { const f = frac(v / 2) * 2; return f < 1 ? f : 2 - f; };
+        switch (id) {
+            case 'flowLR': { const d = frac(t * 0.5 - x); return d < 0.4 ? 1 - d / 0.4 : 0; }
+            case 'flowRL': { const d = frac(t * 0.5 - (1 - x)); return d < 0.4 ? 1 - d / 0.4 : 0; }
+            case 'out':    { const dist = Math.abs(x - 0.5) * 2; const p = frac(t * 0.5) * 1.3 - 0.15; return Math.max(0, 1 - Math.abs(dist - p) / 0.22); }
+            case 'in':     { const dist = Math.abs(x - 0.5) * 2; const p = (1 - frac(t * 0.5)) * 1.3 - 0.15; return Math.max(0, 1 - Math.abs(dist - p) / 0.22); }
+            case 'bounce': { const p = tri(t * 0.5); return Math.max(0, 1 - Math.abs(x - p) / 0.2); }
+            case 'alt':    return ((j % 2 === 0) === (Math.floor(t * 2) % 2 === 0)) ? 1 : 0;
+            case 'fill':   { const p = tri(t * 0.35) * 1.05; return x <= p ? 1 : 0; }
+            case 'random': { const r = Math.sin(j * 12.9898 + Math.floor(t * 8) * 78.233) * 43758.5453; return (r - Math.floor(r)) > 0.5 ? 1 : 0; }
+        }
+        return 1;
+    }
+    function wallPatRender() {
+        const st = _wallPatState();
+        const grid = document.getElementById('wall-pat-grid');
+        if (grid && !grid.children.length) {
+            WALL_PATTERNS.forEach(p => {
+                const b = document.createElement('button');
+                b.className = 'audio-btn'; b.id = 'wall-pat-' + p.id; b.textContent = p.label;
+                b.style.cssText = 'font-size:8px; padding:6px 4px;';
+                b.onclick = () => wallToggleFlowPattern(p.id);
+                grid.appendChild(b);
+            });
+        }
+        WALL_PATTERNS.forEach(p => {
+            const b = document.getElementById('wall-pat-' + p.id); if (!b) return;
+            const on = st.id === p.id;
+            b.style.background = on ? 'var(--tp)' : ''; b.style.color = on ? '#000' : '';
+        });
+        const off = document.getElementById('wall-pat-off');
+        if (off) { off.style.background = st.id === 'off' ? 'var(--tp)' : ''; off.style.color = st.id === 'off' ? '#000' : ''; }
+        wallColorBoostRender();
+        const tg = document.getElementById('wall-pat-strobe-toggle');
+        if (tg) {
+            const on = !!st.followStrobe;
+            tg.innerText = on ? 'ON' : 'OFF';
+            tg.style.background = on ? '#010' : '#100'; tg.style.color = on ? '#0f0' : '#f55'; tg.style.borderColor = on ? '#040' : '#400';
+        }
+        const sl = document.getElementById('wall-pat-speed'), d = document.getElementById('wall-pat-speed-disp');
+        const sp = st.speed || 1;
+        if (sl) sl.value = Math.round(sp * 100);
+        if (d) d.innerText = sp.toFixed(1) + 'x';
+    }
+    function wallColorBoostGet() { const b = settingsState.wallColorBoost; return (typeof b === 'number' && b >= 1 && b <= 4) ? b : 2.0; }
+    function wallColorBoostSet(v) {
+        settingsState.wallColorBoost = Math.max(1, Math.min(4, (parseFloat(v) || 200) / 100));
+        const d = document.getElementById('wall-boost-disp'); if (d) d.innerText = Math.round(settingsState.wallColorBoost * 100) + '%';
+    }
+    function wallColorBoostRender() {
+        const b = wallColorBoostGet();
+        const sl = document.getElementById('wall-boost'), d = document.getElementById('wall-boost-disp');
+        if (sl) sl.value = Math.round(b * 100);
+        if (d) d.innerText = Math.round(b * 100) + '%';
+    }
+    function wallToggleFollowStrobe() { const st = _wallPatState(); st.followStrobe = !st.followStrobe; wallPatRender(); }
+    // Target kecerahan 0..1 segmen j (dari n) menurut Master Strobe yang aktif. Tidak ada strobe aktif = 1.
+    function wallSegStrobeTarget(j, n, now, rndPhase, rndSpeed, ph) {   // ph = { odd, all, split, chase13, rndSpd } dari loop animasi
+        if (!(fxState.sLR || fxState.sCt || fxState.sOdd || fxState.sAll || fxState.sRnd || fxState.sSplit || fxState.sChase13 || fxState.sLoop)) return 1;
+        if (fxState.sLR)  { const k = Math.floor((now / (1000 / _cachedSpdSLR)) % (n * 2)); return j === (k < n ? k : (n * 2 - 1) - k) ? 1 : 0; }
+        if (fxState.sCt)  { const half = Math.ceil(n / 2); const k = Math.floor((now / (1000 / _cachedSpdSCt)) % (half * 2)); const step = k < half ? k : (half * 2 - 1) - k; return (j === step || (n - 1) - j === step) ? 1 : 0; }
+        if (fxState.sOdd) return ((j % 2 === 0 && ph.odd) || (j % 2 !== 0 && !ph.odd)) ? 1 : 0;
+        if (fxState.sAll) return ph.all ? 1 : 0;
+        if (fxState.sRnd) { const rp = rndPhase + j * 1.7; const ts = now * 0.0003 * ph.rndSpd * rndSpeed; const nv = Math.sin(ts + rp) * 0.5 + Math.sin(ts * 1.7 + rp * 1.3) * 0.3 + Math.cos(ts * 0.4 - rp) * 0.2; return Math.smoothstep((nv + 1) / 2, 0.25, 0.85); }
+        if (fxState.sSplit) { const isLeft = j < Math.ceil(n / 2); return ((isLeft && ph.split) || (!isLeft && !ph.split)) ? 1 : 0; }
+        if (fxState.sChase13) return ((j % 3) === ph.chase13) ? 1 : 0;
+        if (fxState.sLoop) return (j === (Math.floor(now / (1000 / _cachedSpdSLoop)) % Math.max(1, n))) ? 1 : 0;
+        return 1;
+    }
+    function wallSetFlowPattern(id) { _wallPatState().id = id; wallPatRender(); }
+    function wallToggleFlowPattern(id) { const st = _wallPatState(); st.id = (st.id === id) ? 'off' : id; wallPatRender(); }
+    function wallPatSpeed(v) { _wallPatState().speed = Math.max(0.1, Math.min(4, (parseFloat(v) || 100) / 100)); wallPatRender(); }
+
     function toggleWallwasherStop() {
         wallwasherStopped = !wallwasherStopped;
         const btn = document.getElementById('wall-stop-btn');
@@ -10512,8 +10632,11 @@
         },
         actionHotkeys: {
             minibrute:' ', freeze:'f', blackout:'b', gobo:'g', bounceReverse:'backspace',
-            goboBeam:null, goboPrism:null, goboFan:null, goboDots:null, goboMatrix:null, goboStar:null, goboPrism16:null, goboPrism32:null
-        }
+            goboBeam:null, goboPrism:null, goboFan:null, goboDots:null, goboMatrix:null, goboStar:null, goboPrism16:null, goboPrism32:null,
+            wallPatFlowLR:null, wallPatFlowRL:null, wallPatOut:null, wallPatIn:null, wallPatBounce:null, wallPatAlt:null, wallPatFill:null, wallPatRandom:null
+        },
+        wallPattern: { id:'off', speed:1, followStrobe:false },
+        wallColorBoost: 2.0
     };
     // Snapshot bawaan (pristine) — dipakai oleh fitur "Reset ke Default"
     const DEFAULT_SETTINGS_STATE = JSON.parse(JSON.stringify(settingsState));
@@ -10532,8 +10655,11 @@
         minibrute:'FLASH MINIBRUTE', freeze:'FREEZE', blackout:'BLACKOUT', gobo:'MASTER GOBO (CYCLE)',
         bounceReverse:'BALIK ARAH MANUAL (CIRCLE/MIRROR BOLAK-BALIK)',
         goboBeam:'GOBO: BEAM', goboPrism:'GOBO: PRISM', goboFan:'GOBO: FAN', goboDots:'GOBO: DOTS',
-        goboMatrix:'GOBO: MATRIX', goboStar:'GOBO: STAR', goboPrism16:'GOBO: PRISM 16', goboPrism32:'GOBO: PRISM 32'
+        goboMatrix:'GOBO: MATRIX', goboStar:'GOBO: STAR', goboPrism16:'GOBO: PRISM 16', goboPrism32:'GOBO: PRISM 32',
+        wallPatFlowLR:'WALL: FLOW KIRI-KANAN', wallPatFlowRL:'WALL: FLOW KANAN-KIRI', wallPatOut:'WALL: TENGAH KELUAR', wallPatIn:'WALL: LUAR KE TENGAH',
+        wallPatBounce:'WALL: BOUNCE', wallPatAlt:'WALL: KEDIP BERGANTIAN', wallPatFill:'WALL: ISI-KOSONG', wallPatRandom:'WALL: ACAK'
     };
+    const WALL_PAT_HOTKEYS = { wallPatFlowLR:'flowLR', wallPatFlowRL:'flowRL', wallPatOut:'out', wallPatIn:'in', wallPatBounce:'bounce', wallPatAlt:'alt', wallPatFill:'fill', wallPatRandom:'random' };
     const GOBO_HOTKEY_MODES = { goboBeam:'beam', goboPrism:'prism', goboFan:'fan', goboDots:'dots', goboMatrix:'matrix', goboStar:'star', goboPrism16:'prism16', goboPrism32:'prism32' };
     const ACTION_HOLD_KEYS = ['minibrute']; // jenis hold (nyala pas ditahan), sisanya toggle
 
@@ -13147,6 +13273,14 @@
         // Cek apakah wallwasher harus berhenti: dari tombol stop ATAU dari Flash MB (jika toggle ON)
         const wallIsStoppedByFlash = wallwasherStopOnFlash && isMinibruteActive;
         const wallIsActuallyStopped = wallwasherStopped || wallIsStoppedByFlash;
+        // Pola cahaya LED: waktu pola berjalan sendiri (ikut kecepatan, berhenti saat Freeze)
+        const _wpSt = settingsState.wallPattern;
+        const _wpId = (_wpSt && _wpSt.id !== 'off') ? _wpSt.id : null;
+        const _wallBoost = wallColorBoostGet();
+        const _wpPh = { odd: sOddPh, all: sAllPh, split: sSplitPh, chase13: sChase13Step, rndSpd: sRndSpdInput };
+        const _wpSegStrobe = !!(_wpSt && _wpSt.followStrobe);   // Master Strobe berlaku per segmen cahaya, bukan per wallwasher
+        if (!isFrozen && _wallPatLastNow) _wallPatT += Math.min(0.1, (now - _wallPatLastNow) / 1000) * ((_wpSt && _wpSt.speed) || 1);
+        _wallPatLastNow = now;
         wallwashers.forEach((w, i) => {
             const s = w.state;
             if (s.rainbowCustom && !s._rbCols) wallRebuildPalette(s);
@@ -13162,7 +13296,8 @@
 
             let d = isBlackout ? 0 : s.dim;
             if (!isBlackout) {
-                if      (fxState.sLR)   d = (i===(wallLRIdx<wTotal?wallLRIdx:(wTotal*2-1)-wallLRIdx))?s.dim:0;
+                if (_wpSegStrobe) { /* strobe dipindah ke tiap segmen (lihat di bawah) */ }
+                else if (fxState.sLR)   d = (i===(wallLRIdx<wTotal?wallLRIdx:(wTotal*2-1)-wallLRIdx))?s.dim:0;
                 else if (fxState.sCt)   { const step=wallCtStep<Math.ceil(wTotal/2)?wallCtStep:(Math.ceil(wTotal/2)*2-1)-wallCtStep; d=(i===step||(wTotal-1)-i===step)?s.dim:0; }
                 else if (fxState.sOdd)  d = ((i%2===0&&sOddPh)||(i%2!==0&&!sOddPh))?s.dim:0;
                 else if (fxState.sAll)  d = sAllPh?s.dim:0;
@@ -13172,10 +13307,17 @@
                 else if (fxState.sLoop) d = (i === (Math.floor(now/(1000/_cachedSpdSLoop)) % Math.max(1, wTotal))) ? s.dim : 0; // terus maju, tidak balik
                 d *= masterDimLevel;
             }
-            s.curDim += (d - s.curDim) * 0.35;
+            s.curDim = d;   // mati/nyala instan (tanpa smoothing) supaya kedipan Master Strobe tetap terlihat walau cepat
 
             const numSeg = w.segments.length;
             for (let j = 0; j < numSeg; j++) {
+                let _segDim = _wpId ? s.curDim * wallPatMul(_wpId, j, numSeg, _wallPatT) : s.curDim;   // dim per segmen (pola cahaya)
+                if (_wpSegStrobe) {
+                    if (!w._segMul) w._segMul = [];
+                    const _tg = wallSegStrobeTarget(j, numSeg, now, s.rndPhase, s.rndSpeed, _wpPh);
+                    w._segMul[j] = _tg;   // instan, tanpa smoothing
+                    _segDim *= _tg;
+                }
                 // Pakai _colTmp yang sudah ada (reuse), BUKAN alokasi THREE.Color baru per segmen per frame —
                 // ini biang lag terbesar waktu wallwasher punya banyak segmen & unit (ribuan alokasi/detik).
                 if (wallIsActuallyStopped) {
@@ -13195,6 +13337,14 @@
                 }
 
                 if (wallIsActuallyStopped || wallUsesPalette) {
+                    // Samakan kecerahan dengan mode pelangi biasa: kanal terbesar selalu 1.0 (hue & saturasi tetap).
+                    // Pelangi biasa selalu punya kanal 1.0; warna pilihan/palet (mis. biru gelap, atau campuran antar-warna palet)
+                    // bisa jauh di bawah itu sehingga tampil lebih redup dari pelangi.
+                    const _mx = Math.max(_colTmp.r, _colTmp.g, _colTmp.b);
+                    if (_mx > 1e-4 && _mx < 1) _colTmp.multiplyScalar(1 / _mx);
+                    // Pelangi biasa 'over-drive' (warna x ~24, kanal tengah ikut penuh), jadi tampak jauh lebih terang daripada warna
+                    // biasa yang mentok di 1.0. Slider KECERAHAN menambah over-drive yang sama untuk warna stop & palet custom.
+                    _colTmp.multiplyScalar(_wallBoost);
                     // Intensitas emissive dikali 28 (supaya warna pelangi murni terang). Untuk warna sembarang itu membuat
                     // tiap kanal di atas ~4% langsung penuh (abu-abu jadi putih, oranye jadi kuning). Diimbangi dibagi 28
                     // supaya hasil di layar = warna yang dipilih x tingkat INTENSITY. (Berlaku juga untuk warna palet custom rainbow.)
@@ -13202,23 +13352,23 @@
                     // penuh walau slider dim < 100%, jadi kalau stop memakai 1:1 dengan dim, tampilannya jadi lebih gelap.
                     // Faktor min(1, dim*28) / (dim*28) membuat hasil akhir = warna x min(1, dim*28): sama terangnya dengan mode jalan,
                     // dan rasio warna tetap persis (abu-abu tidak jadi putih).
-                    const _k28 = s.curDim * 28;
+                    const _k28 = _segDim * 28;
                     const _stopGain = _k28 > 1e-6 ? Math.min(1, _k28) / _k28 : 0;
-                    _wallEmisTmp.copy(_colTmp).multiplyScalar(wallIsActuallyStopped ? _stopGain : 1 / 28);
+                    _wallEmisTmp.copy(_colTmp).multiplyScalar(_stopGain);   // stop DAN palet custom: kecerahan sama dengan mode pelangi (min(1, dim*28))
                     w.segments[j].material.emissive.copy(_wallEmisTmp);
                 } else {
                     w.segments[j].material.emissive.copy(_colTmp);
                 }
-                w.segments[j].material.emissiveIntensity = s.curDim * 28;
+                w.segments[j].material.emissiveIntensity = _segDim * 28;
 
                 if (w.glows[j]) {
                     w.glows[j].material.color.copy(_colTmp);
-                    w.glows[j].material.opacity = s.curDim * 0.38;
+                    w.glows[j].material.opacity = _segDim * 0.38;
                 }
 
                 if (w.lights[j]) {
                     w.lights[j].color.copy(_colTmp);
-                    w.lights[j].intensity = s.curDim * 18;
+                    w.lights[j].intensity = _segDim * 18;
                 }
             }
         });
@@ -16679,12 +16829,13 @@
                 DEFAULT_SETTINGS_STATE.strobeOrder.forEach(k => { if (!settingsState.strobeOrder.includes(k)) settingsState.strobeOrder.push(k); });
                 // Project lama belum punya FX baru (mis. flyout) — tambahkan ke urutan & peta pengaturannya
                 DEFAULT_SETTINGS_STATE.fxOrder.forEach(k => { if (!settingsState.fxOrder.includes(k)) settingsState.fxOrder.push(k); });
-                ['delayCustom', 'delayCustomValue', 'fxHotkeys', 'actionHotkeys', 'gfx'].forEach(m => {
+                ['delayCustom', 'delayCustomValue', 'fxHotkeys', 'actionHotkeys', 'gfx', 'wallPattern'].forEach(m => {
                     settingsState[m] = Object.assign({}, DEFAULT_SETTINGS_STATE[m], settingsState[m] || {});
                 });
                 applyTheme(settingsState.theme || 'green');
                 applyRenderQuality(settingsState.renderQuality || 'medium');
                 if (typeof applyGfx === 'function') { applyGfx(); gfxRenderUi(); }
+                try { wallPatRender(); } catch (e) {}
                 applyLanguage(settingsState.language || 'id');
                 _applyFpsCounterUI(settingsState.showFps || false);
                 _applyVersionText();
@@ -18147,6 +18298,8 @@
                         if (!e.repeat) toggleBlackout();
                     } else if (actMatch === 'gobo') {
                         if (!e.repeat) cycleGoboMode();
+                    } else if (WALL_PAT_HOTKEYS[actMatch]) {
+                        if (!e.repeat) wallToggleFlowPattern(WALL_PAT_HOTKEYS[actMatch]);   // pola cahaya wallwasher (tekan lagi = mati)
                     } else if (GOBO_HOTKEY_MODES[actMatch]) {
                         if (!e.repeat) sMode(GOBO_HOTKEY_MODES[actMatch]);   // Master Gobo langsung ke mode tertentu
                     } else if (actMatch === 'bounceReverse') {
@@ -18217,6 +18370,7 @@
     }
 
     window.onload = function() {
+        try { wallPatRender(); } catch (e) {}
         init();
         setupKeyboardShortcuts();
         setupGlobalDragDrop();
