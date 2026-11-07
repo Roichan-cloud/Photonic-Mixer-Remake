@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="refresh" content="8;url=https://roichan-cloud.github.io/dropshare/">
+<title>Link Telah Dipindahkan</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+    min-height:100vh;display:flex;align-items:center;justify-content:center;
+    padding:20px;font-family:Arial,Helvetica,sans-serif;
+    background:#0d1117;color:#fff
+}
+.container{
+    width:100%;max-width:650px;text-align:center;padding:45px 30px;
+    border:1px solid #30363d;border-radius:18px;background:#161b22;
+    box-shadow:0 20px 60px rgba(0,0,0,.35)
+}
+.icon{font-size:55px;margin-bottom:20px}
+h1{font-size:30px;margin-bottom:15px}
+.description{color:#8b949e;line-height:1.7;margin-bottom:30px}
+.old-link{color:#8b949e;text-decoration:line-through;word-break:break-all;margin-bottom:12px}
+.arrow{font-size:25px;margin:8px 0;color:#58a6ff}
+.new-link{
+    display:inline-block;color:#58a6ff;font-weight:bold;
+    word-break:break-all;margin-bottom:30px
+}
+.button{
+    display:inline-block;padding:13px 24px;border-radius:10px;
+    background:#238636;color:white;text-decoration:none;font-weight:bold;
+    transition:.2s
+}
+.button:hover{background:#2ea043;transform:translateY(-2px)}
+.countdown{margin-top:22px;font-size:14px;color:#8b949e}
+#seconds{color:#fff;font-weight:bold}
+.footer{margin-top:30px;font-size:12px;color:#6e7681}
+</style>
+</head>
+<body>
+<main class="container">
+    <div class="icon">↪</div>
+    <h1>Link Telah Dipindahkan</h1>
+    <p class="description">
+        Halaman yang kamu cari sudah dipindahkan ke alamat baru.
+        Silakan gunakan link terbaru di bawah ini.
+    </p>
+
+    <p class="old-link">roichan-cloud.github.io/Photonic-Mixer-Remake</p>
+
+    <div class="arrow">↓</div>
+
+    <a class="new-link" href="https:ianlighting.my.id/">
+        ianlighting.my.id
+    </a>
+
+    <br>
+
+    <a class="button" href="https://ianlighting.my.id/">
+        Buka Ian Lighting
+    </a>
+
+    <p class="countdown">
+        Kamu akan diarahkan otomatis dalam
+        <span id="seconds">8</span> detik...
+    </p>
+
+    <p class="footer">Ian Lighting • Link terbaru</p>
+</main>
+
+<script>
+let seconds = 8;
+const countdown = document.getElementById("seconds");
+
+const timer = setInterval(() => {
+    seconds--;
+    countdown.textContent = seconds;
+
+    if (seconds <= 0) {
+        clearInterval(timer);
+        window.location.href = "https://roichan-cloud.github.io/dropshare/";
+    }
+}, 1000);
+</script>
+</body>
+</html>
